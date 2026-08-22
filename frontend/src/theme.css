@@ -1,0 +1,47 @@
+/* ============================================================
+   BIMA FARMA — DESIGN TOKENS GLOBAL
+   Import SEKALI di main.jsx. Berlaku untuk semua halaman.
+   Styling khusus tiap halaman ada di file CSS masing-masing
+   (Landing.css, nanti Toko.css, Kasir.css) — persis seperti
+   pendekatan 3 file HTML prototipe asli yang masing-masing
+   berdiri sendiri.
+   ============================================================ */
+
+:root {
+  --green: #39A048;
+  --green-dark: #227A34;
+  --green-tint: #EAF5EE;
+  --magenta: #A64BC7;
+  --magenta-dark: #7F2F9E;
+  --magenta-tint: #F7EDFB;
+  --magenta-deep: #5C2076;
+  --bg: #FDFCFA;
+  --surface: #FFFFFF;
+  --ink: #1D241F;
+  --ink-soft: #5B665F;
+  --line: #E5E1D9;
+  --shadow: 0 12px 32px rgba(29, 36, 31, 0.08);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .font-display { font-family: 'Fraunces', serif; letter-spacing: -0.01em; }
+a { text-decoration: none; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+ul { list-style: none; }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--magenta);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; scroll-behavior: auto !important; animation: none !important; }
+}

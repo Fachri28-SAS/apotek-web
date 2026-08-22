@@ -1,0 +1,46 @@
+.kasir-shell { display: flex; min-height: 100vh; }
+
+.kasir-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+.kasir-sidebar .logo-area { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px; }
+.kasir-sidebar .logo-area svg { width: 30px; height: 30px; }
+.kasir-sidebar .logo-area .nama { font-family: 'Fraunces', serif; font-weight: 700; font-size: 15px; color: var(--magenta-dark); }
+
+.kasir-menu { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.kasir-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; color: var(--ink-soft);
+  cursor: pointer;
+}
+.kasir-menu-item.active { background: var(--magenta-tint); color: var(--magenta-dark); }
+.kasir-menu-item .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+.kasir-sidebar-footer {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-top: 12px;
+}
+.kasir-user-nama { font-weight: 700; font-size: 13.5px; }
+.kasir-user-role {
+  display: inline-block; margin-top: 3px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--green-dark); background: var(--green-tint);
+  padding: 3px 9px; border-radius: 100px;
+}
+.kasir-logout-btn {
+  display: block; width: 100%; margin-top: 12px;
+  padding: 9px; border-radius: 10px; border: 1px solid var(--line);
+  background: #fff; font-size: 13px; font-weight: 700; color: var(--ink-soft);
+  cursor: pointer;
+}
+.kasir-logout-btn:hover { border-color: var(--magenta); color: var(--magenta-dark); }
+
+.kasir-content { flex: 1; padding: 40px 44px; }
