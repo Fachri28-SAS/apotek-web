@@ -2,30 +2,43 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ObatController;
+use App\Http\Controllers\ObatReferensiController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
-// ---- PUBLIK: tidak perlu login ----
-// Toko Online & pencarian obat di Kasir sama-sama pakai ini
+// =====================================================================
+// PUBLIK — tidak perlu login sama sekali
+// Dipakai Toko Online, dan juga dipakai Kasir untuk cari obat (sebelum
+// kasir/admin login pun data ini boleh diakses, karena tidak sensitif).
+// =====================================================================
 Route::get('/obat', [ObatController::class, 'index']);
 Route::get('/obat/{obat}', [ObatController::class, 'show']);
+Route::get('/suppliers', [SupplierController::class, 'index']);
+Route::get('/obat-referensi', [ObatReferensiController::class, 'index']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
-// ---- WAJIB LOGIN (kasir & admin) ----
+// =====================================================================
+// WAJIB LOGIN — kasir & admin
+// =====================================================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Kasir & admin dua-duanya boleh — operasional harian
+    // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
     Route::middleware('role:admin,kasir')->group(function () {
         Route::post('/obat/opname', [ObatController::class, 'opname']);
-    });
-
-    // HANYA admin — sesuai kesepakatan "kasir hanya bisa jualan"
-    Route::middleware('role:admin')->group(function () {
         Route::post('/obat', [ObatController::class, 'store']);
         Route::put('/obat/{obat}', [ObatController::class, 'update']);
         Route::delete('/obat/{obat}', [ObatController::class, 'destroy']);
+        Route::post('/penjualan', [PenjualanController::class, 'store']);
+        Route::get('/penjualan', [PenjualanController::class, 'index']);
+        Route::get('/penjualan/{penjualan}', [PenjualanController::class, 'show']);
+    });
+
+    // ---- HANYA admin — cuma Laporan yang eksklusif admin ----
+    Route::middleware('role:admin')->group(function () {
         // nanti: Route::get('/laporan', [LaporanController::class, 'index']);
     });
 });

@@ -17,15 +17,15 @@
 .btn-outline:hover { background: var(--magenta-tint); }
 
 /* ---------- NAV ---------- */
-header {
+.landing-page header {
   position: sticky; top: 0; z-index: 50;
   background: rgba(253, 252, 250, 0.9);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-header.scrolled { border-bottom-color: var(--line); box-shadow: 0 4px 20px rgba(29, 36, 31, 0.05); }
-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+.landing-page header.scrolled { border-bottom-color: var(--line); box-shadow: 0 4px 20px rgba(29, 36, 31, 0.05); }
+.landing-page header nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark { width: 38px; height: 38px; flex-shrink: 0; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
@@ -96,7 +96,7 @@ nav { display: flex; align-items: center; justify-content: space-between; paddin
 .trust-item .s { font-size: 14px; color: #B9C0B9; margin-top: 5px; }
 
 /* ---------- SECTION SHARED ---------- */
-section { padding: 96px 0; }
+.landing-page section { padding: 96px 0; }
 .section-head { max-width: 640px; margin-bottom: 52px; }
 .section-head h2 { font-size: clamp(28px, 3vw, 38px); font-weight: 700; margin: 14px 0 12px; }
 .section-head p { color: var(--ink-soft); font-size: 15.5px; }
@@ -170,14 +170,14 @@ section { padding: 96px 0; }
 }
 
 /* ---------- FOOTER ---------- */
-footer { background: var(--ink); color: #D9DED9; padding: 64px 0 28px; }
+.landing-page footer { background: var(--ink); color: #D9DED9; padding: 64px 0 28px; }
 .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
 .foot-brand .brand-text .apotek { color: #8FD1AC; }
 .foot-brand .brand-text .nama { color: #F0A9D2; }
 .foot-brand p { color: #A9B2A9; font-size: 13.5px; margin-top: 16px; max-width: 280px; }
-footer h5 { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8B948B; margin-bottom: 16px; }
-footer ul li { margin-bottom: 10px; font-size: 14px; color: #D9DED9; }
-footer ul li a:hover { color: #fff; }
+.landing-page footer h5 { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8B948B; margin-bottom: 16px; }
+.landing-page footer ul li { margin-bottom: 10px; font-size: 14px; color: #D9DED9; }
+.landing-page footer ul li a:hover { color: #fff; }
 .foot-bottom { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: #8B948B; }
 
 /* ---------- RESPONSIVE ---------- */

@@ -105,18 +105,50 @@ class ObatController extends Controller
         });
     }
 
+    /**
+     * Untuk varian satuan yang SUDAH ADA (kirim `id`), cuma harga yang
+     * boleh diubah — faktor & nama_satuan sengaja tidak bisa diubah lewat
+     * sini, karena kalau faktor berubah, konversi stok transaksi LAMA jadi
+     * tidak konsisten. Kalau butuh satuan baru, kirim tanpa `id`.
+     */
     public function update(Request $r, Obat $obat)
     {
         $data = $r->validate([
             'nama' => 'sometimes|string|max:255',
             'kemasan' => 'nullable|string',
+            'nomor_batch' => 'nullable|string|max:50',
+            'tanggal_exp' => 'nullable|date',
             'stok_minimum' => 'sometimes|integer|min:0',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'perlu_resep' => 'boolean',
             'aktif_dijual' => 'boolean',
             'tampil_online' => 'boolean',
+            'satuan' => 'nullable|array',
         ]);
+
+        $satuanInput = $data['satuan'] ?? null;
+        unset($data['satuan']);
+
         $obat->update($data);
+
+        foreach ($satuanInput ?? [] as $i => $s) {
+            if (!empty($s['id'])) {
+                $obat->satuan()->where('id', $s['id'])->update([
+                    'harga_beli' => $s['harga_beli'] ?? 0,
+                    'harga_jual' => $s['harga_jual'] ?? 0,
+                ]);
+            } elseif (!empty($s['nama_satuan'])) {
+                $obat->satuan()->create([
+                    'nama_satuan' => $s['nama_satuan'],
+                    'faktor' => $s['faktor'] ?? 1,
+                    'harga_beli' => $s['harga_beli'] ?? 0,
+                    'harga_jual' => $s['harga_jual'] ?? 0,
+                    'is_default' => false,
+                    'urutan' => 100 + $i,
+                ]);
+            }
+        }
+
         return $obat->load('satuan');
     }
 

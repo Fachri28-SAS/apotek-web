@@ -7,6 +7,8 @@ import Landing from "./pages/Landing";
 import Toko from "./pages/Toko";
 import Login from "./pages/Login";
 import Dashboard from "./pages/kasir/Dashboard";
+import Kasir from "./pages/kasir/Kasir";
+import DataObat from "./pages/kasir/DataObat";
 import Laporan from "./pages/kasir/Laporan";
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
 
           {/* ---- Wajib login: kasir & admin ---- */}
           <Route path="/kasir" element={<RutePrivat><Dashboard /></RutePrivat>} />
+          <Route path="/kasir/jual" element={<RutePrivat><Kasir /></RutePrivat>} />
+          <Route path="/kasir/obat" element={<RutePrivat><DataObat /></RutePrivat>} />
 
           {/* ---- Wajib login DAN khusus admin ---- */}
           <Route

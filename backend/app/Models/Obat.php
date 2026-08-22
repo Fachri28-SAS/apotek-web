@@ -11,6 +11,10 @@ class Obat extends Model
 
     protected $table = 'obat';
 
+    // Tanpa ini, accessor rentang_harga & sisa_hari_exp TIDAK ikut muncul
+    // saat model dikonversi ke JSON — cuma bisa diakses lewat PHP.
+    protected $appends = ['rentang_harga', 'sisa_hari_exp'];
+
     protected $fillable = [
         'kode', 'nama', 'kemasan', 'satuan_dasar', 'stok', 'stok_minimum',
         'batch_aktif_id', 'nomor_batch', 'tanggal_exp', 'supplier_id',

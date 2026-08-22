@@ -4,7 +4,7 @@ import "./Landing.css";
 
 export default function Landing() {
   return (
-    <>
+    <div className="landing-page">
       <Navbar />
       <Hero />
       <TrustStrip />
@@ -13,7 +13,7 @@ export default function Landing() {
       <TentangKami />
       <Lokasi />
       <Footer />
-    </>
+    </div>
   );
 }
 
