@@ -153,7 +153,7 @@ class PenjualanController extends Controller
             default => null,
         };
 
-        return $q->orderByDesc('id')->limit(200)->get();
+        return $q->withCount('items')->orderByDesc('id')->limit(200)->get();
     }
 
     /** GET /api/penjualan/{id} — buka ulang struk dari Riwayat */

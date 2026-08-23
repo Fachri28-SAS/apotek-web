@@ -9,8 +9,15 @@ export default function StrukModal({ data, onClose }) {
   });
 
   return (
-    <div className="struk-overlay">
+    <div className="struk-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="struk-modal">
+        <div className="struk-modal-head">
+          <h3 style={{ fontSize: 16, fontWeight: 700 }}>Struk Penjualan</h3>
+          <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
         <div className="struk-cetak">
           <div className="struk-center">
             <div className="struk-toko">APOTEK BIMA FARMA</div>

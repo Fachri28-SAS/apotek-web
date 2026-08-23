@@ -5,7 +5,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ObatReferensiController;
 use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\StokMutasiController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // =====================================================================
@@ -31,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);
+        Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
+        Route::get('/users', [UserController::class, 'index']);
         Route::post('/obat', [ObatController::class, 'store']);
         Route::put('/obat/{obat}', [ObatController::class, 'update']);
         Route::delete('/obat/{obat}', [ObatController::class, 'destroy']);
