@@ -187,18 +187,39 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
           </div>
 
           <div className="obat-toggle-row">
-            <label className="login-remember">
-              <input type="checkbox" checked={perluResep} onChange={(e) => setPerluResep(e.target.checked)} />
-              Perlu Resep Dokter
-            </label>
-            <label className="login-remember">
-              <input type="checkbox" checked={aktifDijual} onChange={(e) => setAktifDijual(e.target.checked)} />
-              Aktif Dijual
-            </label>
-            <label className="login-remember">
-              <input type="checkbox" checked={multiSatuan} onChange={(e) => setMultiSatuan(e.target.checked)} />
-              Punya beberapa satuan
-            </label>
+            <div className="obat-toggle-item">
+              <button
+                type="button"
+                className={`toggle-pill ${perluResep ? "on" : ""}`}
+                onClick={() => setPerluResep((v) => !v)}
+                aria-label="Perlu Resep Dokter"
+              >
+                <span className="toggle-knob" />
+              </button>
+              <span>Perlu Resep Dokter</span>
+            </div>
+            <div className="obat-toggle-item">
+              <button
+                type="button"
+                className={`toggle-pill ${aktifDijual ? "on" : ""}`}
+                onClick={() => setAktifDijual((v) => !v)}
+                aria-label="Aktif Dijual"
+              >
+                <span className="toggle-knob" />
+              </button>
+              <span>Aktif Dijual</span>
+            </div>
+            <div className="obat-toggle-item">
+              <button
+                type="button"
+                className={`toggle-pill ${multiSatuan ? "on" : ""}`}
+                onClick={() => setMultiSatuan((v) => !v)}
+                aria-label="Punya beberapa satuan"
+              >
+                <span className="toggle-knob" />
+              </button>
+              <span>Punya beberapa satuan</span>
+            </div>
           </div>
 
           {!multiSatuan ? (

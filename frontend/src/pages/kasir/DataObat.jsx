@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
@@ -18,7 +17,6 @@ function marginPct(beli, jual) {
 }
 
 export default function DataObat() {
-  const { user } = useAuth();
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

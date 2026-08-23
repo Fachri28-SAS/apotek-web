@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ObatReferensiController;
 use App\Http\Controllers\PenjualanController;
@@ -28,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
     Route::middleware('role:admin,kasir')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);
         Route::post('/obat', [ObatController::class, 'store']);
         Route::put('/obat/{obat}', [ObatController::class, 'update']);
