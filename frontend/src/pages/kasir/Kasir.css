@@ -437,16 +437,61 @@
 }
 .login-remember { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
 
-/* ---------- CETAK STRUK (thermal 58mm) ---------- */
+/* ---------- LAPORAN KHUSUS ---------- */
+.btn-outline-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+.btn-outline-action:hover {
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
+  background: var(--magenta-tint);
+}
+.filter-date-input {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  outline: none;
+}
+.filter-date-input:focus {
+  border-color: var(--magenta);
+}
+
+/* ---------- CETAK (STRUK THERMAL & LAPORAN A4) ---------- */
 @media print {
+  /* Default sembunyikan semua */
   body * { visibility: hidden; }
+
+  /* Cetak Struk Kasir (jika modal struk terbuka) */
   .struk-cetak, .struk-cetak * { visibility: visible; }
   .struk-cetak {
     position: fixed; top: 0; left: 0;
     width: 58mm; padding: 4mm; font-size: 11px;
   }
-  .struk-actions, .struk-overlay { position: static !important; }
-  .struk-modal { box-shadow: none; border-radius: 0; }
+
+  /* Cetak Laporan Formal (jika halaman Laporan yang dicetak) */
+  .kasir-konten, .kasir-konten * { visibility: visible; }
+  .kasir-konten {
+    position: absolute; top: 0; left: 0; width: 100%;
+    padding: 0; background: #fff !important;
+  }
+  .kasir-nav, .no-print, .kasir-header { display: none !important; }
+  .print-header { display: block !important; margin-bottom: 20px; }
+  .panel { box-shadow: none !important; border: 1px solid #ddd !important; }
 }
 
 @media (max-width: 1100px) {
