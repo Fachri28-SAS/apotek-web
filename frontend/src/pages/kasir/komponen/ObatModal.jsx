@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
+import Spinner from "../../../components/Spinner";
 
 function satuanKosong() {
   return { nama_satuan: "", faktor: 1, harga_beli: "", harga_jual: "" };
@@ -278,9 +279,13 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
           )}
 
           <div className="obat-modal-foot">
-            <button type="button" className="btn-outline" onClick={onClose}>Batal</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Menyimpan…" : "✓ Simpan"}
+            <button type="button" className="btn-outline" onClick={onClose} disabled={loading}>Batal</button>
+            <button type="submit" className={`btn-primary ${loading ? "btn-loading-state" : ""}`} disabled={loading}>
+              {loading ? (
+                <Spinner size={16} color="#FFFFFF" text="Menyimpan Data…" />
+              ) : (
+                "✓ Simpan"
+              )}
             </button>
           </div>
         </form>
