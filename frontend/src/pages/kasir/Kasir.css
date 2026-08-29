@@ -163,6 +163,30 @@
 .baris-klik { cursor: pointer; }
 .baris-klik:hover { background: var(--magenta-tint); }
 
+/* ---------- GRAFIK BATANG (CSS murni, tanpa library) ---------- */
+.grafik-batang {
+  display: flex; align-items: flex-end; gap: 12px;
+  height: 220px; padding: 12px 0;
+}
+.grafik-col {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  height: 100%; justify-content: flex-end; position: relative;
+}
+.grafik-bar {
+  width: 100%; max-width: 56px; border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, var(--magenta), var(--magenta-dark));
+  min-height: 4px; transition: height 0.4s ease;
+}
+.grafik-col:hover .grafik-bar { opacity: 0.85; }
+.grafik-tooltip {
+  position: absolute; top: -4px;
+  font-size: 10.5px; font-weight: 700; color: var(--magenta-dark);
+  white-space: nowrap; opacity: 0; transition: opacity 0.2s;
+}
+.grafik-col:hover .grafik-tooltip { opacity: 1; }
+.grafik-label { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-top: 8px; }
+.grafik-sublabel { font-size: 10px; color: var(--ink-soft); }
+
 @media (max-width: 900px) {
   .dashboard-2kolom { grid-template-columns: 1fr; }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\ObatController;
 use App\Http\Controllers\ObatReferensiController;
 use App\Http\Controllers\PenjualanController;
@@ -45,6 +46,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---- HANYA admin — cuma Laporan yang eksklusif admin ----
     Route::middleware('role:admin')->group(function () {
-        // nanti: Route::get('/laporan', [LaporanController::class, 'index']);
+        Route::get('/laporan', [LaporanController::class, 'index']);
     });
 });
