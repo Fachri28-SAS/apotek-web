@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../lib/api";
+import Spinner from "../../components/Spinner";
 import KasirShell from "./KasirShell";
 
 const PERIODE = [
@@ -244,9 +245,17 @@ export default function StokOpname() {
                   </span>
                 )}
               </div>
-              <button className="payment-submit" style={{ width: "auto", marginTop: 0, padding: "12px 26px" }}
-                onClick={simpan} disabled={loading || itemTerisi.length === 0}>
-                {loading ? "Menyimpan…" : "Simpan Penyesuaian"}
+              <button
+                className={`payment-submit ${loading ? "btn-loading-state" : ""}`}
+                style={{ width: "auto", marginTop: 0, padding: "12px 26px" }}
+                onClick={simpan}
+                disabled={loading || itemTerisi.length === 0}
+              >
+                {loading ? (
+                  <Spinner size={18} color="#FFFFFF" text="Menyesuaikan Stok…" />
+                ) : (
+                  "Simpan Penyesuaian"
+                )}
               </button>
             </div>
           </>

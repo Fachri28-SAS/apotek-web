@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/penjualan/{penjualan}', [PenjualanController::class, 'show']);
     });
 
-    // ---- HANYA admin — cuma Laporan yang eksklusif admin ----
+    // ---- HANYA admin — Laporan eksklusif admin ----
     Route::middleware('role:admin')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index']);
     });
