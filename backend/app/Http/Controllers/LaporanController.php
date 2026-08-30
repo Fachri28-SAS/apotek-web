@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Obat;
 use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,152 +11,92 @@ class LaporanController extends Controller
 {
     /**
      * GET /api/laporan
-     * Query params:
-     * - periode: 'hari-ini' | 'kemarin' | '7-hari' | 'bulan-ini' | 'bulan-lalu' | 'tahun-ini' | 'custom'
-     * - dari_tanggal: 'YYYY-MM-DD' (jika custom)
-     * - sampai_tanggal: 'YYYY-MM-DD' (jika custom)
-     * - kasir_id: ID user kasir (opsional)
+     * Khusus admin — kasir tidak boleh akses (dijaga middleware role:admin).
      */
     public function index(Request $r)
     {
-        $query = Penjualan::where('status', 'lunas');
+        $periode = $r->periode ?: 'hari-ini';
+        [$mulai, $selesai] = $this->rentangTanggal($periode);
 
-        // Filter Kasir
-        if ($r->filled('kasir_id')) {
-            $query->where('user_id', $r->kasir_id);
-        }
+        $hariIni = now()->toDateString();
+        $tujuhHariLalu = now()->subDays(6)->toDateString();
+        $batasExp = now()->addDays(90)->toDateString();
 
-        // Filter Rentang Tanggal / Periode
-        $periode = $r->get('periode', 'bulan-ini');
-        $labelPeriode = "Bulan Ini";
+        $queryPeriode = Penjualan::where('status', 'lunas')->whereBetween('tanggal', [$mulai, $selesai]);
 
-        switch ($periode) {
-            case 'hari-ini':
-                $query->whereDate('tanggal', now()->toDateString());
-                $labelPeriode = "Hari Ini (" . now()->translatedFormat('d M Y') . ")";
-                break;
-            case 'kemarin':
-                $kemarin = now()->subDay()->toDateString();
-                $query->whereDate('tanggal', $kemarin);
-                $labelPeriode = "Kemarin (" . now()->subDay()->translatedFormat('d M Y') . ")";
-                break;
-            case '7-hari':
-                $query->whereBetween('tanggal', [now()->subDays(6)->toDateString(), now()->toDateString()]);
-                $labelPeriode = "7 Hari Terakhir";
-                break;
-            case 'bulan-ini':
-                $query->whereMonth('tanggal', now()->month)
-                      ->whereYear('tanggal', now()->year);
-                $labelPeriode = now()->translatedFormat('F Y');
-                break;
-            case 'bulan-lalu':
-                $bulanLalu = now()->subMonth();
-                $query->whereMonth('tanggal', $bulanLalu->month)
-                      ->whereYear('tanggal', $bulanLalu->year);
-                $labelPeriode = $bulanLalu->translatedFormat('F Y');
-                break;
-            case 'tahun-ini':
-                $query->whereYear('tanggal', now()->year);
-                $labelPeriode = "Tahun " . now()->year;
-                break;
-            case 'custom':
-                if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
-                    $query->whereBetween('tanggal', [$r->dari_tanggal, $r->sampai_tanggal]);
-                    $labelPeriode = date('d/m/Y', strtotime($r->dari_tanggal)) . " - " . date('d/m/Y', strtotime($r->sampai_tanggal));
-                }
-                break;
-            default:
-                break;
-        }
+        // --- KPI mengikuti periode yang dipilih ---
+        $totalPenjualan = (clone $queryPeriode)->sum('total');
+        $jumlahTransaksi = (clone $queryPeriode)->count();
+        $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
 
-        // Clone query untuk sub-kalkulasi
-        $penjualanIds = (clone $query)->pluck('id');
-
-        // 1. Ringkasan Finansial Utama
-        $ringkasan = (clone $query)->selectRaw('
-            COALESCE(SUM(total), 0) as total_omzet,
-            COALESCE(SUM(subtotal), 0) as total_subtotal,
-            COALESCE(SUM(diskon), 0) as total_diskon,
-            COALESCE(SUM(total_tuslah), 0) as total_tuslah,
-            COUNT(id) as total_transaksi
-        ')->first();
-
-        // 2. Hitung HPP (Modal Pokok), Total Item, dan Laba Kotor
-        $itemStats = DB::table('penjualan_item')
-            ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
-            ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
-            ->selectRaw('
-                COALESCE(SUM(penjualan_item.qty), 0) as total_item_terjual,
-                COALESCE(SUM(penjualan_item.qty * COALESCE(obat_satuan.harga_beli, 0)), 0) as total_hpp
-            ')->first();
-
-        $totalOmzet = (float) ($ringkasan->total_omzet ?? 0);
-        $totalHpp = (float) ($itemStats->total_hpp ?? 0);
-        $labaKotor = max($totalOmzet - $totalHpp, 0);
-        $marginPct = $totalOmzet > 0 ? round(($labaKotor / $totalOmzet) * 100, 1) : 0;
-        $totalTransaksi = (int) ($ringkasan->total_transaksi ?? 0);
-        $rataTransaksi = $totalTransaksi > 0 ? round($totalOmzet / $totalTransaksi, 0) : 0;
-
-        // 3. Breakdown Metode Pembayaran
-        $metodeBayar = (clone $query)
-            ->select('metode_bayar', DB::raw('COUNT(id) as jumlah'), DB::raw('SUM(total) as total'))
+        // --- Breakdown metode pembayaran (untuk progress bar) ---
+        $metodeBreakdown = (clone $queryPeriode)
+            ->select('metode_bayar', DB::raw('COUNT(*) as jumlah'), DB::raw('SUM(total) as total'))
             ->groupBy('metode_bayar')
             ->get()
-            ->map(function ($m) use ($totalOmzet) {
-                return [
-                    'metode' => $m->metode_bayar,
-                    'jumlah_transaksi' => (int) $m->jumlah,
-                    'total' => (float) $m->total,
-                    'persentase' => $totalOmzet > 0 ? round(($m->total / $totalOmzet) * 100, 1) : 0,
-                ];
-            });
+            ->map(fn ($m) => [
+                'metode' => $m->metode_bayar,
+                'jumlah' => (int) $m->jumlah,
+                'total' => (float) $m->total,
+                'persen' => $jumlahTransaksi > 0 ? round($m->jumlah / $jumlahTransaksi * 100) : 0,
+            ]);
 
-        // 4. Top 10 Obat Terlaris
-        $topObat = DB::table('penjualan_item')
-            ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
-            ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
-            ->select(
-                'penjualan_item.nama_obat',
-                'penjualan_item.nama_satuan',
-                DB::raw('SUM(penjualan_item.qty) as total_qty'),
-                DB::raw('SUM(penjualan_item.subtotal) as total_omzet'),
-                DB::raw('SUM(penjualan_item.subtotal - (penjualan_item.qty * COALESCE(obat_satuan.harga_beli, 0))) as estimasi_laba')
-            )
-            ->groupBy('penjualan_item.nama_obat', 'penjualan_item.nama_satuan')
-            ->orderByDesc('total_qty')
-            ->limit(10)
+        // --- Grafik 7 hari — SELALU trend 7 hari terakhir, tidak ikut filter periode ---
+        $grafik = DB::table('penjualan')
+            ->selectRaw("tanggal, COUNT(*) as jml_transaksi, SUM(total) as omzet")
+            ->where('status', 'lunas')
+            ->where('tanggal', '>=', $tujuhHariLalu)
+            ->groupBy('tanggal')
+            ->orderBy('tanggal')
             ->get();
 
-        // 5. Kinerja Kasir
-        $kinerjaKasir = (clone $query)
-            ->select('user_id', 'nama_kasir', DB::raw('COUNT(id) as total_transaksi'), DB::raw('SUM(total) as total_omzet'))
-            ->groupBy('user_id', 'nama_kasir')
-            ->orderByDesc('total_omzet')
-            ->get();
+        $grafik7Hari = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $tgl = now()->subDays($i)->toDateString();
+            $data = $grafik->firstWhere('tanggal', $tgl);
+            $grafik7Hari[] = [
+                'tanggal' => $tgl,
+                'label' => now()->subDays($i)->translatedFormat('D, d M'),
+                'omzet' => $data ? (float) $data->omzet : 0,
+                'jml_transaksi' => $data ? (int) $data->jml_transaksi : 0,
+            ];
+        }
 
-        // 6. Transaksi Terbaru / Rincian
-        $transaksi = (clone $query)
+        $kadaluwarsa = Obat::whereNull('deleted_at')
+            ->whereNotNull('tanggal_exp')
+            ->whereBetween('tanggal_exp', [$hariIni, $batasExp])
+            ->orderBy('tanggal_exp')
+            ->get(['id', 'nama', 'satuan_dasar', 'stok', 'nomor_batch', 'tanggal_exp']);
+
+        // --- Tabel transaksi ikut periode yang dipilih ---
+        $transaksi = (clone $queryPeriode)
             ->withCount('items')
             ->orderByDesc('id')
-            ->limit(100)
-            ->get(['id', 'no_struk', 'tanggal', 'created_at', 'nama_kasir', 'nama_pembeli', 'metode_bayar', 'subtotal', 'diskon', 'total']);
+            ->limit(200)
+            ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'subtotal',
+                    'diskon', 'total', 'metode_bayar', 'sumber', 'created_at']);
 
-        return response()->json([
-            'label_periode' => $labelPeriode,
+        return [
+            'periode' => $periode,
             'kpi' => [
-                'total_omzet' => $totalOmzet,
-                'total_hpp' => $totalHpp,
-                'laba_kotor' => $labaKotor,
-                'margin_persen' => $marginPct,
-                'total_transaksi' => $totalTransaksi,
-                'total_item_terjual' => (int) ($itemStats->total_item_terjual ?? 0),
-                'rata_transaksi' => (float) $rataTransaksi,
-                'total_diskon' => (float) ($ringkasan->total_diskon ?? 0),
+                'total_penjualan' => (float) $totalPenjualan,
+                'jumlah_transaksi' => $jumlahTransaksi,
+                'rata_rata' => round($rataRata),
             ],
-            'metode_pembayaran' => $metodeBayar,
-            'top_obat' => $topObat,
-            'kinerja_kasir' => $kinerjaKasir,
+            'metode_breakdown' => $metodeBreakdown,
+            'grafik_7_hari' => $grafik7Hari,
+            'kadaluwarsa' => $kadaluwarsa,
             'transaksi' => $transaksi,
-        ]);
+        ];
+    }
+
+    private function rentangTanggal(string $periode): array
+    {
+        return match ($periode) {
+            'minggu-ini' => [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()],
+            'bulan-ini' => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+            'bulan-lalu' => [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()],
+            default => [now()->toDateString(), now()->toDateString()], // hari-ini
+        };
     }
 }

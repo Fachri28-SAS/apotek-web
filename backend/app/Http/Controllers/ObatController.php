@@ -29,6 +29,10 @@ class ObatController extends Controller
             $q->where('nama', 'like', '%' . $r->search . '%');
         }
 
+        if ($r->filled('supplier_id')) {
+            $q->where('supplier_id', $r->supplier_id);
+        }
+
         if ($r->untuk === 'kasir') {
             $q->where('aktif_dijual', true);
         }
@@ -98,6 +102,9 @@ class ObatController extends Controller
                     ...$s,
                     'is_default' => $s['is_default'] ?? ($i === 0),
                     'urutan' => $i,
+                    // Terkunci sekali di sini — harga waktu obat pertama
+                    // kali didaftarkan, jadi acuan tren jangka panjang.
+                    'harga_beli_awal' => $s['harga_beli'],
                 ]);
             }
 
@@ -132,21 +139,36 @@ class ObatController extends Controller
         $obat->update($data);
 
         foreach ($satuanInput ?? [] as $i => $s) {
-            if (!empty($s['id'])) {
-                $obat->satuan()->where('id', $s['id'])->update([
-                    'harga_beli' => $s['harga_beli'] ?? 0,
-                    'harga_jual' => $s['harga_jual'] ?? 0,
-                ]);
-            } elseif (!empty($s['nama_satuan'])) {
-                $obat->satuan()->create([
-                    'nama_satuan' => $s['nama_satuan'],
-                    'faktor' => $s['faktor'] ?? 1,
-                    'harga_beli' => $s['harga_beli'] ?? 0,
-                    'harga_jual' => $s['harga_jual'] ?? 0,
-                    'is_default' => false,
-                    'urutan' => 100 + $i,
-                ]);
+            if (empty($s['nama_satuan'])) continue;
+
+            // Dicocokkan berdasarkan NAMA satuan (dijamin unik per obat
+            // oleh database), BUKAN berdasarkan `id` yang dikirim frontend.
+            // Ini bikin proses ini kebal dari kasus id kosong/tidak
+            // terkirim — tidak akan pernah salah bikin baris duplikat
+            // untuk satuan yang sebenarnya sudah ada.
+            $satuanLama = $obat->satuan()->where('nama_satuan', $s['nama_satuan'])->first();
+
+            $updateData = [
+                'harga_beli' => $s['harga_beli'] ?? 0,
+                'harga_jual' => $s['harga_jual'] ?? 0,
+            ];
+
+            if ($satuanLama) {
+                // Satuan SUDAH ADA — cuma harga yang boleh berubah.
+                // Faktor sengaja tidak disentuh di sini (lihat catatan lama).
+                $updateData['harga_beli_sebelumnya'] = $satuanLama->harga_beli;
+                if (array_key_exists('harga_beli_awal', $s)) {
+                    $updateData['harga_beli_awal'] = $s['harga_beli_awal'];
+                }
+            } else {
+                // Satuan BENAR-BENAR BARU
+                $updateData['faktor'] = $s['faktor'] ?? 1;
+                $updateData['harga_beli_awal'] = $s['harga_beli'] ?? 0;
+                $updateData['is_default'] = false;
+                $updateData['urutan'] = 100 + $i;
             }
+
+            $obat->satuan()->updateOrCreate(['nama_satuan' => $s['nama_satuan']], $updateData);
         }
 
         return $obat->load('satuan');
@@ -155,6 +177,61 @@ class ObatController extends Controller
     public function destroy(Obat $obat)
     {
         $obat->delete(); // soft delete, tidak hilang dari database
+        return response()->noContent();
+    }
+
+    /**
+     * GET /api/obat-sampah
+     * Daftar obat yang sudah "dihapus" tapi masih ada di database
+     * (soft delete). Bisa dipulihkan lagi dari sini.
+     */
+    public function sampah()
+    {
+        return Obat::onlyTrashed()->with('satuan')->orderByDesc('deleted_at')->get();
+    }
+
+    /**
+     * POST /api/obat/{id}/pulihkan
+     * Ambil kembali obat dari sampah. Pakai $id polos (bukan route-model-binding
+     * otomatis) karena obat yang sudah di-soft-delete memang sengaja
+     * disembunyikan dari binding biasa.
+     */
+    public function pulihkan($id)
+    {
+        $obat = Obat::onlyTrashed()->findOrFail($id);
+        $obat->restore();
+        return $obat->fresh()->load('satuan');
+    }
+
+    /**
+     * DELETE /api/obat/{id}/permanen
+     * "Kosongkan sampah" — beneran hilang, TIDAK bisa dipulihkan lagi.
+     */
+    public function hapusPermanen($id)
+    {
+        $obat = Obat::onlyTrashed()->findOrFail($id);
+        $obat->forceDelete();
+        return response()->noContent();
+    }
+
+    /**
+     * DELETE /api/obat/{obat}/satuan/{satuan}
+     *
+     * Aman dihapus meski sudah pernah dipakai transaksi — penjualan_item
+     * & penerimaan_item sudah menyimpan SALINAN nama/harga (bukan cuma
+     * nyambung lewat foreign key), jadi struk & riwayat lama tetap utuh
+     * walau satuan aslinya sudah dihapus (FK-nya otomatis jadi NULL,
+     * tidak ikut kehapus datanya — lihat migration nullOnDelete()).
+     */
+    public function hapusSatuan(Obat $obat, ObatSatuan $satuan)
+    {
+        if ($satuan->obat_id !== $obat->id) {
+            abort(404);
+        }
+        if ($obat->satuan()->count() <= 1) {
+            abort(422, 'Tidak bisa hapus satuan terakhir — obat harus punya minimal 1 satuan jual.');
+        }
+        $satuan->delete();
         return response()->noContent();
     }
 

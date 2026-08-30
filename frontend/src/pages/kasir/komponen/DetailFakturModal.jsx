@@ -1,0 +1,54 @@
+import { rupiah } from "../../../utils/format";
+
+export default function DetailFakturModal({ data, onClose }) {
+  if (!data) return null;
+
+  return (
+    <div className="struk-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="struk-modal" style={{ maxWidth: 640 }}>
+        <div className="struk-modal-head">
+          <h3 style={{ fontSize: 16, fontWeight: 700 }}>Detail Faktur {data.no_faktur}</h3>
+          <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+
+        <div style={{ padding: "20px 22px" }}>
+          <div className="detail-faktur-info">
+            <div><span>Supplier</span><strong>{data.nama_supplier}</strong></div>
+            <div><span>Tanggal Terima</span><strong>{new Date(data.tanggal_terima).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</strong></div>
+            <div><span>Jatuh Tempo</span><strong>{data.tanggal_jatuh_tempo ? new Date(data.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "—"}</strong></div>
+            <div><span>Status</span><strong>{data.is_pkp ? "PKP" : "Non PKP"}</strong></div>
+          </div>
+
+          <table className="obat-table" style={{ marginTop: 16 }}>
+            <thead>
+              <tr><th>Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
+            </thead>
+            <tbody>
+              {data.items.map((it) => (
+                <tr key={it.id}>
+                  <td className="obat-nama-cell">{it.nama_obat}</td>
+                  <td>{it.qty}</td>
+                  <td>{it.nama_satuan}</td>
+                  <td className="obat-harga-cell">{rupiah(it.harga_beli)}</td>
+                  <td className="obat-harga-cell">{it.diskon > 0 ? rupiah(it.diskon) : "—"}</td>
+                  <td className="obat-batch-cell">{it.nomor_batch || "—"}</td>
+                  <td style={{ fontWeight: 700 }}>{rupiah(it.subtotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="penerimaan-ringkasan" style={{ marginLeft: 0, maxWidth: "none" }}>
+            <div className="payment-row"><span>Subtotal</span><span>{rupiah(data.subtotal)}</span></div>
+            <div className="payment-row"><span>Diskon Faktur</span><span>-{rupiah(data.subtotal - data.subtotal_setelah_diskon)}</span></div>
+            <div className="payment-row"><span>DPP</span><span>{rupiah(data.dpp)}</span></div>
+            <div className="payment-row"><span>PPN</span><span>{rupiah(data.ppn)}</span></div>
+            <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(data.total)}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

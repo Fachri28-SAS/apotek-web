@@ -17,6 +17,7 @@ export default function Riwayat() {
   const [kasirList, setKasirList] = useState([]);
   const [periode, setPeriode] = useState("hari-ini");
   const [kasirId, setKasirId] = useState("");
+  const [sumber, setSumber] = useState("semua");
   const [loading, setLoading] = useState(true);
   const [struk, setStruk] = useState(null);
   const [error, setError] = useState("");
@@ -30,12 +31,13 @@ export default function Riwayat() {
     const params = new URLSearchParams();
     if (periode) params.set("periode", periode);
     if (kasirId) params.set("kasir_id", kasirId);
+    if (sumber) params.set("sumber", sumber);
 
     api(`/penjualan?${params}`)
       .then((d) => { setDaftar(d); setError(""); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [periode, kasirId]);
+  }, [periode, kasirId, sumber]);
 
   async function bukaStruk(id) {
     try {
@@ -77,6 +79,12 @@ export default function Riwayat() {
             <option value="">Semua Kasir</option>
             {kasirList.map((k) => <option key={k.id} value={k.id}>{k.nama}</option>)}
           </select>
+
+          <div className="periode-chips">
+            <button type="button" className={`periode-chip ${sumber === "semua" ? "active" : ""}`} onClick={() => setSumber("semua")}>Semua Sumber</button>
+            <button type="button" className={`periode-chip ${sumber === "kasir" ? "active" : ""}`} onClick={() => setSumber("kasir")}>Kasir</button>
+            <button type="button" className={`periode-chip ${sumber === "online" ? "active" : ""}`} onClick={() => setSumber("online")}>Toko Online</button>
+          </div>
         </div>
 
         {loading ? (
@@ -87,7 +95,7 @@ export default function Riwayat() {
           <table className="obat-table">
             <thead>
               <tr>
-                <th>No. Struk</th><th>Tanggal</th><th>Waktu</th><th>Kasir</th>
+                <th>No. Struk</th><th>Sumber</th><th>Tanggal</th><th>Waktu</th><th>Kasir</th>
                 <th>Pembeli</th><th>Item</th><th>Total</th><th>Bayar</th><th>Aksi</th>
               </tr>
             </thead>
@@ -95,6 +103,11 @@ export default function Riwayat() {
               {daftar.map((t) => (
                 <tr key={t.id} className="baris-klik" onClick={() => bukaStruk(t.id)}>
                   <td className="obat-batch-cell">{t.no_struk}</td>
+                  <td>
+                    <span className={`sumber-badge ${t.sumber}`}>
+                      {t.sumber === "online" ? "Toko Online" : "Kasir"}
+                    </span>
+                  </td>
                   <td>{new Date(t.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</td>
                   <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
                   <td>{t.nama_kasir}</td>

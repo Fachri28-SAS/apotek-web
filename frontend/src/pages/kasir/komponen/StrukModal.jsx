@@ -1,5 +1,18 @@
 import { rupiah } from "../../../utils/format";
 
+/**
+ * Ganti judul tab sesaat sebelum print, lalu balikin lagi setelahnya.
+ * Chrome & browser lain pakai judul tab sebagai nama file default saat
+ * "Save as PDF" — jadi ini bikin nama filenya otomatis "Struk-BF-...",
+ * tidak perlu diketik manual tiap kali print.
+ */
+function cetakStruk(noStruk) {
+  const judulAsli = document.title;
+  document.title = `Struk-${noStruk}`;
+  window.print();
+  setTimeout(() => { document.title = judulAsli; }, 500);
+}
+
 export default function StrukModal({ data, onClose }) {
   if (!data) return null;
 
@@ -43,19 +56,19 @@ export default function StrukModal({ data, onClose }) {
                 {it.qty} {it.nama_satuan} × {rupiah(it.harga_jual)}
                 {it.nomor_batch ? ` · Batch ${it.nomor_batch}` : ""}
               </div>
-              {it.harga_jual !== it.harga_asli && (
+              {Number(it.harga_jual) !== Number(it.harga_asli) && (
                 <div className="struk-item-note">
                   Harga asli {rupiah(it.harga_asli)} → diubah kasir jadi {rupiah(it.harga_jual)}
                 </div>
               )}
-              <div className="struk-item-subtotal">{rupiah(it.qty * it.harga_jual + it.tuslah)}</div>
+              <div className="struk-item-subtotal">{rupiah(Number(it.qty) * Number(it.harga_jual) + Number(it.tuslah))}</div>
             </div>
           ))}
 
           <div className="struk-garis" />
 
-          <div className="struk-baris"><span>Subtotal</span><span>{rupiah(data.subtotal + data.total_tuslah)}</span></div>
-          {data.diskon > 0 && (
+          <div className="struk-baris"><span>Subtotal</span><span>{rupiah(Number(data.subtotal) + Number(data.total_tuslah))}</span></div>
+          {Number(data.diskon) > 0 && (
             <div className="struk-baris"><span>Diskon</span><span>-{rupiah(data.diskon)}</span></div>
           )}
           <div className="struk-baris struk-total"><span>TOTAL</span><span>{rupiah(data.total)}</span></div>
@@ -73,7 +86,7 @@ export default function StrukModal({ data, onClose }) {
 
         <div className="struk-actions">
           <button className="btn-outline" onClick={onClose}>Tutup</button>
-          <button className="btn-primary" onClick={() => window.print()}>Cetak Struk</button>
+          <button className="btn-primary" onClick={() => cetakStruk(data.no_struk)}>Cetak Struk</button>
         </div>
       </div>
 

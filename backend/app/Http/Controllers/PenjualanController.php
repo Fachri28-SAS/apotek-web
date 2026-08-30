@@ -139,7 +139,13 @@ class PenjualanController extends Controller
     /** GET /api/penjualan — dipakai halaman Riwayat Penjualan nanti */
     public function index(Request $r)
     {
-        $q = Penjualan::where('sumber', 'kasir');
+        // Cuma yang sudah lunas — pesanan online yang masih 'pending'/'batal'
+        // tidak dianggap "riwayat penjualan", karena belum benar-benar terjual.
+        $q = Penjualan::where('status', 'lunas');
+
+        if ($r->filled('sumber') && $r->sumber !== 'semua') {
+            $q->where('sumber', $r->sumber); // 'kasir' atau 'online'
+        }
 
         if ($r->filled('kasir_id')) {
             $q->where('user_id', $r->kasir_id);

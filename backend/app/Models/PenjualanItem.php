@@ -16,6 +16,13 @@ class PenjualanItem extends Model
         'nomor_batch', 'faktor', 'qty', 'harga_asli', 'harga_jual', 'tuslah', 'subtotal',
     ];
 
+    protected $casts = [
+        'harga_asli' => 'float',
+        'harga_jual' => 'float',
+        'tuslah' => 'float',
+        'subtotal' => 'float',
+    ];
+
     public function penjualan()
     {
         return $this->belongsTo(Penjualan::class);

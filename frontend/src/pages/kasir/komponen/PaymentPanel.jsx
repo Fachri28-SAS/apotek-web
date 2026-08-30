@@ -1,5 +1,4 @@
 import { rupiah } from "../../../utils/format";
-import Spinner from "../../../components/Spinner";
 
 const METODE = [
   { key: "tunai", label: "Tunai" },
@@ -98,15 +97,11 @@ export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian
 
       <button
         type="button"
-        className={`payment-submit ${loading ? "btn-loading-state" : ""}`}
+        className="payment-submit"
         onClick={onSubmit}
         disabled={disabled || loading || kurang}
       >
-        {loading ? (
-          <Spinner size={18} color="#FFFFFF" text="Memproses Transaksi…" />
-        ) : (
-          "Simpan & Cetak Struk"
-        )}
+        {loading ? "Menyimpan…" : "Simpan & Cetak Struk"}
       </button>
     </div>
   );

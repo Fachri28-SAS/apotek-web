@@ -14,7 +14,15 @@ class Penjualan extends Model
         'kembalian', 'sumber', 'status', 'telepon_pembeli', 'alamat_kirim', 'tanggal',
     ];
 
-    protected $casts = ['tanggal' => 'date'];
+    protected $casts = [
+        'tanggal' => 'date',
+        'subtotal' => 'float',
+        'total_tuslah' => 'float',
+        'diskon' => 'float',
+        'total' => 'float',
+        'uang_diterima' => 'float',
+        'kembalian' => 'float',
+    ];
 
     public function items()
     {

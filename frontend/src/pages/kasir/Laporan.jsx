@@ -1,448 +1,287 @@
 import { useState, useEffect } from "react";
+import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
-import StrukModal from "./komponen/StrukModal";
 
-const PERIODE_OPSI = [
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  var now = new Date(); now.setHours(0, 0, 0, 0);
+  var exp = new Date(dateStr); exp.setHours(0, 0, 0, 0);
+  return Math.ceil((exp - now) / 86400000);
+}
+
+var PERIODE = [
   { key: "hari-ini", label: "Hari Ini" },
-  { key: "kemarin", label: "Kemarin" },
-  { key: "7-hari", label: "7 Hari Terakhir" },
+  { key: "minggu-ini", label: "Minggu Ini" },
   { key: "bulan-ini", label: "Bulan Ini" },
   { key: "bulan-lalu", label: "Bulan Lalu" },
-  { key: "tahun-ini", label: "Tahun Ini" },
-  { key: "custom", label: "Rentang Tanggal…" },
 ];
 
-export default function Laporan() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+var LABEL_METODE = { tunai: "Tunai", qris: "QRIS", transfer: "Transfer" };
+var WARNA_METODE = { tunai: "#39A048", qris: "#A64BC7", transfer: "#1A56B8" };
 
-  const [periode, setPeriode] = useState("bulan-ini");
-  const [dariTanggal, setDariTanggal] = useState("");
-  const [sampaiTanggal, setSampaiTanggal] = useState("");
-  const [kasirId, setKasirId] = useState("");
-  const [kasirList, setKasirList] = useState([]);
+/**
+ * Grafik kurva area halus pakai SVG murni — jauh lebih enak dilihat
+ * dibanding batang kaku, apalagi kalau datanya sepi (banyak hari nol).
+ */
+/**
+ * Grafik pakai Recharts — library grafik yang matang, dipakai banyak
+ * aplikasi. Kurva "monotone" otomatis halus TANPA overshoot aneh (beda
+ * dengan Catmull-Rom manual sebelumnya), dan skala sumbu-nya otomatis
+ * proporsional mengikuti data, bukan dipaksa 0-max secara kaku.
+ */
+function TooltipKustom({ active, payload }) {
+  if (!active || !payload || !payload.length) return null;
+  var item = payload[0].payload;
+  var parts = item.label ? item.label.split(", ") : ["", ""];
+  return (
+    <div className="grafik-tooltip-kustom">
+      <div className="grafik-tooltip-hari">{parts[0]} · {parts[1]}</div>
+      <div className="grafik-tooltip-omzet">{rupiah(item.omzet)}</div>
+    </div>
+  );
+}
 
-  const [struk, setStruk] = useState(null);
+function GrafikArea({ data }) {
+  var dataChart = data.map(function(d) {
+    var parts = d.label ? d.label.split(", ") : ["", ""];
+    return { ...d, hari: parts[0] };
+  });
 
-  // Ambil daftar kasir untuk dropdown filter
-  useEffect(() => {
-    api("/users").then(setKasirList).catch(() => setKasirList([]));
-  }, []);
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <AreaChart data={dataChart} margin={{ top: 16, right: 12, left: 12, bottom: 0 }}>
+        <defs>
+          <linearGradient id="grafikGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#A64BC7" stopOpacity={0.35} />
+            <stop offset="95%" stopColor="#A64BC7" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} stroke="#E5E1D9" />
+        <XAxis
+          dataKey="hari"
+          tick={{ fontSize: 12, fontWeight: 700, fill: "#1D241F" }}
+          axisLine={{ stroke: "#E5E1D9" }}
+          tickLine={false}
+        />
+        <Tooltip content={<TooltipKustom />} />
+        <Area
+          type="monotone"
+          dataKey="omzet"
+          stroke="#A64BC7"
+          strokeWidth={2.5}
+          fill="url(#grafikGradient)"
+          dot={{ r: 4, fill: "#fff", stroke: "#A64BC7", strokeWidth: 2.5 }}
+          activeDot={{ r: 6 }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
 
-  function muatLaporan() {
-    setLoading(true);
-    const params = new URLSearchParams();
-    params.set("periode", periode);
-    if (kasirId) params.set("kasir_id", kasirId);
-    if (periode === "custom") {
-      if (dariTanggal) params.set("dari_tanggal", dariTanggal);
-      if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
-    }
-
-    api(`/laporan?${params}`)
-      .then((res) => {
-        setData(res);
-        setError("");
-      })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(() => {
-    if (periode !== "custom" || (dariTanggal && sampaiTanggal)) {
-      muatLaporan();
-    }
-  }, [periode, dariTanggal, sampaiTanggal, kasirId]);
-
-  async function bukaStruk(id) {
-    try {
-      const hasil = await api(`/penjualan/${id}`);
-      setStruk(hasil);
-    } catch (e) {
-      alert("Gagal memuat struk: " + e.message);
-    }
-  }
-
-  function eksporCSV() {
-    if (!data || !data.transaksi || data.transaksi.length === 0) {
-      alert("Tidak ada data transaksi untuk diekspor.");
-      return;
-    }
-
-    const headers = ["No Struk", "Tanggal", "Kasir", "Pembeli", "Metode", "Subtotal", "Diskon", "Total"];
-    const rows = data.transaksi.map((t) => [
+function exportCSV(transaksi) {
+  var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total,Metode Bayar\n";
+  var rows = transaksi.map(function(t) {
+    return [
       t.no_struk,
-      t.tanggal,
-      `"${t.nama_kasir || ''}"`,
-      `"${t.nama_pembeli || ''}"`,
-      t.metode_bayar,
+      t.sumber === "online" ? "Toko Online" : "Kasir",
+      new Date(t.created_at).toLocaleString("id-ID"),
+      '"' + t.nama_kasir + '"',
+      '"' + (t.nama_pembeli || "") + '"',
+      t.items_count,
       t.subtotal,
       t.diskon,
-      t.total
-    ]);
+      t.total,
+      t.metode_bayar,
+    ].join(",");
+  }).join("\n");
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Laporan_Penjualan_Bima_Farma_${periode}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  var blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "transaksi-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export default function Laporan() {
+  var [periode, setPeriode] = useState("hari-ini");
+  var [data, setData] = useState(null);
+  var [loading, setLoading] = useState(true);
+  var [error, setError] = useState("");
+
+  useEffect(function() {
+    setLoading(true);
+    api("/laporan?periode=" + periode)
+      .then(function(d) { setData(d); setError(""); })
+      .catch(function(e) { setError(e.message); })
+      .finally(function() { setLoading(false); });
+  }, [periode]);
+
+  var labelPeriode = PERIODE.find(function(p){ return p.key === periode; }).label;
+
+  if (!loading && !data) {
+    return (
+      <KasirShell>
+        <div className="login-error">{error || "Gagal memuat laporan. Coba refresh halaman."}</div>
+      </KasirShell>
+    );
   }
-
-  const kpi = data?.kpi || {};
 
   return (
     <KasirShell>
-      {/* Header Laporan */}
-      <div className="halaman-header no-print">
+      <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 700 }}>Laporan Finansial & Penjualan</h1>
-          <p className="halaman-sub">
-            {data?.label_periode ? `Periode: ${data.label_periode}` : "Analisis pendapatan dan performa apotek"}
-          </p>
+          <h1 style={{ fontSize: 24 }}>Laporan</h1>
+          <p className="halaman-sub">Ringkasan penjualan dan stok</p>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button className="btn-outline-action" onClick={eksporCSV} title="Download format Excel/CSV">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Ekspor CSV
-          </button>
-          <button className="btn-tambah" onClick={() => window.print()}>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="6 9 6 2 18 2 18 9" />
-              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-              <rect x="6" y="14" width="12" height="8" />
-            </svg>
-            Cetak Laporan
-          </button>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="panel no-print" style={{ padding: "14px 18px", marginBottom: 20 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
-          <div className="periode-chips" style={{ margin: 0 }}>
-            {PERIODE_OPSI.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                onClick={() => setPeriode(p.key)}
-              >
+        <div className="periode-chips">
+          {PERIODE.map(function(p) {
+            return (
+              <button key={p.key} type="button"
+                className={"periode-chip " + (periode === p.key ? "active" : "")}
+                onClick={function(){ setPeriode(p.key); }}>
                 {p.label}
               </button>
-            ))}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <select
-              className="filter-select"
-              value={kasirId}
-              onChange={(e) => setKasirId(e.target.value)}
-              style={{ minWidth: 150 }}
-            >
-              <option value="">Semua Kasir</option>
-              {kasirList.map((k) => (
-                <option key={k.id} value={k.id}>{k.nama}</option>
-              ))}
-            </select>
-          </div>
+            );
+          })}
         </div>
-
-        {/* Form Rentang Tanggal jika pilih custom */}
-        {periode === "custom" && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--line)" }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>Dari Tanggal:</label>
-            <input
-              type="date"
-              className="filter-date-input"
-              value={dariTanggal}
-              onChange={(e) => setDariTanggal(e.target.value)}
-            />
-            <label style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>Sampai Tanggal:</label>
-            <input
-              type="date"
-              className="filter-date-input"
-              value={sampaiTanggal}
-              onChange={(e) => setSampaiTanggal(e.target.value)}
-            />
-            <button
-              className="btn-tambah"
-              style={{ padding: "7px 16px", fontSize: 13 }}
-              onClick={muatLaporan}
-            >
-              Terapkan
-            </button>
-          </div>
-        )}
       </div>
 
       {error && <div className="login-error">{error}</div>}
 
-      {/* Header khusus Print */}
-      <div className="print-header" style={{ display: "none" }}>
-        <h2 style={{ textAlign: "center", margin: 0 }}>APOTEK BIMA FARMA</h2>
-        <p style={{ textAlign: "center", fontSize: 12, color: "#666", marginBottom: 15 }}>
-          Laporan Rekapitulasi Finansial — Periode: {data?.label_periode}
-        </p>
+      <div className="kpi-grid">
+        <div className="kpi-card ungu">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19V9M12 19V5M19 19v-6" /></svg></div>
+          <div>
+            <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.total_penjualan)}</div>
+            <div className="kpi-label">Total Penjualan</div>
+            <div className="kpi-sub">{labelPeriode}</div>
+          </div>
+        </div>
+        <div className="kpi-card ungu">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M8 6V4h8v2" /></svg></div>
+          <div>
+            <div className="kpi-angka">{loading ? "…" : data.kpi.jumlah_transaksi}</div>
+            <div className="kpi-label">Jumlah Transaksi</div>
+            <div className="kpi-sub">{labelPeriode}</div>
+          </div>
+        </div>
+        <div className="kpi-card ungu">
+          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg></div>
+          <div>
+            <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.rata_rata)}</div>
+            <div className="kpi-label">Rata-rata per Transaksi</div>
+            <div className="kpi-sub">{labelPeriode}</div>
+          </div>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="panel-kosong" style={{ padding: 40 }}>Memuat data laporan…</div>
-      ) : (
-        <>
-          {/* KPI Utama */}
-          <div className="kpi-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 20 }}>
-            {/* 1. Total Omzet */}
-            <div className="kpi-card ungu">
-              <div className="kpi-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
-              <div>
-                <div className="kpi-angka" style={{ fontSize: 22, color: "var(--magenta-dark)" }}>
-                  {rupiah(kpi.total_omzet || 0)}
-                </div>
-                <div className="kpi-label">Total Omzet Penjualan</div>
-                <div className="kpi-sub">{kpi.total_transaksi || 0} Transaksi Lunas</div>
-              </div>
-            </div>
+      <div className="dashboard-2kolom">
+        <div className="panel" style={{ gridColumn: "1 / -1" }}>
+          <div className="panel-head"><h3>Penjualan 7 Hari Terakhir</h3></div>
+          {!loading && data && data.grafik_7_hari && data.grafik_7_hari.length ? (
+            <GrafikArea data={data.grafik_7_hari} />
+          ) : (
+            <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada data penjualan."}</div>
+          )}
+        </div>
+      </div>
 
-            {/* 2. Estimasi Laba Kotor */}
-            <div className="kpi-card hijau" style={{ background: "var(--green-tint)" }}>
-              <div className="kpi-icon" style={{ background: "rgba(57, 160, 72, 0.15)", color: "var(--green-dark)" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                  <polyline points="17 6 23 6 23 12" />
-                </svg>
-              </div>
-              <div>
-                <div className="kpi-angka" style={{ fontSize: 22, color: "var(--green-dark)" }}>
-                  {rupiah(kpi.laba_kotor || 0)}
-                </div>
-                <div className="kpi-label">Estimasi Laba Kotor</div>
-                <div className="kpi-sub" style={{ color: "var(--green-dark)", fontWeight: 700 }}>
-                  Margin Keuntungan: {kpi.margin_persen || 0}%
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Total HPP / Modal */}
-            <div className="kpi-card" style={{ background: "#F5F5F7" }}>
-              <div className="kpi-icon" style={{ background: "#E5E5EA", color: "#555" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-              </div>
-              <div>
-                <div className="kpi-angka" style={{ fontSize: 22, color: "var(--ink)" }}>
-                  {rupiah(kpi.total_hpp || 0)}
-                </div>
-                <div className="kpi-label">Total HPP / Modal Pokok</div>
-                <div className="kpi-sub">Modal obat terjual</div>
-              </div>
-            </div>
-
-            {/* 4. Total Obat Terjual */}
-            <div className="kpi-card kuning">
-              <div className="kpi-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="6" width="18" height="13" rx="2" />
-                  <path d="M8 6V4h8v2" />
-                </svg>
-              </div>
-              <div>
-                <div className="kpi-angka" style={{ fontSize: 22 }}>
-                  {kpi.total_item_terjual || 0}
-                </div>
-                <div className="kpi-label">Item Obat Terjual</div>
-                <div className="kpi-sub">Rata-rata: {rupiah(kpi.rata_transaksi || 0)} / struk</div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2 Kolom: Metode Pembayaran & Kinerja Kasir */}
-          <div className="dashboard-2kolom" style={{ marginBottom: 20 }}>
-            {/* Metode Pembayaran */}
-            <div className="panel">
-              <div className="panel-head">
-                <h3>Metode Pembayaran</h3>
-              </div>
-              {data?.metode_pembayaran?.length ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {data.metode_pembayaran.map((m) => (
-                    <div key={m.metode} style={{ background: "var(--bg)", padding: 14, borderRadius: 10 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                        <span style={{ textTransform: "uppercase", fontWeight: 700, fontSize: 13 }}>
-                          {m.metode}
-                        </span>
-                        <span style={{ fontWeight: 700, color: "var(--ink)" }}>
-                          {rupiah(m.total)} ({m.persentase}%)
-                        </span>
-                      </div>
-                      <div style={{ height: 6, background: "var(--line)", borderRadius: 3, overflow: "hidden" }}>
-                        <div
-                          style={{
-                            height: "100%",
-                            width: `${m.persentase}%`,
-                            background: m.metode === "tunai" ? "var(--green)" : "var(--magenta)",
-                            borderRadius: 3,
-                          }}
-                        />
-                      </div>
-                      <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 4 }}>
-                        {m.jumlah_transaksi} transaksi
-                      </div>
+      <div className="dashboard-2kolom">
+        <div className="panel">
+          <div className="panel-head"><h3>Metode Pembayaran ({labelPeriode})</h3></div>
+          {!loading && data && data.metode_breakdown && data.metode_breakdown.length ? (
+            <div className="metode-breakdown">
+              {data.metode_breakdown.map(function(m) {
+                return (
+                  <div className="metode-breakdown-row" key={m.metode}>
+                    <div className="metode-breakdown-head">
+                      <span>{LABEL_METODE[m.metode] || m.metode}</span>
+                      <span>{m.jumlah}x · {rupiah(m.total)}</span>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="panel-kosong">Belum ada transaksi pada periode ini.</div>
-              )}
+                    <div className="metode-breakdown-track">
+                      <div
+                        className="metode-breakdown-fill"
+                        style={{ width: m.persen + "%", background: WARNA_METODE[m.metode] || "var(--magenta)" }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          ) : (
+            <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi."}</div>
+          )}
+        </div>
 
-            {/* Kinerja Kasir */}
-            <div className="panel">
-              <div className="panel-head">
-                <h3>Penjualan per Kasir</h3>
-              </div>
-              {data?.kinerja_kasir?.length ? (
-                <table className="obat-table">
-                  <thead>
-                    <tr>
-                      <th>Nama Petugas</th>
-                      <th>Jumlah Transaksi</th>
-                      <th>Total Omzet</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.kinerja_kasir.map((k) => (
-                      <tr key={k.user_id || k.nama_kasir}>
-                        <td style={{ fontWeight: 600 }}>{k.nama_kasir || "—"}</td>
-                        <td>{k.total_transaksi} transaksi</td>
-                        <td style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>
-                          {rupiah(k.total_omzet)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="panel-kosong">Tidak ada data kasir.</div>
-              )}
+        <div className="panel">
+          <div className="panel-head"><h3>Obat Mendekati Kadaluwarsa</h3></div>
+          {!loading && data && data.kadaluwarsa && data.kadaluwarsa.length ? (
+            <div className="list-ringkas">
+              {data.kadaluwarsa.slice(0, 6).map(function(o) {
+                var hari = daysUntil(o.tanggal_exp);
+                return (
+                  <div className="list-ringkas-row" key={o.id}>
+                    <div>
+                      <div className="list-nama">{o.nama}</div>
+                      <div className="list-sub">{o.nomor_batch ? "Batch " + o.nomor_batch : o.satuan_dasar}</div>
+                    </div>
+                    <span className={"exp-badge " + (hari <= 30 ? "merah" : "kuning")}>
+                      {hari <= 0 ? "EXPIRED" : hari + " hari"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          ) : (
+            <div className="panel-kosong">{loading ? "Memuat…" : "Tidak ada obat mendekati kadaluwarsa."}</div>
+          )}
+        </div>
+      </div>
 
-          {/* Top 10 Obat Terlaris */}
-          <div className="panel" style={{ marginBottom: 20 }}>
-            <div className="panel-head">
-              <h3>Top 10 Produk / Obat Terlaris</h3>
-            </div>
-            {data?.top_obat?.length ? (
-              <table className="obat-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: 50 }}>#</th>
-                    <th>Nama Obat</th>
-                    <th>Satuan</th>
-                    <th>Qty Terjual</th>
-                    <th>Total Omzet</th>
-                    <th>Estimasi Laba</th>
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Transaksi ({labelPeriode})</h3>
+          <button
+            className="btn-tambah"
+            onClick={function(){ exportCSV(data && data.transaksi ? data.transaksi : []); }}
+            disabled={!data || !data.transaksi || !data.transaksi.length}
+            style={{ fontSize: 12.5 }}
+          >
+            Export CSV
+          </button>
+        </div>
+        {!loading && data && data.transaksi && data.transaksi.length ? (
+          <table className="obat-table">
+            <thead>
+              <tr><th>No. Struk</th><th>Sumber</th><th>Waktu</th><th>Kasir</th><th>Pembeli</th><th>Item</th><th>Subtotal</th><th>Diskon</th><th>Total</th><th>Bayar</th></tr>
+            </thead>
+            <tbody>
+              {data.transaksi.map(function(t) {
+                return (
+                  <tr key={t.id}>
+                    <td className="obat-batch-cell">{t.no_struk}</td>
+                    <td><span className={"sumber-badge " + t.sumber}>{t.sumber === "online" ? "Toko Online" : "Kasir"}</span></td>
+                    <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                    <td>{t.nama_kasir}</td>
+                    <td>{t.nama_pembeli || "\u2014"}</td>
+                    <td>{t.items_count}</td>
+                    <td>{rupiah(t.subtotal)}</td>
+                    <td>{t.diskon > 0 ? "-" + rupiah(t.diskon) : "\u2014"}</td>
+                    <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
+                    <td><span className="metode-badge">{t.metode_bayar}</span></td>
                   </tr>
-                </thead>
-                <tbody>
-                  {data.top_obat.map((o, idx) => (
-                    <tr key={`${o.nama_obat}-${o.nama_satuan}`}>
-                      <td style={{ fontWeight: 700, color: "var(--ink-soft)" }}>{idx + 1}</td>
-                      <td><span className="obat-nama-cell">{o.nama_obat}</span></td>
-                      <td>{o.nama_satuan}</td>
-                      <td style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>{o.total_qty}</td>
-                      <td style={{ fontWeight: 600 }}>{rupiah(o.total_omzet)}</td>
-                      <td style={{ fontWeight: 600, color: "var(--green-dark)" }}>{rupiah(o.estimasi_laba)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="panel-kosong">Belum ada item obat terjual pada periode ini.</div>
-            )}
-          </div>
-
-          {/* Tabel Rincian Transaksi */}
-          <div className="panel">
-            <div className="panel-head">
-              <h3>Rincian Transaksi ({data?.transaksi?.length || 0})</h3>
-            </div>
-            {data?.transaksi?.length ? (
-              <table className="obat-table">
-                <thead>
-                  <tr>
-                    <th>No. Struk</th>
-                    <th>Waktu</th>
-                    <th>Kasir</th>
-                    <th>Pembeli</th>
-                    <th>Metode</th>
-                    <th>Item</th>
-                    <th>Diskon</th>
-                    <th>Total</th>
-                    <th className="no-print">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.transaksi.map((t) => (
-                    <tr key={t.id} className="baris-klik" onClick={() => bukaStruk(t.id)}>
-                      <td className="obat-batch-cell">{t.no_struk}</td>
-                      <td>
-                        {new Date(t.created_at).toLocaleDateString("id-ID", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </td>
-                      <td>{t.nama_kasir}</td>
-                      <td>{t.nama_pembeli || "—"}</td>
-                      <td><span className="metode-badge">{t.metode_bayar}</span></td>
-                      <td>{t.items_count}</td>
-                      <td>{t.diskon > 0 ? rupiah(t.diskon) : "—"}</td>
-                      <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
-                      <td className="no-print">
-                        <button
-                          className="cart-hapus-btn"
-                          style={{ color: "var(--magenta)", transform: "none" }}
-                          onClick={(e) => { e.stopPropagation(); bukaStruk(t.id); }}
-                          title="Lihat struk"
-                        >
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                            <circle cx="12" cy="12" r="3" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="panel-kosong">Tidak ada transaksi pada periode ini.</div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Modal Preview Struk jika diklik */}
-      <StrukModal data={struk} onClose={() => setStruk(null)} />
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi pada periode ini."}</div>
+        )}
+      </div>
     </KasirShell>
   );
 }

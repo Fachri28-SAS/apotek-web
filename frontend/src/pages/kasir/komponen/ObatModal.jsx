@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
-import Spinner from "../../../components/Spinner";
 
 function satuanKosong() {
   return { nama_satuan: "", faktor: 1, harga_beli: "", harga_jual: "" };
 }
 
-export default function ObatModal({ obat, onClose, onSelesai }) {
+export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
   const modeEdit = !!obat;
 
   const [namaSaran, setNamaSaran] = useState([]);
@@ -44,11 +43,49 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
   function tambahBarisSatuan() {
     setSatuanList((prev) => [...prev, satuanKosong()]);
   }
-  function hapusBarisSatuan(idx) {
-    setSatuanList((prev) => prev.filter((_, i) => i !== idx));
+
+  async function hapusBarisSatuan(idx, s) {
+    // Baris baru yang belum tersimpan — cukup hapus dari state lokal
+    if (!s.id) {
+      setSatuanList((prev) => prev.filter((_, i) => i !== idx));
+      return;
+    }
+
+    // Satuan yang sudah tersimpan di database — konfirmasi dulu,
+    // baru benar-benar hapus lewat API (aman, struk lama tidak
+    // terpengaruh karena datanya sudah disalin ke transaksi).
+    if (!window.confirm(`Hapus satuan "${s.nama_satuan}"? Ini tidak bisa dibatalkan.`)) return;
+
+    try {
+      await api(`/obat/${obat.id}/satuan/${s.id}`, { method: "DELETE" });
+      setSatuanList((prev) => prev.filter((_, i) => i !== idx));
+      onDataBerubah?.(); // refresh tabel utama di belakang layar, tanpa nutup modal ini
+    } catch (err) {
+      // Kalau ternyata sudah kehapus duluan (data basi), jangan tampilkan
+      // error mentah dari Laravel — anggap saja sudah selesai.
+      if (err.message?.includes("No query results")) {
+        setSatuanList((prev) => prev.filter((_, i) => i !== idx));
+        onDataBerubah?.();
+      } else {
+        setError(err.message);
+      }
+    }
   }
+
   function ubahBarisSatuan(idx, field, value) {
     setSatuanList((prev) => prev.map((s, i) => (i === idx ? { ...s, [field]: value } : s)));
+  }
+
+  function koreksiHargaAwal(hargaSekarang, onSimpan) {
+    const input = window.prompt(
+      "Koreksi Harga Awal — ini acuan tren jangka panjang, biasanya tidak perlu diubah.\nMasukkan harga awal yang benar:",
+      hargaSekarang
+    );
+    if (input === null) return; // batal
+    const angka = Number(input);
+    if (isNaN(angka) || angka < 0) { alert("Masukkan angka yang valid."); return; }
+    if (!window.confirm(`Ubah Harga Awal jadi Rp${angka.toLocaleString("id-ID")}? Ini akan mengubah perhitungan tren jangka panjang obat ini.`)) return;
+    onSimpan(angka);
   }
 
   async function handleSubmit(e) {
@@ -62,6 +99,7 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
           faktor: Number(s.faktor) || 1,
           harga_beli: Number(s.harga_beli) || 0,
           harga_jual: Number(s.harga_jual) || 0,
+          ...(s.harga_beli_awal != null ? { harga_beli_awal: Number(s.harga_beli_awal) } : {}),
         }))
       : [{
           id: satuanTunggal.id,
@@ -69,6 +107,7 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
           faktor: 1,
           harga_beli: Number(satuanTunggal.harga_beli) || 0,
           harga_jual: Number(satuanTunggal.harga_jual) || 0,
+          ...(satuanTunggal.harga_beli_awal != null ? { harga_beli_awal: Number(satuanTunggal.harga_beli_awal) } : {}),
         }];
 
     if (satuanDikirim.some((s) => !s.nama_satuan)) {
@@ -249,29 +288,63 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
                   required
                 />
               </div>
+              {modeEdit && satuanTunggal.harga_beli_awal != null && (
+                <div className="harga-awal-info">
+                  <span>Harga Awal: Rp{Number(satuanTunggal.harga_beli_awal).toLocaleString("id-ID")}</span>
+                  <button
+                    type="button"
+                    className="harga-awal-koreksi-btn"
+                    onClick={() => koreksiHargaAwal(satuanTunggal.harga_beli_awal, (angka) =>
+                      setSatuanTunggal((s) => ({ ...s, harga_beli_awal: angka }))
+                    )}
+                  >
+                    Koreksi
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="obat-satuan-editor">
+              <div className="satuan-editor-table-wrap">
               <table className="satuan-editor-table">
                 <thead>
-                  <tr><th>Nama Satuan</th><th>Isi (faktor)</th><th>Harga Beli</th><th>Harga Jual</th><th></th></tr>
+                  <tr><th>Nama Satuan</th><th>Isi (faktor)</th><th>Harga Beli</th><th>Harga Jual</th><th>Aksi</th></tr>
                 </thead>
                 <tbody>
                   {satuanList.map((s, i) => (
                     <tr key={i}>
                       <td><input value={s.nama_satuan} onChange={(e) => ubahBarisSatuan(i, "nama_satuan", e.target.value)} required /></td>
                       <td><input type="number" min="1" value={s.faktor} onChange={(e) => ubahBarisSatuan(i, "faktor", e.target.value)} disabled={!!s.id} title={s.id ? "Faktor varian lama tidak bisa diubah" : ""} required /></td>
-                      <td><input type="number" min="0" value={s.harga_beli} onChange={(e) => ubahBarisSatuan(i, "harga_beli", e.target.value)} required /></td>
+                      <td>
+                        <div className="satuan-harga-cell">
+                          <input type="number" min="0" value={s.harga_beli} onChange={(e) => ubahBarisSatuan(i, "harga_beli", e.target.value)} required />
+                          {s.id && s.harga_beli_awal != null && (
+                            <button
+                              type="button"
+                              className="harga-awal-icon-btn"
+                              title={`Harga Awal: Rp${Number(s.harga_beli_awal).toLocaleString("id-ID")} — klik untuk koreksi`}
+                              onClick={() => koreksiHargaAwal(s.harga_beli_awal, (angka) => ubahBarisSatuan(i, "harga_beli_awal", angka))}
+                            >
+                              ⓘ
+                            </button>
+                          )}
+                        </div>
+                      </td>
                       <td><input type="number" min="0" value={s.harga_jual} onChange={(e) => ubahBarisSatuan(i, "harga_jual", e.target.value)} required /></td>
                       <td>
-                        {satuanList.length > 1 && !s.id && (
-                          <button type="button" onClick={() => hapusBarisSatuan(i)}>×</button>
+                        {satuanList.length > 1 && (
+                          <button type="button" className="satuan-hapus-btn" onClick={() => hapusBarisSatuan(i, s)} title="Hapus satuan ini">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+                            </svg>
+                          </button>
                         )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
               <button type="button" className="obat-tambah-satuan-btn" onClick={tambahBarisSatuan}>
                 + Tambah Varian Satuan
               </button>
@@ -279,13 +352,9 @@ export default function ObatModal({ obat, onClose, onSelesai }) {
           )}
 
           <div className="obat-modal-foot">
-            <button type="button" className="btn-outline" onClick={onClose} disabled={loading}>Batal</button>
-            <button type="submit" className={`btn-primary ${loading ? "btn-loading-state" : ""}`} disabled={loading}>
-              {loading ? (
-                <Spinner size={16} color="#FFFFFF" text="Menyimpan Data…" />
-              ) : (
-                "✓ Simpan"
-              )}
+            <button type="button" className="btn-outline" onClick={onClose}>Batal</button>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Menyimpan…" : "✓ Simpan"}
             </button>
           </div>
         </form>

@@ -3,6 +3,7 @@ import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
+import SampahModal from "./komponen/SampahModal";
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -16,12 +17,32 @@ function marginPct(beli, jual) {
   return ((jual - beli) / jual * 100).toFixed(1) + "%";
 }
 
+/**
+ * Badge naik/turun harga beli — dibandingkan dari harga sebelumnya yang
+ * tersimpan di obat_satuan. Kolom ini diperbarui dari 2 sumber: Penerimaan
+ * Barang MAUPUN edit manual di Data Obat — jadi badge ini selalu ikut
+ * bereaksi ke perubahan harga dari mana pun asalnya.
+ */
+function badgeHargaBeli(satuan) {
+  if (!satuan || satuan.harga_beli_sebelumnya == null) return null;
+
+  var selisih = Number(satuan.harga_beli) - Number(satuan.harga_beli_sebelumnya);
+  var persen = satuan.harga_beli_sebelumnya > 0
+    ? Math.round((selisih / satuan.harga_beli_sebelumnya) * 100)
+    : 0;
+
+  if (selisih === 0) return { warna: "hijau", teks: "✓ Tetap" };
+  if (selisih > 0) return { warna: "merah", teks: `▲ +${persen}%` };
+  return { warna: "biru", teks: `▼ ${persen}%` };
+}
+
 export default function DataObat() {
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [obatEdit, setObatEdit] = useState(null);
+  const [sampahOpen, setSampahOpen] = useState(false);
 
   function muatUlang() {
     setLoading(true);
@@ -59,7 +80,10 @@ export default function DataObat() {
           <h1 style={{ fontSize: 24 }}>Data Obat</h1>
           <p className="halaman-sub">{daftar.length} obat terdaftar</p>
         </div>
-        <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
+        <div className="halaman-header-aksi">
+          <button className="btn-sampah" onClick={() => setSampahOpen(true)}>🗑 Sampah</button>
+          <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
+        </div>
       </div>
 
       <div className="search-obat-input" style={{ maxWidth: 340, marginBottom: 20 }}>
@@ -82,8 +106,6 @@ export default function DataObat() {
               <th>Margin %</th>
               <th>Stok</th>
               <th>Kadaluwarsa</th>
-              <th>Aktif</th>
-              <th>Resep</th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -109,7 +131,13 @@ export default function DataObat() {
                   <td>{obat.kemasan || "-"}</td>
                   <td>{satuanNames}</td>
                   <td className="obat-batch-cell">{obat.nomor_batch || "-"}</td>
-                  <td className="obat-harga-cell">{hargaBeli}</td>
+                  <td className="obat-harga-cell">
+                    {hargaBeli}
+                    {(() => {
+                      const badge = badgeHargaBeli(def);
+                      return badge ? <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div> : null;
+                    })()}
+                  </td>
                   <td className="obat-harga-cell">{hargaJual}</td>
                   <td className="obat-margin-cell">{marginPct(def?.harga_beli, def?.harga_jual)}</td>
                   <td>
@@ -128,6 +156,13 @@ export default function DataObat() {
                       </div>
                     ) : "-"}
                   </td>
+                  {/* Kolom Aktif & Resep sengaja disembunyikan dari tampilan tabel
+                      (permintaan user). Toggle-nya masih ada & berfungsi di
+                      modal Edit Obat, dan field aktif_dijual/perlu_resep masih
+                      dipakai penuh di backend (filter Kasir & Toko). Kalau
+                      nanti mau dimunculkan lagi di tabel, tinggal un-comment
+                      2 <td> di bawah ini + 2 <th> di header. */}
+                  {/*
                   <td>
                     <button
                       className={`toggle-pill ${obat.aktif_dijual ? "on" : ""}`}
@@ -146,6 +181,7 @@ export default function DataObat() {
                       <span className="toggle-knob" />
                     </button>
                   </td>
+                  */}
                   <td>
                     <div className="obat-aksi-icons">
                       <button onClick={() => bukaEdit(obat)} title="Edit">
@@ -172,6 +208,14 @@ export default function DataObat() {
           obat={obatEdit}
           onClose={() => setModalOpen(false)}
           onSelesai={() => { setModalOpen(false); muatUlang(); }}
+          onDataBerubah={muatUlang}
+        />
+      )}
+
+      {sampahOpen && (
+        <SampahModal
+          onClose={() => setSampahOpen(false)}
+          onSelesai={muatUlang}
         />
       )}
     </KasirShell>

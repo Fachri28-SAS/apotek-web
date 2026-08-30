@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import Spinner from "../components/Spinner";
 import "./Login.css";
 
 export default function Login() {
@@ -179,20 +178,12 @@ export default function Login() {
               </button>
             </div>
 
-            <button
-              className={`login-submit ${loading ? "btn-loading-state" : ""}`}
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? (
-                <Spinner size={18} color="#FFFFFF" text="Memeriksa akun…" />
-              ) : (
-                <>
-                  <span>Masuk</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14M13 6l6 6-6 6" />
-                  </svg>
-                </>
+            <button className="login-submit" type="submit" disabled={loading}>
+              {loading ? "Memeriksa…" : "Masuk"}
+              {!loading && (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
               )}
             </button>
           </form>

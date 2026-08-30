@@ -13,12 +13,12 @@ export default function CrossDefs() {
   return (
     <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
       <defs>
-        <symbol id="cross-mark" viewBox="0 0 100 100">
+        <symbol id="cross-mark" viewBox="3 3 61 94">
           <rect x="34" y="3" width="30" height="46" rx="15" fill="#A64BC7" />
           <rect x="34" y="51" width="30" height="46" rx="15" fill="#A64BC7" />
           <rect x="3" y="34" width="46" height="30" rx="15" fill="#39A048" />
         </symbol>
-        <symbol id="cross-outline" viewBox="0 0 100 100">
+        <symbol id="cross-outline" viewBox="3 3 61 94">
           <rect x="34" y="3" width="30" height="46" rx="15" fill="none" stroke="#ffffff" strokeWidth="3" opacity="0.9" />
           <rect x="34" y="51" width="30" height="46" rx="15" fill="none" stroke="#ffffff" strokeWidth="3" />
           <rect x="3" y="34" width="46" height="30" rx="15" fill="none" stroke="#ffffff" strokeWidth="3" />

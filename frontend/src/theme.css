@@ -42,34 +42,6 @@ a:focus-visible, button:focus-visible {
   outline: 2px solid var(--magenta);
   outline-offset: 3px;
 }
-
-/* ==================== KEYFRAME ANIMASI BUTTON & SPINNER ==================== */
-@keyframes spinFast {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(0.98); }
-}
-
-@keyframes shimmerEffect {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* Button Micro-interactions */
-button:not(:disabled):active {
-  transform: scale(0.975);
-}
-
-.btn-loading-state {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; scroll-behavior: auto !important; animation: none !important; }
 }

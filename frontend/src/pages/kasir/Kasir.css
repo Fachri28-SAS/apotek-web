@@ -163,29 +163,82 @@
 .baris-klik { cursor: pointer; }
 .baris-klik:hover { background: var(--magenta-tint); }
 
-/* ---------- GRAFIK BATANG (CSS murni, tanpa library) ---------- */
-.grafik-batang {
-  display: flex; align-items: flex-end; gap: 12px;
-  height: 220px; padding: 12px 0;
+.sumber-badge {
+  font-size: 10.5px; font-weight: 800; padding: 3px 10px; border-radius: 100px;
+  text-transform: uppercase; letter-spacing: 0.02em;
 }
-.grafik-col {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  height: 100%; justify-content: flex-end; position: relative;
+.sumber-badge.kasir { background: var(--magenta-tint); color: var(--magenta-dark); }
+.sumber-badge.online { background: var(--green-tint); color: var(--green-dark); }
+
+/* ---------- GRAFIK (Recharts) — tooltip kustom ---------- */
+.grafik-tooltip-kustom {
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 14px; box-shadow: var(--shadow);
 }
-.grafik-bar {
-  width: 100%; max-width: 56px; border-radius: 8px 8px 0 0;
-  background: linear-gradient(180deg, var(--magenta), var(--magenta-dark));
-  min-height: 4px; transition: height 0.4s ease;
+.grafik-tooltip-hari { font-size: 11.5px; color: var(--ink-soft); font-weight: 700; }
+.grafik-tooltip-omzet { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: var(--magenta-dark); margin-top: 2px; }
+
+/* ---------- BREAKDOWN METODE PEMBAYARAN ---------- */
+.metode-breakdown { display: flex; flex-direction: column; gap: 18px; padding: 4px 0; }
+.metode-breakdown-row { display: flex; flex-direction: column; gap: 8px; }
+.metode-breakdown-head { display: flex; justify-content: space-between; font-size: 13px; }
+.metode-breakdown-head span:first-child { font-weight: 700; }
+.metode-breakdown-head span:last-child { color: var(--ink-soft); }
+.metode-breakdown-track { height: 10px; border-radius: 100px; background: var(--bg); overflow: hidden; }
+.metode-breakdown-fill { height: 100%; border-radius: 100px; transition: width 0.4s ease; }
+
+/* ---------- PENERIMAAN BARANG ---------- */
+.tempo-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tempo-row input[type="date"] {
+  padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--line); font-size: 12.5px; font-family: inherit;
 }
-.grafik-col:hover .grafik-bar { opacity: 0.85; }
-.grafik-tooltip {
-  position: absolute; top: -4px;
-  font-size: 10.5px; font-weight: 700; color: var(--magenta-dark);
-  white-space: nowrap; opacity: 0; transition: opacity 0.2s;
+
+.harga-badge {
+  font-size: 10px; font-weight: 800; margin-top: 4px; white-space: nowrap;
+  padding: 2px 7px; border-radius: 100px; display: inline-block;
 }
-.grafik-col:hover .grafik-tooltip { opacity: 1; }
-.grafik-label { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-top: 8px; }
-.grafik-sublabel { font-size: 10px; color: var(--ink-soft); }
+.harga-badge.hijau { background: var(--green-tint); color: var(--green-dark); }
+.harga-badge.merah { background: #FBEAEC; color: #D64550; }
+.harga-badge.biru { background: #E8F0FE; color: #1A56B8; }
+
+.penerimaan-ringkasan {
+  margin-top: 18px; padding-top: 18px; border-top: 1.5px dashed var(--line);
+  display: flex; flex-direction: column; gap: 2px; max-width: 420px; margin-left: auto;
+}
+
+.exp-default-hint { font-size: 10px; color: var(--ink-soft); margin-top: 3px; white-space: nowrap; }
+
+.detail-faktur-info {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px;
+  padding: 14px; background: var(--magenta-tint); border-radius: 12px; font-size: 13px;
+}
+.detail-faktur-info div { display: flex; justify-content: space-between; gap: 10px; }
+.detail-faktur-info span { color: var(--ink-soft); }
+
+/* ---------- PEMBAYARAN ONLINE ---------- */
+.pembayaran-list { display: flex; flex-direction: column; gap: 12px; }
+.pembayaran-card {
+  display: grid; grid-template-columns: 70px 1fr auto; gap: 16px; align-items: center;
+  padding: 14px; border: 1px solid var(--line); border-radius: 14px;
+}
+.pembayaran-bukti-thumb {
+  width: 70px; height: 70px; border-radius: 10px; overflow: hidden; cursor: pointer;
+  border: 1px solid var(--line); flex-shrink: 0;
+}
+.pembayaran-bukti-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.pembayaran-no-struk { font-family: 'Courier New', monospace; font-size: 12px; color: var(--ink-soft); }
+.pembayaran-nama { font-weight: 700; font-size: 14px; margin-top: 2px; }
+.pembayaran-detail { font-size: 12px; color: var(--ink-soft); }
+.pembayaran-nominal-row { display: flex; gap: 20px; font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+.pembayaran-nominal-row strong { color: var(--ink); }
+.pembayaran-nominal-row strong.kurang-bayar { color: #D64550; }
+.pembayaran-aksi { display: flex; flex-direction: column; gap: 6px; }
+.btn-tolak {
+  padding: 8px 16px; border-radius: 100px; border: 1.5px solid var(--line);
+  background: #fff; color: #D64550; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit;
+}
+.btn-tolak:hover { border-color: #D64550; }
+.btn-tolak:disabled, .btn-tambah:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 900px) {
   .dashboard-2kolom { grid-template-columns: 1fr; }
@@ -251,7 +304,7 @@
 .obat-aksi-icons button.hapus:hover { border-color: #D64550; color: #D64550; }
 
 /* ---------- HEADER HALAMAN ---------- */
-.halaman-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.halaman-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .halaman-sub { color: var(--ink-soft); font-size: 13.5px; }
 .btn-tambah {
   display: inline-flex; align-items: center; gap: 7px;
@@ -262,6 +315,24 @@
   transition: .15s ease;
 }
 .btn-tambah:hover { transform: translateY(-1px); }
+
+.halaman-header-aksi { display: flex; gap: 10px; align-items: center; }
+.btn-sampah {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 11px 16px; border-radius: 100px; border: 1.5px solid var(--line);
+  background: #fff; color: var(--ink-soft); font-weight: 700; font-size: 13px;
+  cursor: pointer; font-family: inherit;
+}
+.btn-sampah:hover { border-color: var(--magenta); color: var(--magenta-dark); }
+
+.sampah-list { display: flex; flex-direction: column; gap: 10px; }
+.sampah-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px; border: 1px solid var(--line); border-radius: 12px;
+}
+.sampah-item-nama { font-weight: 700; font-size: 14px; }
+.sampah-item-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.sampah-item-aksi { display: flex; gap: 8px; flex-shrink: 0; }
 
 /* ---------- SEARCH BOX ---------- */
 .search-obat { position: relative; margin-bottom: 16px; }
@@ -415,7 +486,7 @@
   display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .obat-modal {
-  background: #fff; border-radius: 18px; padding: 0; width: 100%; max-width: 520px;
+  background: #fff; border-radius: 18px; padding: 0; width: 100%; max-width: 620px;
   max-height: 88vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(33, 27, 38, 0.25);
 }
 .obat-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px; border-bottom: 1px solid var(--line); }
@@ -442,10 +513,11 @@
 
 .obat-satuan-tunggal { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 16px; background: var(--bg, #F7F5F9); border-radius: 12px; }
 .obat-satuan-editor { padding: 16px; background: var(--bg, #F7F5F9); border-radius: 12px; }
-.satuan-editor-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-.satuan-editor-table th { text-align: left; font-size: 10px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; padding: 4px 4px; }
-.satuan-editor-table td { padding: 3px 4px; }
-.satuan-editor-table input { width: 100%; padding: 8px 9px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-family: inherit; }
+.satuan-editor-table-wrap { overflow-x: auto; margin-bottom: 12px; }
+.satuan-editor-table { width: 100%; min-width: 480px; border-collapse: collapse; }
+.satuan-editor-table th { text-align: left; font-size: 10px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; padding: 4px 6px; white-space: nowrap; }
+.satuan-editor-table td { padding: 3px 6px; vertical-align: top; }
+.satuan-editor-table input { width: 100%; min-width: 72px; padding: 8px 9px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-family: inherit; box-sizing: border-box; }
 .satuan-editor-table input:focus { border-color: var(--magenta); outline: none; }
 .satuan-editor-table button { border: none; background: none; color: #D64550; font-size: 18px; cursor: pointer; }
 .obat-tambah-satuan-btn {
@@ -461,61 +533,16 @@
 }
 .login-remember { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
 
-/* ---------- LAPORAN KHUSUS ---------- */
-.btn-outline-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  color: var(--ink);
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 16px;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s ease;
-}
-.btn-outline-action:hover {
-  border-color: var(--magenta);
-  color: var(--magenta-dark);
-  background: var(--magenta-tint);
-}
-.filter-date-input {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1.5px solid var(--line);
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--ink);
-  outline: none;
-}
-.filter-date-input:focus {
-  border-color: var(--magenta);
-}
-
-/* ---------- CETAK (STRUK THERMAL & LAPORAN A4) ---------- */
+/* ---------- CETAK STRUK (thermal 58mm) ---------- */
 @media print {
-  /* Default sembunyikan semua */
   body * { visibility: hidden; }
-
-  /* Cetak Struk Kasir (jika modal struk terbuka) */
   .struk-cetak, .struk-cetak * { visibility: visible; }
   .struk-cetak {
     position: fixed; top: 0; left: 0;
     width: 58mm; padding: 4mm; font-size: 11px;
   }
-
-  /* Cetak Laporan Formal (jika halaman Laporan yang dicetak) */
-  .kasir-konten, .kasir-konten * { visibility: visible; }
-  .kasir-konten {
-    position: absolute; top: 0; left: 0; width: 100%;
-    padding: 0; background: #fff !important;
-  }
-  .kasir-nav, .no-print, .kasir-header { display: none !important; }
-  .print-header { display: block !important; margin-bottom: 20px; }
-  .panel { box-shadow: none !important; border: 1px solid #ddd !important; }
+  .struk-actions, .struk-overlay { position: static !important; }
+  .struk-modal { box-shadow: none; border-radius: 0; }
 }
 
 @media (max-width: 1100px) {
@@ -524,3 +551,34 @@
 @media (max-width: 640px) {
   .obat-form-grid, .obat-satuan-tunggal { grid-template-columns: 1fr; }
 }
+
+.harga-awal-info {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 12.5px; color: var(--ink-soft); padding: 8px 12px; background: #fff;
+  border: 1px dashed var(--line); border-radius: 8px; margin-top: 8px;
+}
+.harga-awal-koreksi-btn {
+  font-size: 11px; font-weight: 700; color: var(--magenta-dark) !important;
+  background: none; border: none; cursor: pointer; text-decoration: underline;
+  font-family: inherit; padding: 0;
+}
+
+/* Kolom Harga Beli + ikon info harga awal, hemat tempat */
+.satuan-harga-cell { display: flex; align-items: center; gap: 5px; }
+.satuan-harga-cell input { flex: 1; min-width: 0; }
+.harga-awal-icon-btn {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--line); background: #fff; color: var(--ink-soft);
+  font-size: 12px; font-weight: 700; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; padding: 0;
+}
+.harga-awal-icon-btn:hover { border-color: var(--magenta); color: var(--magenta-dark); }
+
+.satuan-hapus-btn {
+  width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line);
+  background: #fff; color: #D64550; cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+.satuan-hapus-btn svg { width: 14px; height: 14px; }
+.satuan-hapus-btn:hover { border-color: #D64550; background: #FBEAEC; }
