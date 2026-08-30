@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ObatSatuan;
 use App\Models\Pembayaran;
 use App\Models\Penjualan;
+use App\Services\QrisService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -109,6 +110,7 @@ class TokoController extends Controller
                 'kode_tracking' => $kodeTracking,
                 'no_struk' => $noStruk,
                 'total' => $subtotal,
+                'qris_dinamis' => QrisService::generateDynamic($subtotal),
             ], 201);
         });
     }
@@ -150,6 +152,7 @@ class TokoController extends Controller
                 'jumlah' => (float) $pembayaran->jumlah,
                 'nominal_klaim_customer' => $pembayaran->nominal_klaim_customer ? (float) $pembayaran->nominal_klaim_customer : null,
                 'catatan_verifikasi' => $pembayaran->catatan_verifikasi,
+                'qris_dinamis' => QrisService::generateDynamic($pembayaran->jumlah),
                 'bukti_url' => $pembayaran->bukti_path ? asset('storage/' . $pembayaran->bukti_path) : null,
                 'sudah_upload_bukti' => !empty($pembayaran->bukti_path),
                 'expired_at' => $pembayaran->expired_at,

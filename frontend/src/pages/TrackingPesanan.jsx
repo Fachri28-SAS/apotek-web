@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
+import { QRCodeSVG } from "qrcode.react";
 import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
+import { unduhQrisPng } from "../utils/qrisDownload";
 import "./TrackingPesanan.css";
 
 export default function TrackingPesanan() {
@@ -327,7 +329,7 @@ export default function TrackingPesanan() {
           <div className="tracking-card">
             <div className="tracking-card-head">
               <h3>
-                {statusPembayaran === "sukses" ? "Bukti Terverifikasi" : "Pembayaran QRIS Statis"}
+                {statusPembayaran === "sukses" ? "Bukti Terverifikasi" : "QRIS Dinamis Otomatis"}
               </h3>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--magenta-dark)" }}>
                 {statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
@@ -335,13 +337,70 @@ export default function TrackingPesanan() {
             </div>
 
             <div className="qris-payment-panel">
-              {/* Gambar QRIS — selalu bisa diakses/dilihat user */}
+              {/* Barcode QRIS Dinamis — Nominal Terkunci Otomatis */}
               {statusPembayaran !== "sukses" && (
                 <div className="qris-card-inner">
-                  <div className="qris-image-container" onClick={() => setQrisBesar(true)}>
-                    <img src="/qris.png" alt="QRIS Apotek Bima Farma" onError={(e) => { e.target.style.display = "none"; }} />
+                  <div
+                    className="qris-image-container"
+                    onClick={() => setQrisBesar(true)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#fff",
+                      cursor: "zoom-in",
+                      padding: 12,
+                    }}
+                  >
+                    {pesanan.pembayaran?.qris_dinamis ? (
+                      <QRCodeSVG
+                        id="tracking-qris-svg"
+                        value={pesanan.pembayaran.qris_dinamis}
+                        size={195}
+                        level="M"
+                        includeMargin={false}
+                      />
+                    ) : (
+                      <img src="/qris.png" alt="QRIS Apotek Bima Farma" onError={(e) => { e.target.style.display = "none"; }} />
+                    )}
                   </div>
-                  <div className="qris-hint-text">Ketuk gambar QRIS untuk memperbesar atau menyimpan</div>
+                  <div style={{ display: "inline-block", background: "var(--green-tint)", color: "var(--green-dark)", padding: "4px 10px", borderRadius: 100, fontSize: 12, fontWeight: 800, margin: "6px 0" }}>
+                    ✓ Nominal Terkunci Otomatis: {rupiah(pesanan.total)}
+                  </div>
+                  <div className="qris-hint-text">
+                    Scan via GoPay, BCA, Livin Mandiri, BRImo, DANA, ShopeePay, atau OVO (tinggal klik Bayar &amp; masukkan PIN)
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      unduhQrisPng({
+                        svgId: "tracking-qris-svg",
+                        namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
+                        judul: "APOTEK BIMA FARMA",
+                        nominal: rupiah(pesanan.total),
+                      })
+                    }
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      marginTop: 10,
+                      padding: "7px 14px",
+                      borderRadius: 100,
+                      border: "1.5px solid var(--magenta)",
+                      background: "#fff",
+                      color: "var(--magenta)",
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+                      <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
+                    </svg>
+                    Unduh Gambar QRIS
+                  </button>
                 </div>
               )}
 
@@ -424,14 +483,52 @@ export default function TrackingPesanan() {
       {/* ---------- LIGHTBOX QRIS BESAR ---------- */}
       {qrisBesar && (
         <div className="qris-lightbox-overlay" onClick={() => setQrisBesar(false)}>
-          <div className="qris-lightbox-box" onClick={(e) => e.stopPropagation()}>
-            <button className="drawer-close" onClick={() => setQrisBesar(false)} style={{ marginLeft: "auto", marginBottom: 12 }}>
+          <div className="qris-lightbox-box" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center" }}>
+            <button className="drawer-close" onClick={() => setQrisBesar(false)} style={{ marginLeft: "auto", marginBottom: 8 }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
-            <img src="/qris.png" alt="QRIS Apotek Bima Farma — Perbesar" />
-            <a href="/qris.png" download="qris-bima-farma.png" className="btn-upload-submit" style={{ textDecoration: "none", textAlign: "center", marginTop: 16 }}>
-              Unduh Gambar QRIS
-            </a>
+            <div style={{ fontWeight: 800, fontSize: 16, color: "var(--ink)", marginBottom: 4 }}>
+              APOTEK BIMA FARMA
+            </div>
+            <div style={{ fontSize: 13, color: "var(--green-dark)", fontWeight: 700, marginBottom: 12 }}>
+              Total Pembayaran: {rupiah(pesanan.total)}
+            </div>
+            <div style={{ background: "#fff", padding: 14, borderRadius: 16, display: "inline-block", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+              {pesanan.pembayaran?.qris_dinamis ? (
+                <QRCodeSVG
+                  id="tracking-qris-svg-lightbox"
+                  value={pesanan.pembayaran.qris_dinamis}
+                  size={260}
+                  level="M"
+                  includeMargin={true}
+                />
+              ) : (
+                <img src="/qris.png" alt="QRIS Apotek Bima Farma — Perbesar" style={{ maxWidth: 260 }} />
+              )}
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <button
+                type="button"
+                className="btn-upload-submit"
+                onClick={() =>
+                  unduhQrisPng({
+                    svgId: "tracking-qris-svg-lightbox",
+                    namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
+                    judul: "APOTEK BIMA FARMA",
+                    nominal: rupiah(pesanan.total),
+                  })
+                }
+                style={{ width: "100%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
+                  <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
+                </svg>
+                Unduh / Simpan Gambar QRIS
+              </button>
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 10 }}>
+              Buka aplikasi e-wallet / m-banking dan pilih menu <strong>Scan dari Galeri</strong>.
+            </div>
           </div>
         </div>
       )}

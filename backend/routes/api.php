@@ -26,8 +26,6 @@ Route::get('/obat-referensi', [ObatReferensiController::class, 'index']);
 
 // ---- Toko Online — publik, checkout tanpa akun ----
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
-Route::post('/toko/pembayaran/{pembayaran}/bukti', [TokoController::class, 'uploadBukti']);
-Route::get('/toko/pembayaran/{pembayaran}', [TokoController::class, 'statusPembayaran']);
 
 // ---- Tracking Pesanan & Upload Bukti Publik (via kode_tracking) ----
 Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']);
