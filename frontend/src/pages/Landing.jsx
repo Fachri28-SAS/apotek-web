@@ -236,7 +236,7 @@ function Lokasi() {
                   <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z" />
                 </svg>
               </div>
-              <div><h4>Telepon / WhatsApp</h4><p>Tambahkan nomor kontak apotek di sini</p></div>
+              <div><h4>Telepon / WhatsApp</h4><p>0812-2360-4900</p></div>
             </div>
           </div>
 
@@ -293,7 +293,6 @@ function Footer() {
         </div>
         <div className="foot-bottom">
           <span>© 2026 Apotek Bima Farma. Seluruh hak cipta dilindungi.</span>
-          <span>Desain — draf untuk persetujuan pemilik</span>
         </div>
       </div>
     </footer>

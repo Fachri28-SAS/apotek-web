@@ -1,34 +1,63 @@
 import { useState, useEffect } from "react";
 import { AuthContext } from "./auth-context";
-import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn } from "../lib/api";
+import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken } from "../lib/api";
+
+function getCachedUser() {
+  const raw = localStorage.getItem("bimafarma_user") || sessionStorage.getItem("bimafarma_user");
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-
-  // Nilai awal ditentukan langsung dari ada/tidaknya token, BUKAN lewat
-  // setState di dalam useEffect. Kalau pakai setState sinkron di effect,
-  // React memperingatkan soal "cascading renders" (render berantai) —
-  // cara ini menghindarinya sekaligus lebih cepat 1 render.
-  const [loading, setLoading] = useState(() => isLoggedIn());
+  // Ambil snapshot user dari cache agar render instan tanpa jeda blank screen
+  const [user, setUser] = useState(getCachedUser);
+  const [loading, setLoading] = useState(() => isLoggedIn() && !getCachedUser());
 
   useEffect(() => {
-    if (!isLoggedIn()) return; // tidak ada token, tidak perlu cek ke server
+    if (!isLoggedIn()) {
+      setLoading(false);
+      setUser(null);
+      return;
+    }
 
+    // Sinkronisasi sesi dengan server di latar belakang
     getMe()
-      .then(setUser)
-      .catch(() => setUser(null)) // token basi/invalid, dianggap logout
+      .then((u) => {
+        setUser(u);
+        const storage = localStorage.getItem("bimafarma_token") ? localStorage : sessionStorage;
+        storage.setItem("bimafarma_user", JSON.stringify(u));
+      })
+      .catch(() => {
+        // Token tidak valid atau kadaluwarsa -> bersihkan sesi
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("bimafarma_user");
+        sessionStorage.removeItem("bimafarma_user");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   async function login(username, password, ingat = true) {
     const u = await apiLogin(username, password, ingat);
     setUser(u);
+    const storage = ingat ? localStorage : sessionStorage;
+    storage.setItem("bimafarma_user", JSON.stringify(u));
+    setLoading(false);
     return u;
   }
 
   async function logout() {
-    await apiLogout();
-    setUser(null);
+    try {
+      await apiLogout();
+    } finally {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("bimafarma_user");
+      sessionStorage.removeItem("bimafarma_user");
+    }
   }
 
   return (

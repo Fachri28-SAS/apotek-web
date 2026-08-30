@@ -1,26 +1,16 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import LoadingScreen from "./LoadingScreen";
 
-/**
- * Bungkus halaman yang butuh login:
- *   <RutePrivat><Dashboard /></RutePrivat>
- *
- * Untuk halaman yang cuma boleh admin (misal Laporan):
- *   <RutePrivat rolesBoleh={['admin']}><Laporan /></RutePrivat>
- *
- * PENTING: ini cuma soal pengalaman pakai (langsung dialihkan, bukan lihat
- * halaman kosong). Penjagaan SUNGGUHAN tetap di server lewat middleware
- * `role` — jadi walau ada yang coba akal-akalan lewat DevTools, request ke
- * API tetap ditolak 403 oleh Laravel.
- */
 export default function RutePrivat({ children, rolesBoleh }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div style={{ padding: 60, textAlign: "center", color: "var(--ink-soft)" }}>
-        Memeriksa sesi login…
-      </div>
+      <LoadingScreen
+        message="Memeriksa Sesi Login..."
+        submessage="Menghubungkan ke sistem Apotek Bima Farma..."
+      />
     );
   }
 

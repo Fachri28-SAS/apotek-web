@@ -1,34 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import Spinner from "../components/Spinner";
+import LoadingScreen from "../components/LoadingScreen";
 import "./Login.css";
 
 export default function Login() {
-  const [tab, setTab] = useState("kasir"); // cuma ganti placeholder & ikon, bukan pembatas — role sesungguhnya ditentukan server
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [ingat, setIngat] = useState(true);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  const [suksesLogin, setSuksesLogin] = useState(false);
 
-  const { login } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const tujuanAwal = location.state?.dari || "/kasir";
 
+  // Jika sudah login, otomatis alihkan ke dashboard kasir
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/kasir", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setLoadingSubmit(true);
     try {
       await login(username, password, ingat);
-      navigate(tujuanAwal, { replace: true });
+      setSuksesLogin(true);
+      // Animasi transisi halus sebelum pindah ke kasir
+      setTimeout(() => {
+        navigate(tujuanAwal, { replace: true });
+      }, 350);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
+      setLoadingSubmit(false);
     }
+  }
+
+  if (suksesLogin) {
+    return (
+      <LoadingScreen
+        message="Berhasil Masuk!"
+        submessage="Membuka sistem kasir Apotek Bima Farma..."
+      />
+    );
   }
 
   return (
@@ -82,30 +103,7 @@ export default function Login() {
       <div className="login-form-side">
         <div className="login-form-wrap">
           <h1>Selamat datang kembali</h1>
-          <p className="sub">Masuk untuk mulai bertugas di sistem kasir.</p>
-
-          <div className="login-tabs">
-            <button
-              type="button"
-              className={`login-tab ${tab === "kasir" ? "active" : ""}`}
-              onClick={() => setTab("kasir")}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <rect x="3" y="6" width="18" height="13" rx="2" /><path d="M8 6V4h8v2" />
-              </svg>
-              Kasir
-            </button>
-            <button
-              type="button"
-              className={`login-tab ${tab === "admin" ? "active" : ""}`}
-              onClick={() => setTab("admin")}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" />
-              </svg>
-              Admin / Pemilik
-            </button>
-          </div>
+          <p className="sub">Masuk untuk mulai bertugas di sistem kasir &amp; apotek.</p>
 
           {error && <div className="login-error">{error}</div>}
 
@@ -120,7 +118,7 @@ export default function Login() {
                   id="username"
                   type="text"
                   autoComplete="username"
-                  placeholder={tab === "admin" ? "Contoh: admin" : "Contoh: Yunita Maysarah"}
+                  placeholder="Masukkan nama pengguna"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -178,18 +176,22 @@ export default function Login() {
               </button>
             </div>
 
-            <button className="login-submit" type="submit" disabled={loading}>
-              {loading ? "Memeriksa…" : "Masuk"}
-              {!loading && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
+            <button className="login-submit" type="submit" disabled={loadingSubmit}>
+              {loadingSubmit ? (
+                <Spinner size={18} color="#ffffff" text="Memeriksa akun…" />
+              ) : (
+                <>
+                  Masuk
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </>
               )}
             </button>
           </form>
 
           <p className="login-help">
-            Login terpisah untuk tiap kasir &amp; admin.<br />
+            Sistem akses terenkripsi Apotek Bima Farma.<br />
             Butuh bantuan? <a href="#">Hubungi admin apotek</a>
           </p>
         </div>

@@ -146,7 +146,7 @@ export default function Toko() {
       <section className="shop-hero">
         <div className="wrap">
           <span className="eyebrow">Toko Online</span>
-          <h1>Belanja obat tanpa antre</h1>
+          <h1>Belanja obat tanpa antri</h1>
           <p>Cari, pesan, dan bayar langsung dari rumah — kami siapkan pesanan Anda begitu pembayaran terkonfirmasi.</p>
         </div>
       </section>
@@ -307,16 +307,26 @@ export default function Toko() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
               </div>
               <h3>Bukti Terkirim!</h3>
-              <p className="sub">No. Pesanan: <strong>{order.no_struk}</strong></p>
+              <p className="sub">Kode Tracking: <strong style={{ color: "var(--magenta-dark)", letterSpacing: "0.05em" }}>{order.kode_tracking}</strong></p>
               <span className="status-pill">
-                {statusPesanan === "pending" && "Menunggu Verifikasi Kasir"}
+                {(statusPesanan === "pending" || statusPesanan === "menunggu_verifikasi") && "Menunggu Verifikasi Kasir"}
                 {statusPesanan === "sukses" && "✓ Lunas — Pesanan Diproses"}
+                {statusPesanan === "kurang_bayar" && "Nominal Kurang Bayar"}
                 {(statusPesanan === "gagal" || statusPesanan === "expired") && "Pesanan Dibatalkan"}
               </span>
-              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 16 }}>
-                Kasir kami akan memeriksa bukti transfer Anda. Halaman ini otomatis
-                update begitu pesanan dikonfirmasi.
+              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 14 }}>
+                Kasir kami sedang memeriksa bukti transfer Anda. Anda bisa memantau status pesanan kapan saja melalui tautan tracking berikut:
               </p>
+
+              {order.kode_tracking && (
+                <a
+                  href={`/pesanan/${order.kode_tracking}`}
+                  className="btn-full"
+                  style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 16, padding: "12px" }}
+                >
+                  Buka Halaman Tracking Pesanan →
+                </a>
+              )}
             </div>
           )}
         </div>
@@ -334,9 +344,20 @@ export default function Toko() {
             </button>
           )}
           {tahap === "qris" && (
-            <button className="btn-full" onClick={kirimBukti} disabled={loadingCheckout}>
-              {loadingCheckout ? "Mengirim…" : "Kirim Bukti Transfer"}
-            </button>
+            <>
+              <button className="btn-full" onClick={kirimBukti} disabled={loadingCheckout}>
+                {loadingCheckout ? "Mengirim…" : "Kirim Bukti Transfer"}
+              </button>
+              {order?.kode_tracking && (
+                <a
+                  href={`/pesanan/${order.kode_tracking}`}
+                  className="btn-ghost"
+                  style={{ display: "block", textAlign: "center", textDecoration: "none" }}
+                >
+                  Buka Halaman Tracking Pembayaran
+                </a>
+              )}
+            </>
           )}
           {tahap === "selesai" && (
             <button className="btn-ghost" onClick={() => { setDrawerOpen(false); setTahap("keranjang"); }}>

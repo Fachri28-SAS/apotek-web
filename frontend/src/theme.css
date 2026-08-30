@@ -42,6 +42,36 @@ a:focus-visible, button:focus-visible {
   outline: 2px solid var(--magenta);
   outline-offset: 3px;
 }
+
+@keyframes spinFast {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(166, 75, 199, 0.25));
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 22px rgba(166, 75, 199, 0.5));
+  }
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; scroll-behavior: auto !important; animation: none !important; }
 }
+

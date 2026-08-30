@@ -26,28 +26,43 @@ function setToken(token, ingat = true) {
  */
 async function api(path, options = {}) {
   const token = getToken();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      signal: options.signal || controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+    });
+    clearTimeout(timeoutId);
 
-  const isJson = res.headers.get("content-type")?.includes("application/json");
-  const data = isJson ? await res.json() : null;
+    const isJson = res.headers.get("content-type")?.includes("application/json");
+    const data = isJson ? await res.json() : null;
 
-  if (!res.ok) {
-    // Laravel validation error: {"message": "...", "errors": {"username": ["..."]}}
-    const pesan =
-      data?.errors ? Object.values(data.errors).flat()[0] : data?.message || "Terjadi kesalahan, coba lagi.";
-    throw new Error(pesan);
+    if (!res.ok) {
+      if (res.status === 401 && !path.includes("/login")) {
+        setToken(null);
+      }
+      // Laravel validation error: {"message": "...", "errors": {"username": ["..."]}}
+      const pesan =
+        data?.errors ? Object.values(data.errors).flat()[0] : data?.message || "Terjadi kesalahan, coba lagi.";
+      throw new Error(pesan);
+    }
+
+    return data;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === "AbortError") {
+      throw new Error("Koneksi ke server lambat / timeout. Coba periksa koneksi database.");
+    }
+    throw err;
   }
-
-  return data;
 }
 
 export async function login(username, password, ingat = true) {
@@ -75,4 +90,4 @@ export function isLoggedIn() {
   return !!getToken();
 }
 
-export { api };
+export { api, setToken, getToken };

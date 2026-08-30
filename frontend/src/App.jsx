@@ -5,6 +5,7 @@ import RutePrivat from "./components/RutePrivat";
 
 import Landing from "./pages/Landing";
 import Toko from "./pages/Toko";
+import TrackingPesanan from "./pages/TrackingPesanan";
 import Login from "./pages/Login";
 import Dashboard from "./pages/kasir/Dashboard";
 import Kasir from "./pages/kasir/Kasir";
@@ -25,6 +26,7 @@ function App() {
           {/* ---- Publik: tidak perlu login ---- */}
           <Route path="/" element={<Landing />} />
           <Route path="/toko" element={<Toko />} />
+          <Route path="/pesanan/:kodeTracking" element={<TrackingPesanan />} />
           <Route path="/login" element={<Login />} />
 
           {/* ---- Wajib login: kasir & admin ---- */}

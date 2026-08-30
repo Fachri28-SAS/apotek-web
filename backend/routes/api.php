@@ -29,6 +29,11 @@ Route::post('/toko/checkout', [TokoController::class, 'checkout']);
 Route::post('/toko/pembayaran/{pembayaran}/bukti', [TokoController::class, 'uploadBukti']);
 Route::get('/toko/pembayaran/{pembayaran}', [TokoController::class, 'statusPembayaran']);
 
+// ---- Tracking Pesanan & Upload Bukti Publik (via kode_tracking) ----
+Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']);
+Route::get('/pesanan/{kode_tracking}/status', [TokoController::class, 'statusByTracking']);
+Route::post('/pesanan/{kode_tracking}/bukti', [TokoController::class, 'uploadBuktiByTracking']);
+
 Route::post('/login', [AuthController::class, 'login']);
 
 // =====================================================================
@@ -58,7 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/penjualan', [PenjualanController::class, 'index']);
         Route::get('/penjualan/{penjualan}', [PenjualanController::class, 'show']);
         Route::get('/pembayaran-online', [PembayaranOnlineController::class, 'index']);
+        Route::get('/pembayaran-online/counter', [PembayaranOnlineController::class, 'counter']);
         Route::post('/pembayaran-online/{pembayaran}/konfirmasi', [PembayaranOnlineController::class, 'konfirmasi']);
+        Route::post('/pembayaran-online/{pembayaran}/kurang-bayar', [PembayaranOnlineController::class, 'kurangBayar']);
         Route::post('/pembayaran-online/{pembayaran}/tolak', [PembayaranOnlineController::class, 'tolak']);
     });
 

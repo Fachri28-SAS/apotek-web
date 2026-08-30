@@ -45,8 +45,25 @@ export default function KasirShell({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [badgeCounter, setBadgeCounter] = useState(0);
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
+
+  // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir
+  useEffect(() => {
+    function cekCounter() {
+      api("/pembayaran-online/counter")
+        .then((res) => setBadgeCounter(res.menunggu_verifikasi || 0))
+        .catch(() => {});
+    }
+
+    cekCounter();
+    const timer = setInterval(() => {
+      if (!document.hidden) cekCounter();
+    }, 8000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   async function handleLogout() {
     await logout();
@@ -74,7 +91,12 @@ export default function KasirShell({ children }) {
               className={`kasir-menu-item ${location.pathname === m.path ? "active" : ""}`}
             >
               <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{m.icon}</svg>
-              {m.label}
+              <span>{m.label}</span>
+              {m.path === "/kasir/pembayaran-online" && badgeCounter > 0 && (
+                <span className="kasir-menu-badge" title={`${badgeCounter} pesanan menunggu verifikasi`}>
+                  {badgeCounter}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

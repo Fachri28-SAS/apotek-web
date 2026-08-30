@@ -32,6 +32,25 @@
   background: var(--magenta); color: #fff;
   box-shadow: 0 8px 18px rgba(166, 75, 199, 0.28);
 }
+.kasir-menu-badge {
+  margin-left: auto;
+  background: #E53E3E;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 6px rgba(229, 62, 62, 0.4);
+}
+.kasir-menu-item.active .kasir-menu-badge {
+  background: #fff;
+  color: #E53E3E;
+}
 
 .kasir-sidebar-footer {
   padding: 16px 20px; border-top: 1px solid var(--line);
@@ -238,7 +257,24 @@
   background: #fff; color: #D64550; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: inherit;
 }
 .btn-tolak:hover { border-color: #D64550; }
-.btn-tolak:disabled, .btn-tambah:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-tolak:disabled, .btn-tambah:disabled, .btn-kurang-bayar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-kurang-bayar {
+  padding: 8px 14px; border-radius: 100px; border: 1.5px solid #F87171;
+  background: #FEF2F2; color: #DC2626; font-weight: 700; font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s ease;
+}
+.btn-kurang-bayar:hover { background: #FEE2E2; }
+
+.status-badge-inline {
+  display: inline-block; font-size: 10.5px; font-weight: 800;
+  padding: 3px 9px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.status-badge-inline.menunggu_verifikasi { background: var(--magenta-tint); color: var(--magenta-dark); }
+.status-badge-inline.pending { background: #FEF3C7; color: #D97706; }
+.status-badge-inline.kurang_bayar { background: #FEE2E2; color: #DC2626; }
+.status-badge-inline.sukses { background: var(--green-tint); color: var(--green-dark); }
+
 
 @media (max-width: 900px) {
   .dashboard-2kolom { grid-template-columns: 1fr; }
