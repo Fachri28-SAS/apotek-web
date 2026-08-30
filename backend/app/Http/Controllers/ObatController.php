@@ -204,7 +204,7 @@ class ObatController extends Controller
     }
 
     /**
-     * DELETE /api/obat/{id}/permanen
+     * DELETE /api/obat/{id}/permane
      * "Kosongkan sampah" — beneran hilang, TIDAK bisa dipulihkan lagi.
      */
     public function hapusPermanen($id)
