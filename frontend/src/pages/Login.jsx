@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import Spinner from "../components/Spinner";
-import LoadingScreen from "../components/LoadingScreen";
 import "./Login.css";
 
 export default function Login() {
@@ -12,7 +11,6 @@ export default function Login() {
   const [ingat, setIngat] = useState(true);
   const [error, setError] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-  const [suksesLogin, setSuksesLogin] = useState(false);
 
   const { user, loading: authLoading, login } = useAuth();
   const navigate = useNavigate();
@@ -32,28 +30,15 @@ export default function Login() {
     setLoadingSubmit(true);
     try {
       await login(username, password, ingat);
-      setSuksesLogin(true);
-      // Animasi transisi halus sebelum pindah ke kasir
-      setTimeout(() => {
-        navigate(tujuanAwal, { replace: true });
-      }, 350);
+      navigate(tujuanAwal, { replace: true });
     } catch (err) {
       setError(err.message);
       setLoadingSubmit(false);
     }
   }
 
-  if (suksesLogin) {
-    return (
-      <LoadingScreen
-        message="Berhasil Masuk!"
-        submessage="Membuka sistem kasir Apotek Bima Farma..."
-      />
-    );
-  }
-
   return (
-    <div className="login-page">
+    <div className="login-page" translate="no">
       {/* ---------- PANEL KIRI ---------- */}
       <div className="login-brand">
         <div className="login-brand-logo">

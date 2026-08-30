@@ -27,7 +27,7 @@ function setToken(token, ingat = true) {
 async function api(path, options = {}) {
   const token = getToken();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const res = await fetch(`${BASE_URL}${path}`, {

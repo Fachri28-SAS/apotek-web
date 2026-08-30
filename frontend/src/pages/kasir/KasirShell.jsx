@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { api } from "../../lib/api";
 import "./Kasir.css";
 
 const MENU = [

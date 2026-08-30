@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import CrossDefs from "./components/CrossDefs";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
 import RutePrivat from "./components/RutePrivat";
 
@@ -21,35 +22,37 @@ function App() {
   return (
     <BrowserRouter>
       <CrossDefs />
-      <AuthProvider>
-        <Routes>
-          {/* ---- Publik: tidak perlu login ---- */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/toko" element={<Toko />} />
-          <Route path="/pesanan/:kodeTracking" element={<TrackingPesanan />} />
-          <Route path="/login" element={<Login />} />
+      <ErrorBoundary>
+        <AuthProvider>
+          <Routes>
+            {/* ---- Publik: tidak perlu login ---- */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/toko" element={<Toko />} />
+            <Route path="/pesanan/:kodeTracking" element={<TrackingPesanan />} />
+            <Route path="/login" element={<Login />} />
 
-          {/* ---- Wajib login: kasir & admin ---- */}
-          <Route path="/kasir" element={<RutePrivat><Dashboard /></RutePrivat>} />
-          <Route path="/kasir/jual" element={<RutePrivat><Kasir /></RutePrivat>} />
-          <Route path="/kasir/obat" element={<RutePrivat><DataObat /></RutePrivat>} />
-          <Route path="/kasir/opname" element={<RutePrivat><StokOpname /></RutePrivat>} />
-          <Route path="/kasir/riwayat" element={<RutePrivat><Riwayat /></RutePrivat>} />
-          <Route path="/kasir/penerimaan" element={<RutePrivat><Penerimaan /></RutePrivat>} />
-          <Route path="/kasir/riwayat-penerimaan" element={<RutePrivat><RiwayatPenerimaan /></RutePrivat>} />
-          <Route path="/kasir/pembayaran-online" element={<RutePrivat><PembayaranOnline /></RutePrivat>} />
+            {/* ---- Wajib login: kasir & admin ---- */}
+            <Route path="/kasir" element={<RutePrivat><Dashboard /></RutePrivat>} />
+            <Route path="/kasir/jual" element={<RutePrivat><Kasir /></RutePrivat>} />
+            <Route path="/kasir/obat" element={<RutePrivat><DataObat /></RutePrivat>} />
+            <Route path="/kasir/opname" element={<RutePrivat><StokOpname /></RutePrivat>} />
+            <Route path="/kasir/riwayat" element={<RutePrivat><Riwayat /></RutePrivat>} />
+            <Route path="/kasir/penerimaan" element={<RutePrivat><Penerimaan /></RutePrivat>} />
+            <Route path="/kasir/riwayat-penerimaan" element={<RutePrivat><RiwayatPenerimaan /></RutePrivat>} />
+            <Route path="/kasir/pembayaran-online" element={<RutePrivat><PembayaranOnline /></RutePrivat>} />
 
-          {/* ---- Wajib login DAN khusus admin ---- */}
-          <Route
-            path="/kasir/laporan"
-            element={
-              <RutePrivat rolesBoleh={["admin"]}>
-                <Laporan />
-              </RutePrivat>
-            }
-          />
-        </Routes>
-      </AuthProvider>
+            {/* ---- Wajib login DAN khusus admin ---- */}
+            <Route
+              path="/kasir/laporan"
+              element={
+                <RutePrivat rolesBoleh={["admin"]}>
+                  <Laporan />
+                </RutePrivat>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
