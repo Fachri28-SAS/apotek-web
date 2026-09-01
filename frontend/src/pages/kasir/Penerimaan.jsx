@@ -3,6 +3,7 @@ import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import SearchObatPenerimaan from "./komponen/SearchObatPenerimaan";
+import TambahSupplierModal from "./komponen/TambahSupplierModal";
 
 const TEMPO_OPSI = [
   { key: "1_bulan", label: "1 Bulan", bulan: 1 },
@@ -38,6 +39,7 @@ export default function Penerimaan() {
   const [tempoLabel, setTempoLabel] = useState("1_bulan");
   const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahBulan(new Date(), 1));
   const [isPkp, setIsPkp] = useState(false);
+  const [modalSupplierOpen, setModalSupplierOpen] = useState(false);
 
   // ---------- Panel 2: Daftar Item ----------
   const [items, setItems] = useState([]);
@@ -57,6 +59,17 @@ export default function Penerimaan() {
     const s = supplierList.find((x) => String(x.id) === String(id));
     setNamaSupplier(s ? s.nama : "");
     setIsPkp(s ? !!s.is_pkp : false);
+  }
+
+  function supplierBaruDitambahkan(s) {
+    setSupplierList((prev) => {
+      const ada = prev.some((x) => x.id === s.id);
+      return ada ? prev : [...prev, s].sort((a, b) => a.nama.localeCompare(b.nama));
+    });
+    setSupplierId(s.id);
+    setNamaSupplier(s.nama);
+    setIsPkp(!!s.is_pkp);
+    setSukses(`Supplier "${s.nama}" berhasil ditambahkan dan langsung dipilih.`);
   }
 
   function ubahTempo(key) {
@@ -180,7 +193,28 @@ export default function Penerimaan() {
         <div className="panel-head"><h3>Faktur Pembelian</h3></div>
         <div className="obat-form-grid">
           <div className="payment-field">
-            <label>Supplier</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label style={{ margin: 0 }}>Supplier</label>
+              <button
+                type="button"
+                onClick={() => setModalSupplierOpen(true)}
+                style={{
+                  background: "#FAF5FF",
+                  border: "1px solid var(--magenta)",
+                  borderRadius: 6,
+                  color: "var(--magenta-dark)",
+                  fontWeight: 700,
+                  fontSize: 11.5,
+                  cursor: "pointer",
+                  padding: "2px 8px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                + Tambah Supplier
+              </button>
+            </div>
             <select value={supplierId} onChange={(e) => pilihSupplier(e.target.value)}>
               <option value="">— Pilih atau ketik manual —</option>
               {supplierList.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}
@@ -308,6 +342,13 @@ export default function Penerimaan() {
           </>
         )}
       </div>
+
+      {modalSupplierOpen && (
+        <TambahSupplierModal
+          onClose={() => setModalSupplierOpen(false)}
+          onSukses={supplierBaruDitambahkan}
+        />
+      )}
     </KasirShell>
   );
 }

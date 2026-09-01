@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/obat/opname', [ObatController::class, 'opname']);
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
+        Route::post('/suppliers', [SupplierController::class, 'store']);
         Route::post('/penerimaan', [PenerimaanController::class, 'store']);
         Route::get('/penerimaan', [PenerimaanController::class, 'index']);
         Route::get('/penerimaan/{penerimaan}', [PenerimaanController::class, 'show']);
