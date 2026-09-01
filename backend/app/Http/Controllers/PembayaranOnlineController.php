@@ -63,14 +63,12 @@ class PembayaranOnlineController extends Controller
      */
     public function counter()
     {
-        $menungguVerifikasi = Pembayaran::where('status', 'menunggu_verifikasi')->count();
-        $kurangBayar = Pembayaran::where('status', 'kurang_bayar')->count();
-        $pending = Pembayaran::where('status', 'pending')->count();
+        $menungguVerifikasi = Pembayaran::whereIn('status', ['menunggu_verifikasi', 'pending', 'kurang_bayar'])->count();
+        $denganBukti = Pembayaran::whereIn('status', ['menunggu_verifikasi', 'pending', 'kurang_bayar'])->whereNotNull('bukti_path')->count();
 
         return response()->json([
             'menunggu_verifikasi' => $menungguVerifikasi,
-            'kurang_bayar' => $kurangBayar,
-            'pending' => $pending,
+            'dengan_bukti' => $denganBukti,
             'total_notifikasi' => $menungguVerifikasi,
         ]);
     }

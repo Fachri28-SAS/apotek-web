@@ -42,29 +42,65 @@ function JamRealtime() {
   );
 }
 
+// Suara notifikasi lembut menggunakan Web Audio API murni (tanpa butuh file eksternal)
+function mainkanSuaraNotifikasi() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    // Nada ding-dong ganda yang ramah & elegan
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {
+    // browser auto-play policy fallback
+  }
+}
+
 export default function KasirShell({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [badgeCounter, setBadgeCounter] = useState(0);
+  const [showToast, setShowToast] = useState(false);
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
 
-  // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir
+  // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir secara realtime (setiap 3.5 detik)
   useEffect(() => {
+    let lastCount = -1;
+
     function cekCounter() {
       api("/pembayaran-online/counter")
-        .then((res) => setBadgeCounter(res.menunggu_verifikasi || 0))
+        .then((res) => {
+          const count = res.menunggu_verifikasi || res.total_notifikasi || 0;
+          setBadgeCounter(count);
+
+          // Jika ada pesanan baru bertambah & bukan di halaman pembayaran online, bunyikan notifikasi & tampilkan toast
+          if (lastCount !== -1 && count > lastCount && location.pathname !== "/kasir/pembayaran-online") {
+            mainkanSuaraNotifikasi();
+            setShowToast(true);
+          }
+          lastCount = count;
+        })
         .catch(() => {});
     }
 
     cekCounter();
-    const timer = setInterval(() => {
-      if (!document.hidden) cekCounter();
-    }, 8000);
+    const timer = setInterval(cekCounter, 3500);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [location.pathname]);
 
   async function handleLogout() {
     await logout();
@@ -132,6 +168,68 @@ export default function KasirShell({ children }) {
           <JamRealtime />
         </div>
         <main className="kasir-content">{children}</main>
+
+        {/* Floating Toast Notifikasi Pesanan Online Baru */}
+        {showToast && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 24,
+              right: 24,
+              zIndex: 9999,
+              background: "linear-gradient(135deg, #7C3AED, #A64BC7)",
+              color: "#fff",
+              padding: "14px 20px",
+              borderRadius: 14,
+              boxShadow: "0 10px 30px rgba(124, 58, 237, 0.4)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              animation: "slideInUp 0.3s ease-out",
+            }}
+          >
+            <span style={{ fontSize: 24 }}>🔔</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 13.5 }}>Pesanan Online Baru Masuk!</div>
+              <div style={{ fontSize: 11.5, opacity: 0.9 }}>Segera verifikasi pembayaran & stok</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowToast(false);
+                navigate("/kasir/pembayaran-online");
+              }}
+              style={{
+                marginLeft: 8,
+                background: "#fff",
+                color: "#7C3AED",
+                border: "none",
+                fontWeight: 700,
+                fontSize: 12,
+                padding: "6px 12px",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+            >
+              Buka
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowToast(false)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#fff",
+                opacity: 0.7,
+                fontSize: 16,
+                cursor: "pointer",
+                padding: 4,
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
