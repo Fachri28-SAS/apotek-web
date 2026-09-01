@@ -75,11 +75,25 @@ export default function Toko() {
 
   function tambahKeKeranjang(obat) {
     if (obat.perlu_resep) return; // dijaga juga, tombol sudah disabled di UI
-    const satuan = obat.satuan[0];
+    const satuan = obat.satuan?.[0];
+    if (!satuan) return;
+
+    const maxTersedia = Math.floor(Number(obat.stok || 0) / Math.max(Number(satuan.faktor || 1), 1));
+    if (maxTersedia <= 0) {
+      alert(`Maaf, stok "${obat.nama}" saat ini sedang habis.`);
+      return;
+    }
+
     const key = satuan.id;
+    let stokKurang = false;
+
     setCart((prev) => {
       const sudahAda = prev.find((it) => it.obat_satuan_id === key);
       if (sudahAda) {
+        if (sudahAda.qty + 1 > maxTersedia) {
+          stokKurang = true;
+          return prev;
+        }
         return prev.map((it) => (it.obat_satuan_id === key ? { ...it, qty: it.qty + 1 } : it));
       }
       return [...prev, {
@@ -87,17 +101,41 @@ export default function Toko() {
         obat_id: obat.id,
         nama: obat.nama,
         satuan: satuan.nama_satuan,
+        satuan_dasar: obat.satuan_dasar,
+        faktor: Number(satuan.faktor || 1),
+        stok_dasar: Number(obat.stok || 0),
         harga: satuan.harga_jual,
         qty: 1,
       }];
     });
-    setDrawerOpen(true);
+
+    if (stokKurang) {
+      alert(`Maksimal pembelian untuk "${obat.nama}" adalah ${maxTersedia} ${satuan.nama_satuan} (stok fisik apotek tersisa: ${obat.stok} ${obat.satuan_dasar}).`);
+    } else {
+      setDrawerOpen(true);
+    }
   }
 
   function ubahQty(id, delta) {
-    setCart((prev) => prev
-      .map((it) => (it.obat_satuan_id === id ? { ...it, qty: it.qty + delta } : it))
-      .filter((it) => it.qty > 0));
+    setCart((prev) => {
+      const target = prev.find((it) => it.obat_satuan_id === id);
+      if (!target) return prev;
+
+      if (delta > 0) {
+        const obatObj = daftar.find((o) => o.id === target.obat_id);
+        const stokTerkini = obatObj ? Number(obatObj.stok || 0) : Number(target.stok_dasar || 9999);
+        const maxTersedia = Math.floor(stokTerkini / Math.max(target.faktor || 1, 1));
+
+        if (target.qty + delta > maxTersedia) {
+          alert(`Maksimal pembelian untuk "${target.nama}" adalah ${maxTersedia} ${target.satuan} (stok fisik tersisa: ${stokTerkini} ${target.satuan_dasar || ""}).`);
+          return prev;
+        }
+      }
+
+      return prev
+        .map((it) => (it.obat_satuan_id === id ? { ...it, qty: it.qty + delta } : it))
+        .filter((it) => it.qty > 0);
+    });
   }
 
   function hapusItem(id) {

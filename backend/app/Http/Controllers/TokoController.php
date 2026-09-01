@@ -34,6 +34,7 @@ class TokoController extends Controller
         return DB::transaction(function () use ($data) {
             $subtotal = 0;
             $itemsSiap = [];
+            $stokDibutuhkan = [];
 
             foreach ($data['items'] as $it) {
                 $satuan = ObatSatuan::with('obat')->findOrFail($it['obat_satuan_id']);
@@ -45,6 +46,18 @@ class TokoController extends Controller
                 }
                 if (!$obat->aktif_dijual || !$obat->tampil_online) {
                     abort(422, "\"{$obat->nama}\" sedang tidak tersedia.");
+                }
+
+                // Cek ketersediaan stok fisik di apotek
+                $qtyDasar = (int) $it['qty'] * (int) $satuan->faktor;
+                $stokDibutuhkan[$obat->id] = ($stokDibutuhkan[$obat->id] ?? 0) + $qtyDasar;
+
+                if ($stokDibutuhkan[$obat->id] > $obat->stok) {
+                    $maxSatuan = (int) floor($obat->stok / max($satuan->faktor, 1));
+                    if ($maxSatuan <= 0) {
+                        abort(422, "Maaf, stok \"{$obat->nama}\" saat ini sedang habis (tersisa {$obat->stok} {$obat->satuan_dasar}).");
+                    }
+                    abort(422, "Jumlah pesanan \"{$obat->nama}\" melebihi stok yang tersedia. Stok saat ini: {$obat->stok} {$obat->satuan_dasar} (maksimal pesan {$maxSatuan} {$satuan->nama_satuan}).");
                 }
 
                 $subtotalItem = $it['qty'] * $satuan->harga_jual;
