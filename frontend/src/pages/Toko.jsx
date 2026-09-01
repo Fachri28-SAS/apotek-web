@@ -110,7 +110,7 @@ export default function Toko() {
     });
 
     if (stokKurang) {
-      alert(`Maksimal pembelian untuk "${obat.nama}" adalah ${maxTersedia} ${satuan.nama_satuan} (stok fisik apotek tersisa: ${obat.stok} ${obat.satuan_dasar}).`);
+      alert(`Maksimal batas pembelian untuk "${obat.nama}" sudah tercapai.`);
     } else {
       setDrawerOpen(true);
     }
@@ -127,7 +127,7 @@ export default function Toko() {
         const maxTersedia = Math.floor(stokTerkini / Math.max(target.faktor || 1, 1));
 
         if (target.qty + delta > maxTersedia) {
-          alert(`Maksimal pembelian untuk "${target.nama}" adalah ${maxTersedia} ${target.satuan} (stok fisik tersisa: ${stokTerkini} ${target.satuan_dasar || ""}).`);
+          alert(`Maksimal batas pembelian untuk "${target.nama}" sudah tercapai.`);
           return prev;
         }
       }
@@ -251,13 +251,17 @@ export default function Toko() {
             textAlign: "left",
           }}
         >
-          <span style={{ fontSize: 22 }}>💡</span>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#7C3AED", flexShrink: 0 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+          </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 13.5, color: "#581C87", lineHeight: 1.2 }}>
               Panduan Satuan & Kemasan Obat
             </div>
             <div style={{ fontSize: 11.5, color: "#9333EA", fontWeight: 600 }}>
-              Klik untuk cek arti Blister, Strip, Box, dll ➔
+              Cek penjelasan Blister, Strip, Box, dll
             </div>
           </div>
         </button>
@@ -273,7 +277,6 @@ export default function Toko() {
             const ketSatuan = keteranganSatuan(namaSatuan);
             const diKeranjang = cart.find((it) => it.obat_satuan_id === satuan?.id);
             const habis = stokTersedia <= 0;
-            const menipis = stokTersedia > 0 && stokTersedia <= 5;
 
             return (
               <div className={`produk-card ${habis ? "produk-habis" : ""}`} key={obat.id}>
@@ -310,15 +313,11 @@ export default function Toko() {
                     <span style={{ color: "var(--line)" }}>•</span>
                     {habis ? (
                       <span style={{ color: "#DC2626", fontWeight: 700, fontSize: 11, background: "#FEE2E2", padding: "1px 6px", borderRadius: 4 }}>
-                        ✕ Habis
-                      </span>
-                    ) : menipis ? (
-                      <span style={{ color: "#C2410C", fontWeight: 700, fontSize: 11, background: "#FFEDD5", padding: "1px 6px", borderRadius: 4 }}>
-                        ⚠️ Sisa {stokTersedia} {namaSatuan}
+                        Habis
                       </span>
                     ) : (
                       <span style={{ color: "#15803D", fontWeight: 600, fontSize: 11, background: "#DCFCE7", padding: "1px 6px", borderRadius: 4 }}>
-                        ✓ Stok: {stokTersedia}
+                        Tersedia
                       </span>
                     )}
                   </div>
@@ -455,7 +454,7 @@ export default function Toko() {
                       </div>
                       {isMaxReached && (
                         <div style={{ fontSize: 11, color: "#C2410C", fontWeight: 700, marginTop: 4 }}>
-                          ⚠️ Stok maksimal tercapai (tersedia {maxStok} {it.satuan})
+                          Batas stok maksimal tercapai
                         </div>
                       )}
                     </div>

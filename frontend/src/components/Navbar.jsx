@@ -102,10 +102,13 @@ export default function Navbar({ cartCount, onOpenCart }) {
                   padding: "6px 0",
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 5,
+                  gap: 6,
                 }}
               >
-                <span>🔍</span> Cek Pesanan
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15, color: "var(--ink-soft)" }}>
+                  <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+                </svg>
+                Cek Pesanan
               </button>
               {!diToko && (
                 <>
@@ -158,7 +161,10 @@ export default function Navbar({ cartCount, onOpenCart }) {
                 gap: 8,
               }}
             >
-              <span>🔍</span> Cek Status Pesanan
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, color: "var(--ink-soft)" }}>
+                <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+              </svg>
+              Cek Status Pesanan
             </button>
             {!diToko && (
               <>
@@ -205,7 +211,11 @@ export default function Navbar({ cartCount, onOpenCart }) {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 24 }}>🔍</span>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: "var(--magenta-tint)", color: "var(--magenta-dark)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 20, height: 20 }}>
+                    <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+                  </svg>
+                </div>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Cek Status Pesanan</h3>
                   <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Lacak pembayaran & bukti pengambilan obat</div>
@@ -232,7 +242,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                 }}
               >
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: "var(--magenta-dark)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
-                  📦 Pesanan Terakhir di HP Ini
+                  Pesanan Terakhir di Perangkat Ini
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <div>
@@ -282,7 +292,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                   required
                 />
                 <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 5 }}>
-                  💡 Lupa kode? Cukup masukkan nomor HP yang Anda pakai saat belanja.
+                  Lupa kode tracking? Masukkan nomor HP yang Anda gunakan saat pemesanan.
                 </div>
               </div>
 
