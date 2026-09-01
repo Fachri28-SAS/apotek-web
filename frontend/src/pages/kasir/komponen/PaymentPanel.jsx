@@ -3,7 +3,6 @@ import { rupiah } from "../../../utils/format";
 const METODE = [
   { key: "tunai", label: "Tunai" },
   { key: "qris", label: "QRIS" },
-  { key: "transfer", label: "Transfer" },
 ];
 
 export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian, onSubmit, loading, disabled }) {

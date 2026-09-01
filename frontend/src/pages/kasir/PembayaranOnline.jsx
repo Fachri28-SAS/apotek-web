@@ -251,10 +251,10 @@ export default function PembayaranOnline() {
 
                       <div className="pembayaran-nominal-row" style={{ marginTop: 6 }}>
                         <span>Total Tagihan: <strong>{rupiah(p.jumlah)}</strong></span>
-                        {p.nominal_klaim_customer && (
+                        {p.nominal_klaim_customer && Number(p.nominal_klaim_customer) !== Number(p.jumlah) && (
                           <span>
                             Klaim Transfer:{" "}
-                            <strong className={Number(p.nominal_klaim_customer) < Number(p.jumlah) ? "kurang-bayar" : ""}>
+                            <strong className="kurang-bayar">
                               {rupiah(p.nominal_klaim_customer)}
                             </strong>
                           </span>

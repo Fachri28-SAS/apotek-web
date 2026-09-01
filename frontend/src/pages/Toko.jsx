@@ -348,11 +348,6 @@ export default function Toko() {
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={pilihFileBukti} style={{ display: "none" }} />
               </div>
-
-              <div className="form-group" style={{ marginTop: 14, textAlign: "left" }}>
-                <label>Nominal yang Anda transfer</label>
-                <input type="number" value={nominalKlaim} onChange={(e) => setNominalKlaim(e.target.value)} />
-              </div>
             </div>
           )}
 

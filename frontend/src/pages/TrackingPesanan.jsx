@@ -440,17 +440,6 @@ export default function TrackingPesanan() {
                     />
                   </div>
 
-                  <div className="upload-input-group">
-                    <label>Nominal yang Anda Transfer (Rp)</label>
-                    <input
-                      type="number"
-                      value={nominalKlaim}
-                      onChange={(e) => setNominalKlaim(e.target.value)}
-                      placeholder="Masukkan nominal transfer"
-                      required
-                    />
-                  </div>
-
                   <button
                     type="submit"
                     className="btn-upload-submit"

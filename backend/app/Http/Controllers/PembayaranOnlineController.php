@@ -103,11 +103,18 @@ class PembayaranOnlineController extends Controller
                 );
             }
 
-            $penjualan->update(['status' => 'lunas']);
+            $kasir = auth()->user();
+            $namaKasir = $kasir ? $kasir->nama : 'Kasir';
+
+            $penjualan->update([
+                'status' => 'lunas',
+                'user_id' => $kasir?->id,
+                'nama_kasir' => $namaKasir,
+            ]);
             $pembayaran->update([
                 'status' => 'sukses',
                 'paid_at' => now(),
-                'catatan_verifikasi' => null,
+                'catatan_verifikasi' => "Dikonfirmasi oleh: {$namaKasir}",
             ]);
 
             return response()->json([
