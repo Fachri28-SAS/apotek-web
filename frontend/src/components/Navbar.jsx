@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 /**
  * Navbar bersama — dipakai Landing MAUPUN Toko, supaya keduanya
@@ -13,6 +13,11 @@ import { Link } from "react-router-dom";
 export default function Navbar({ cartCount, onOpenCart }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [modalCek, setModalCek] = useState(false);
+  const [inputKode, setInputKode] = useState("");
+  const [lastTracking, setLastTracking] = useState("");
+  const [lastPembeli, setLastPembeli] = useState("");
+  const navigate = useNavigate();
   const diToko = typeof onOpenCart === "function";
 
   useEffect(() => {
@@ -20,6 +25,23 @@ export default function Navbar({ cartCount, onOpenCart }) {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  function handleBukaCekPesanan() {
+    const saved = localStorage.getItem("apotek_last_tracking");
+    const savedName = localStorage.getItem("apotek_last_pembeli");
+    if (saved) setLastTracking(saved);
+    if (savedName) setLastPembeli(savedName);
+    setModalCek(true);
+    setMobileOpen(false);
+  }
+
+  function handleCariPesanan(e) {
+    e.preventDefault();
+    const kode = inputKode.trim();
+    if (!kode) return;
+    setModalCek(false);
+    navigate(`/pesanan/${encodeURIComponent(kode)}`);
+  }
 
   return (
     <header className={scrolled ? "scrolled" : ""}>
@@ -36,6 +58,24 @@ export default function Navbar({ cartCount, onOpenCart }) {
           <div className="nav-links">
             <Link to="/#beranda">Beranda</Link>
             <Link to="/toko" className={diToko ? "active" : ""}>Toko</Link>
+            <button
+              type="button"
+              onClick={handleBukaCekPesanan}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--ink)",
+                fontSize: 14.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: "6px 0",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <span>🔍</span> Cek Pesanan
+            </button>
             {!diToko && (
               <>
                 <a href="#tentang">Tentang Kami</a>
@@ -70,6 +110,25 @@ export default function Navbar({ cartCount, onOpenCart }) {
         <div className={`mobile-menu ${mobileOpen ? "open" : ""}`}>
           <Link to="/#beranda" onClick={() => setMobileOpen(false)}>Beranda</Link>
           <Link to="/toko" onClick={() => setMobileOpen(false)}>Toko</Link>
+          <button
+            type="button"
+            onClick={handleBukaCekPesanan}
+            style={{
+              background: "none",
+              border: "none",
+              textAlign: "left",
+              color: "var(--ink)",
+              fontSize: 15,
+              fontWeight: 600,
+              padding: "10px 0",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span>🔍</span> Cek Status Pesanan
+          </button>
           {!diToko && (
             <>
               <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
@@ -78,6 +137,127 @@ export default function Navbar({ cartCount, onOpenCart }) {
           )}
         </div>
       </div>
+
+      {/* ---------- MODAL CEK STATUS PESANAN ---------- */}
+      {modalCek && (
+        <div className="qris-lightbox-overlay" onClick={() => setModalCek(false)} style={{ zIndex: 9999 }}>
+          <div
+            className="qris-lightbox-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 440, width: "90vw", textAlign: "left", padding: "24px 26px" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 24 }}>🔍</span>
+                <div>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Cek Status Pesanan</h3>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Lacak pembayaran & pengambilan obat</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="drawer-close"
+                onClick={() => setModalCek(false)}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+
+            {/* Jika ada pesanan terakhir yang tersimpan di browser */}
+            {lastTracking && (
+              <div
+                style={{
+                  background: "#FAF5FF",
+                  border: "1.5px dashed var(--magenta)",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "var(--magenta-dark)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>
+                  📦 Pesanan Terakhir di HP Ini
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--ink)" }}>{lastTracking}</div>
+                    {lastPembeli && <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>a.n. {lastPembeli}</div>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setModalCek(false);
+                      navigate(`/pesanan/${lastTracking}`);
+                    }}
+                    style={{
+                      background: "var(--magenta)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 14px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Buka Status
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleCariPesanan}>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                  Masukkan Kode Tracking Pesanan
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: TRK-260901-XXXX"
+                  value={inputKode}
+                  onChange={(e) => setInputKode(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "11px 14px",
+                    borderRadius: 10,
+                    border: "1.5px solid var(--line)",
+                    fontSize: 14,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => setModalCek(false)}
+                  style={{ flex: 1, padding: "11px", borderRadius: 10 }}
+                >
+                  Tutup
+                </button>
+                <button
+                  type="submit"
+                  className="btn-full"
+                  style={{
+                    flex: 1.5,
+                    padding: "11px",
+                    borderRadius: 10,
+                    background: "var(--magenta)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cari Pesanan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -125,6 +125,10 @@ export default function Toko() {
         }),
       });
       setOrder(hasil);
+      if (hasil?.kode_tracking) {
+        localStorage.setItem("apotek_last_tracking", hasil.kode_tracking);
+        localStorage.setItem("apotek_last_pembeli", hasil.nama_pembeli || "");
+      }
       setNominalKlaim(hasil.total);
       setTahap("qris");
     } catch (err) {
