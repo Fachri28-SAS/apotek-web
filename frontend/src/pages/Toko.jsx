@@ -28,16 +28,31 @@ export default function Toko() {
   const [teleponPembeli, setTeleponPembeli] = useState("");
   const [alamatKirim, setAlamatKirim] = useState("");
 
-  function muatProduk() {
-    setLoading(true);
+  function muatProduk(silent = false) {
+    if (!silent) setLoading(true);
     const params = new URLSearchParams({ untuk: "toko" });
     if (search) params.set("search", search);
-    api(`/obat?${params}`).then(setProduk).finally(() => setLoading(false));
+    api(`/obat?${params}`)
+      .then(setProduk)
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }
 
+  // Muat produk saat user mengetik di pencarian
   useEffect(() => {
-    const timer = setTimeout(muatProduk, 300);
+    const timer = setTimeout(() => muatProduk(false), 300);
     return () => clearTimeout(timer);
+  }, [search]);
+
+  // Realtime Polling: Perbarui daftar obat & foto terbaru secara otomatis di background setiap 5 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        muatProduk(true);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
   }, [search]);
 
   function tambahKeKeranjang(obat) {
@@ -137,7 +152,7 @@ export default function Toko() {
       api(`/pesanan/${order.kode_tracking}/status`)
         .then((d) => setStatusPesanan(d.status_pembayaran))
         .catch(() => {});
-    }, 8000);
+    }, 3500);
     return () => clearInterval(timer);
   }, [tahap, order]);
 
