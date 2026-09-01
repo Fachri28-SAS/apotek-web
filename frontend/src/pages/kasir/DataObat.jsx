@@ -215,6 +215,7 @@ export default function DataObat() {
 
       {modalOpen && (
         <ObatModal
+          key={obatEdit ? `obat-${obatEdit.id}-${obatEdit.gambar || ""}` : "tambah"}
           obat={obatEdit}
           onClose={() => setModalOpen(false)}
           onSelesai={() => { setModalOpen(false); muatUlang(); }}
