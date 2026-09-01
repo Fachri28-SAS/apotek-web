@@ -66,12 +66,12 @@
 .kasir-user-nama { font-size: 13px; font-weight: 700; }
 .kasir-user-role { font-size: 11.5px; color: var(--ink-soft); }
 .kasir-logout-btn {
-  width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line);
-  background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-family: inherit; color: var(--ink-soft);
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid #FECACA;
+  background: #FEF2F2; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-family: inherit; color: #DC2626; transition: all 0.2s ease; flex-shrink: 0;
 }
-.kasir-logout-btn svg { width: 14px; height: 14px; }
-.kasir-logout-btn:hover { border-color: var(--magenta); color: var(--magenta-dark); }
+.kasir-logout-btn svg { width: 15px; height: 15px; }
+.kasir-logout-btn:hover { background: #DC2626; color: #fff; border-color: #DC2626; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
 
 /* ---------- TOP NAVBAR ---------- */
 .kasir-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }

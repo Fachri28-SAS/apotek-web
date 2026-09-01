@@ -190,10 +190,10 @@ export default function Toko() {
         </div>
       </section>
 
-      <div className="wrap toolbar">
-        <div className="search-box">
+      <div className="wrap toolbar-modern" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "0 0 24px" }}>
+        <div className="search-box" style={{ flex: 1, minWidth: 280, maxWidth: 540, margin: 0 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-          <input type="text" placeholder="Cari obat…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input type="text" placeholder="Cari nama obat atau gejala…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <button
           type="button"
@@ -201,22 +201,27 @@ export default function Toko() {
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
-            borderRadius: 100,
-            border: "1.5px solid var(--magenta)",
-            background: "#FAF5FF",
-            color: "var(--magenta-dark)",
-            fontWeight: 700,
-            fontSize: 12.5,
+            gap: 12,
+            padding: "11px 20px",
+            borderRadius: 14,
+            border: "1.5px solid #C084FC",
+            background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
+            color: "#6B21A8",
             cursor: "pointer",
-            whiteSpace: "nowrap",
+            boxShadow: "0 4px 14px rgba(168, 85, 247, 0.12)",
+            transition: "all 0.2s ease",
+            textAlign: "left",
           }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-            <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
-          </svg>
-          Panduan Satuan & Kemasan
+          <span style={{ fontSize: 22 }}>💡</span>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 13.5, color: "#581C87", lineHeight: 1.2 }}>
+              Panduan Satuan & Kemasan Obat
+            </div>
+            <div style={{ fontSize: 11.5, color: "#9333EA", fontWeight: 600 }}>
+              Klik untuk cek arti Blister, Strip, Box, dll ➔
+            </div>
+          </div>
         </button>
       </div>
 
