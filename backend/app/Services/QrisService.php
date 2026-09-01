@@ -4,17 +4,16 @@ namespace App\Services;
 
 class QrisService
 {
-    // String QRIS Statis Asli Apotek Bima Farma (dari Gopay / GoBiz)
-    public const STATIC_QRIS = '00020101021126610014COM.GO-JEK.WWW01189360091433873061180210G3873061180303UKE51440014ID.CO.QRIS.WWW0215ID10243577536480303UKE5204591253033605802ID5925APOTEK BIMA FARMA, NGAMPR6013BANDUNG BARAT61054055262070703A016304ABD9';
+    // String QRIS DANA Uji Coba: Kaizren, Pembuatan Web (bisa dioverride lewat .env QRIS_STRING)
+    public const STATIC_QRIS = '00020101021126570011ID.DANA.WWW011893600915303433697102090343369710303UMI51440014ID.CO.QRIS.WWW0215ID10265758603290303UMI5204899953033605802ID5922Kaizren, Pembuatan Web6015Kab. Bandung Ba6105405526304EDBC';
 
     /**
      * Ubah QRIS Statis menjadi QRIS Dinamis dengan nominal tagihan terkunci (Standar EMVCo Bank Indonesia).
      */
-    public static function generateDynamic(float|int $amount, string $staticQris = self::STATIC_QRIS): string
+    public static function generateDynamic(float|int $amount, ?string $staticQris = null): string
     {
-        // 1. Ubah 010211 (statis) menjadi 010212 (dinamis)
-        $qris = str_replace('010211', '010212', $staticQris);
-
+        $baseQris = $staticQris ?: env('QRIS_STRING', self::STATIC_QRIS);
+        $qris = str_replace('010211', '010212', $baseQris);
         // 2. Buat tag 54 (nominal transaksi)
         $amountStr = (string) (int) $amount;
         $amountLength = str_pad((string) strlen($amountStr), 2, '0', STR_PAD_LEFT);
