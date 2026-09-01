@@ -26,21 +26,50 @@ export default function Navbar({ cartCount, onOpenCart }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const [hasilCari, setHasilCari] = useState([]);
+  const [loadingCari, setLoadingCari] = useState(false);
+  const [errorCari, setErrorCari] = useState("");
+
   function handleBukaCekPesanan() {
     const saved = localStorage.getItem("apotek_last_tracking");
     const savedName = localStorage.getItem("apotek_last_pembeli");
     if (saved) setLastTracking(saved);
     if (savedName) setLastPembeli(savedName);
+    setHasilCari([]);
+    setErrorCari("");
     setModalCek(true);
     setMobileOpen(false);
   }
 
-  function handleCariPesanan(e) {
+  async function handleCariPesanan(e) {
     e.preventDefault();
-    const kode = inputKode.trim();
-    if (!kode) return;
-    setModalCek(false);
-    navigate(`/pesanan/${encodeURIComponent(kode)}`);
+    const query = inputKode.trim();
+    if (!query) return;
+
+    if (query.toUpperCase().startsWith("TRK-")) {
+      setModalCek(false);
+      navigate(`/pesanan/${encodeURIComponent(query.toUpperCase())}`);
+      return;
+    }
+
+    setLoadingCari(true);
+    setErrorCari("");
+    setHasilCari([]);
+    try {
+      const data = await api(`/pesanan-cari?q=${encodeURIComponent(query)}`);
+      if (!data || data.length === 0) {
+        setErrorCari("Tidak ditemukan pesanan dengan No. HP / Kode tersebut. Pastikan nomor sesuai saat checkout.");
+      } else if (data.length === 1) {
+        setModalCek(false);
+        navigate(`/pesanan/${data[0].kode_tracking}`);
+      } else {
+        setHasilCari(data);
+      }
+    } catch (err) {
+      setErrorCari(err.message || "Gagal mencari pesanan.");
+    } finally {
+      setLoadingCari(false);
+    }
   }
 
   return (
@@ -208,11 +237,11 @@ export default function Navbar({ cartCount, onOpenCart }) {
             <form onSubmit={handleCariPesanan}>
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
-                  Masukkan Kode Tracking Pesanan
+                  Nomor WhatsApp / HP atau Kode Tracking
                 </label>
                 <input
                   type="text"
-                  placeholder="Contoh: TRK-260901-XXXX"
+                  placeholder="Contoh: 08123456789 atau TRK-260901-XXXX"
                   value={inputKode}
                   onChange={(e) => setInputKode(e.target.value)}
                   style={{
@@ -221,12 +250,86 @@ export default function Navbar({ cartCount, onOpenCart }) {
                     borderRadius: 10,
                     border: "1.5px solid var(--line)",
                     fontSize: 14,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
                   }}
                   required
                 />
+                <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 5 }}>
+                  💡 Lupa kode? Cukup masukkan nomor HP yang Anda pakai saat belanja.
+                </div>
               </div>
+
+              {errorCari && (
+                <div style={{ background: "#FEE2E2", color: "#DC2626", padding: "10px 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, marginBottom: 14 }}>
+                  {errorCari}
+                </div>
+              )}
+
+              {/* Hasil Pencarian jika ada beberapa pesanan */}
+              {hasilCari.length > 0 && (
+                <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>
+                    Ditemukan {hasilCari.length} Pesanan:
+                  </div>
+                  {hasilCari.map((p) => {
+                    const lunas = p.status_pembayaran === "sukses";
+                    return (
+                      <div
+                        key={p.kode_tracking}
+                        style={{
+                          background: "#fff",
+                          border: "1px solid var(--line)",
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 8,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 13, color: "var(--ink)" }}>{p.kode_tracking}</div>
+                          <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>
+                            a.n. {p.nama_pembeli} • Rp{Number(p.total).toLocaleString("id-ID")}
+                          </div>
+                          <div style={{ marginTop: 3 }}>
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                padding: "2px 6px",
+                                borderRadius: 4,
+                                background: lunas ? "#DCFCE7" : "#FFEDD5",
+                                color: lunas ? "#15803D" : "#C2410C",
+                              }}
+                            >
+                              {lunas ? "✓ LUNAS" : "MENUNGGU PEMBAYARAN"}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModalCek(false);
+                            navigate(`/pesanan/${p.kode_tracking}`);
+                          }}
+                          style={{
+                            background: "var(--magenta)",
+                            color: "#fff",
+                            border: "none",
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Buka
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <div style={{ display: "flex", gap: 10 }}>
                 <button
@@ -240,6 +343,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                 <button
                   type="submit"
                   className="btn-full"
+                  disabled={loadingCari}
                   style={{
                     flex: 1.5,
                     padding: "11px",
@@ -251,7 +355,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                     cursor: "pointer",
                   }}
                 >
-                  Cari Pesanan
+                  {loadingCari ? "Mencari…" : "Cari Pesanan"}
                 </button>
               </div>
             </form>

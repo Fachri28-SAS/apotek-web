@@ -272,4 +272,39 @@ class TokoController extends Controller
             'catatan_verifikasi' => $pembayaran->catatan_verifikasi,
         ];
     }
+
+    /**
+     * GET /api/pesanan-cari?q=...
+     * PUBLIK — Cari pesanan berdasarkan Kode Tracking ATAU Nomor HP/WhatsApp
+     */
+    public function cari(Request $r)
+    {
+        $q = trim((string) $r->input('q'));
+        if (empty($q)) {
+            return response()->json([]);
+        }
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $q);
+
+        $penjualan = Penjualan::where('kode_tracking', strtoupper($q))
+            ->orWhere('no_struk', strtoupper($q))
+            ->when(strlen($cleanPhone) >= 4, function ($query) use ($cleanPhone) {
+                $query->orWhere('telepon_pembeli', 'like', "%{$cleanPhone}%");
+            })
+            ->with(['pembayaran', 'items'])
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        return response()->json($penjualan->map(fn ($p) => [
+            'kode_tracking' => $p->kode_tracking,
+            'no_struk' => $p->no_struk,
+            'nama_pembeli' => $p->nama_pembeli,
+            'telepon_pembeli' => $p->telepon_pembeli,
+            'total' => (float) $p->total,
+            'status_pembayaran' => $p->pembayaran?->status ?? 'pending',
+            'created_at' => $p->created_at,
+            'jumlah_item' => $p->items->sum('qty'),
+        ]));
+    }
 }

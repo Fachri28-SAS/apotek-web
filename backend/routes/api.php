@@ -28,6 +28,7 @@ Route::get('/obat-referensi', [ObatReferensiController::class, 'index']);
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
 
 // ---- Tracking Pesanan & Upload Bukti Publik (via kode_tracking) ----
+Route::get('/pesanan-cari', [TokoController::class, 'cari']);
 Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']);
 Route::get('/pesanan/{kode_tracking}/status', [TokoController::class, 'statusByTracking']);
 Route::post('/pesanan/{kode_tracking}/bukti', [TokoController::class, 'uploadBuktiByTracking']);
