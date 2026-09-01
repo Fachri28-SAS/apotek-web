@@ -4,6 +4,7 @@ import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
 import SampahModal from "./komponen/SampahModal";
+import RiwayatPengadaanModal from "./komponen/RiwayatPengadaanModal";
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -43,6 +44,7 @@ export default function DataObat() {
   const [modalOpen, setModalOpen] = useState(false);
   const [obatEdit, setObatEdit] = useState(null);
   const [sampahOpen, setSampahOpen] = useState(false);
+  const [riwayatObat, setRiwayatObat] = useState(null);
 
   function muatUlang() {
     setLoading(true);
@@ -194,6 +196,30 @@ export default function DataObat() {
                   */}
                   <td>
                     <div className="obat-aksi-icons">
+                      <button
+                        type="button"
+                        onClick={() => setRiwayatObat(obat)}
+                        title="Lihat Asal-Usul & Riwayat Faktur Masuk"
+                        style={{
+                          background: "#FAF5FF",
+                          border: "1px solid var(--magenta)",
+                          borderRadius: 7,
+                          padding: "5px 7px",
+                          color: "var(--magenta-dark)",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 14, height: 14 }}>
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="16" y1="13" x2="8" y2="13"></line>
+                          <line x1="16" y1="17" x2="8" y2="17"></line>
+                          <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                      </button>
                       <button onClick={() => bukaEdit(obat)} title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                           <path d="M17 3l4 4L7 21H3v-4L17 3z" />
@@ -227,6 +253,13 @@ export default function DataObat() {
         <SampahModal
           onClose={() => setSampahOpen(false)}
           onSelesai={muatUlang}
+        />
+      )}
+
+      {riwayatObat && (
+        <RiwayatPengadaanModal
+          obat={riwayatObat}
+          onClose={() => setRiwayatObat(null)}
         />
       )}
     </KasirShell>

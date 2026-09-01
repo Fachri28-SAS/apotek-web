@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/obat/{obat}/batches', [ObatController::class, 'getBatches']);
+        Route::get('/obat/{obat}/riwayat-pengadaan', [ObatController::class, 'riwayatPengadaan']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);

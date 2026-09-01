@@ -293,6 +293,41 @@ class ObatController extends Controller
     }
 
     /**
+     * GET /api/obat/{obat}/riwayat-pengadaan
+     * Riwayat asal-usul obat: daftar seluruh penerimaan / faktur / supplier yang pernah memasok obat ini.
+     */
+    public function riwayatPengadaan(Obat $obat)
+    {
+        $items = \App\Models\PenerimaanItem::where('obat_id', $obat->id)
+            ->with(['penerimaan', 'obatSatuan'])
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json([
+            'obat' => [
+                'id' => $obat->id,
+                'nama' => $obat->nama,
+                'satuan_dasar' => $obat->satuan_dasar,
+                'supplier_utama' => $obat->supplier?->nama ?? $items->first()?->penerimaan?->nama_supplier ?? 'Belum ada data',
+            ],
+            'riwayat' => $items->map(fn ($it) => [
+                'id' => $it->id,
+                'penerimaan_id' => $it->penerimaan_id,
+                'tanggal_terima' => $it->penerimaan?->tanggal_terima,
+                'nama_supplier' => $it->penerimaan?->nama_supplier,
+                'no_faktur' => $it->penerimaan?->no_faktur,
+                'nomor_batch' => $it->nomor_batch,
+                'tanggal_exp' => $it->tanggal_exp ? $it->tanggal_exp->format('Y-m-d') : null,
+                'qty' => (int) $it->qty,
+                'nama_satuan' => $it->nama_satuan,
+                'harga_beli' => (float) $it->harga_beli,
+                'diskon' => (float) $it->diskon,
+                'subtotal' => (float) $it->subtotal,
+            ]),
+        ]);
+    }
+
+    /**
      * POST /api/obat/opname
      * Endpoint untuk fitur Stok Opname (mendukung penyesuaian per batch).
      */
