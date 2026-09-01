@@ -5,6 +5,13 @@ const METODE = [
   { key: "qris", label: "QRIS" },
 ];
 
+function formatRibuan(val) {
+  if (val === "" || val === undefined || val === null) return "";
+  const clean = String(val).replace(/\D/g, "");
+  if (!clean) return "";
+  return parseInt(clean, 10).toLocaleString("id-ID");
+}
+
 export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian, onSubmit, loading, disabled }) {
   const kurang = tab.metodeBayar === "tunai" && Number(tab.uangDiterima || 0) < total;
 
@@ -46,10 +53,14 @@ export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian
       <div className="payment-field">
         <label>Diskon (Rp)</label>
         <input
-          type="number"
-          min="0"
-          value={tab.diskon}
-          onChange={(e) => onChange("diskon", Math.max(0, parseFloat(e.target.value) || 0))}
+          type="text"
+          inputMode="numeric"
+          placeholder="0"
+          value={formatRibuan(tab.diskon)}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/\D/g, "");
+            onChange("diskon", raw ? parseInt(raw, 10) : 0);
+          }}
         />
       </div>
 
@@ -79,11 +90,52 @@ export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian
           <div className="payment-field">
             <label>Uang Diterima</label>
             <input
-              type="number"
-              min="0"
-              value={tab.uangDiterima}
-              onChange={(e) => onChange("uangDiterima", e.target.value)}
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              value={formatRibuan(tab.uangDiterima)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "");
+                onChange("uangDiterima", raw ? parseInt(raw, 10) : "");
+              }}
             />
+            <div style={{ display: "flex", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                style={{
+                  padding: "3px 8px",
+                  fontSize: 11,
+                  borderRadius: 6,
+                  border: "1px solid var(--magenta)",
+                  background: "#FAF5FF",
+                  color: "var(--magenta-dark)",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
+                onClick={() => onChange("uangDiterima", total)}
+              >
+                Uang Pas
+              </button>
+              {[10000, 20000, 50000, 100000].map((nom) => (
+                <button
+                  key={nom}
+                  type="button"
+                  style={{
+                    padding: "3px 8px",
+                    fontSize: 11,
+                    borderRadius: 6,
+                    border: "1px solid var(--line)",
+                    background: "#fff",
+                    color: "var(--ink)",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                  }}
+                  onClick={() => onChange("uangDiterima", nom)}
+                >
+                  {nom.toLocaleString("id-ID")}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="payment-row">
             <span>Kembalian</span>
