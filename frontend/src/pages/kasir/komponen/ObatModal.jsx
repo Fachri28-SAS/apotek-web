@@ -35,6 +35,34 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
       : { nama_satuan: obat?.satuan_dasar || "", faktor: 1, harga_beli: "", harga_jual: "" }
   );
 
+  const [gambarPreview, setGambarPreview] = useState(
+    obat?.gambar_url || (obat?.gambar ? `/storage/${obat.gambar}` : "")
+  );
+  const [gambarBase64, setGambarBase64] = useState("");
+  const [hapusGambar, setHapusGambar] = useState(false);
+
+  function handlePilihGambar(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran gambar terlalu besar (maksimal 5 MB)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setGambarPreview(ev.target.result);
+      setGambarBase64(ev.target.result);
+      setHapusGambar(false);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleHapusFoto() {
+    setGambarPreview("");
+    setGambarBase64("");
+    setHapusGambar(true);
+  }
+
   useEffect(() => {
     api("/obat-referensi").then((data) => setNamaSaran(data.map((d) => d.nama)));
     api("/suppliers").then(setSupplierList).catch(() => {});
@@ -125,6 +153,8 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
             tanggal_exp: tanggalExp || null, stok_minimum: Number(stokMinimum),
             supplier_id: supplierId || null, perlu_resep: perluResep,
             aktif_dijual: aktifDijual, satuan: satuanDikirim,
+            ...(gambarBase64 ? { gambar_base64: gambarBase64 } : {}),
+            ...(hapusGambar ? { hapus_gambar: true } : {}),
           }),
         });
       } else {
@@ -136,6 +166,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
             supplier_id: supplierId || null, perlu_resep: perluResep,
             aktif_dijual: aktifDijual, tampil_online: true,
             satuan: satuanDikirim.map(({ id, ...s }) => s), // id tidak relevan saat create
+            ...(gambarBase64 ? { gambar_base64: gambarBase64 } : {}),
           }),
         });
       }
@@ -162,6 +193,45 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
 
         <form onSubmit={handleSubmit}>
           <div className="obat-form-grid">
+            {/* Widget Upload Foto Obat */}
+            <div className="payment-field" style={{ gridColumn: "1 / -1" }}>
+              <label>Foto Produk Obat (Toko Online)</label>
+              <div style={{ display: "flex", gap: 16, alignItems: "center", background: "#FAF5FF", padding: 12, borderRadius: 10, border: "1.5px dashed #D8B4FE" }}>
+                <div style={{ width: 72, height: 72, borderRadius: 8, background: "#fff", border: "1px solid var(--line)", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {gambarPreview ? (
+                    <img src={gambarPreview} alt="Preview Foto Obat" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#A64BC7" strokeWidth="1.5" style={{ width: 32, height: 32 }}>
+                      <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+                    </svg>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                    {gambarPreview ? "Foto Obat Terpasang" : "Belum Ada Foto Obat"}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 8 }}>
+                    Format PNG, JPG, atau WebP (Maks 5 MB). Foto akan langsung tampil di Toko Online.
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <label style={{ cursor: "pointer", background: "var(--magenta)", color: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 700, display: "inline-block" }}>
+                      {gambarPreview ? "Ganti Foto" : "Pilih Foto Obat"}
+                      <input type="file" accept="image/*" onChange={handlePilihGambar} style={{ display: "none" }} />
+                    </label>
+                    {gambarPreview && (
+                      <button
+                        type="button"
+                        onClick={handleHapusFoto}
+                        style={{ background: "#FEE2E2", color: "#B91C1C", border: "none", padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                      >
+                        Hapus Foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="payment-field" style={{ gridColumn: "1 / -1" }}>
               <label>Nama Obat</label>
               <input

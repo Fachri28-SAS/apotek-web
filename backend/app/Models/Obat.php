@@ -11,9 +11,9 @@ class Obat extends Model
 
     protected $table = 'obat';
 
-    // Tanpa ini, accessor rentang_harga & sisa_hari_exp TIDAK ikut muncul
+    // Tanpa ini, accessor rentang_harga, sisa_hari_exp & gambar_url TIDAK ikut muncul
     // saat model dikonversi ke JSON — cuma bisa diakses lewat PHP.
-    protected $appends = ['rentang_harga', 'sisa_hari_exp'];
+    protected $appends = ['rentang_harga', 'sisa_hari_exp', 'gambar_url'];
 
     protected $fillable = [
         'kode', 'nama', 'kemasan', 'satuan_dasar', 'stok', 'stok_minimum',
@@ -66,5 +66,14 @@ class Obat extends Model
         $max = $harga->max();
         $fmt = fn ($n) => 'Rp' . number_format($n, 0, ',', '.');
         return $min == $max ? $fmt($min) : $fmt($min) . '–' . $fmt($max);
+    }
+
+    public function getGambarUrlAttribute(): ?string
+    {
+        if (!$this->gambar) return null;
+        if (str_starts_with($this->gambar, 'http://') || str_starts_with($this->gambar, 'https://')) {
+            return $this->gambar;
+        }
+        return asset('storage/' . $this->gambar);
     }
 }

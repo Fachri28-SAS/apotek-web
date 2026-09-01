@@ -7,6 +7,7 @@ use App\Models\ObatSatuan;
 use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ObatController extends Controller
 {
@@ -23,30 +24,34 @@ class ObatController extends Controller
      */
     public function index(Request $r)
     {
-        $q = Obat::with(['satuan', 'supplier'])->whereNull('deleted_at');
+        $q = Obat::with(['satuan', 'supplier']);
 
         if ($r->filled('search')) {
-            $q->where('nama', 'like', '%' . $r->search . '%');
+            $s = $r->search;
+            $q->where(function ($sub) use ($s) {
+                $sub->where('nama', 'like', "%{$s}%")
+                    ->orWhere('kode', 'like', "%{$s}%");
+            });
         }
 
-        if ($r->filled('supplier_id')) {
-            $q->where('supplier_id', $r->supplier_id);
+        // Jangan pernah tampilkan obat yang sudah kadaluwarsa ke kasir & toko
+        if ($r->untuk === 'kasir' || $r->untuk === 'toko') {
+            $q->where('aktif_dijual', true)
+              ->where(function ($sub) {
+                  $sub->whereNull('tanggal_exp')
+                      ->orWhere('tanggal_exp', '>', now()->toDateString());
+              });
         }
 
-        if ($r->untuk === 'kasir') {
-            $q->where('aktif_dijual', true);
-        }
         if ($r->untuk === 'toko') {
-            $q->where('aktif_dijual', true)->where('tampil_online', true);
+            $q->where('tampil_online', true);
         }
-
-        $q->orderBy('nama');
 
         if ($r->filled('limit')) {
             $q->limit((int) $r->limit);
         }
 
-        return $q->get();
+        return $q->orderBy('nama')->get();
     }
 
     public function show(Obat $obat)
@@ -84,6 +89,7 @@ class ObatController extends Controller
             'perlu_resep' => 'boolean',
             'aktif_dijual' => 'boolean',
             'tampil_online' => 'boolean',
+            'gambar_base64' => 'nullable|string',
             'satuan' => 'required|array|min:1',
             'satuan.*.nama_satuan' => 'required|string|max:30',
             'satuan.*.faktor' => 'required|integer|min:1',
@@ -92,9 +98,21 @@ class ObatController extends Controller
         ]);
 
         return DB::transaction(function () use ($data) {
+            $gambarPath = null;
+            if (!empty($data['gambar_base64'])) {
+                if (preg_match('/^data:image\/(\w+);base64,/', $data['gambar_base64'], $tipe)) {
+                    $ekstensi = $tipe[1] === 'jpeg' ? 'jpg' : $tipe[1];
+                    $isiFile = base64_decode(substr($data['gambar_base64'], strpos($data['gambar_base64'], ',') + 1));
+                    $namaFile = 'obat-' . uniqid() . '-' . time() . '.' . $ekstensi;
+                    Storage::disk('public')->put('obat/' . $namaFile, $isiFile);
+                    $gambarPath = 'obat/' . $namaFile;
+                }
+            }
+
             $obat = Obat::create([
-                ...collect($data)->except('satuan')->toArray(),
+                ...collect($data)->except(['satuan', 'gambar_base64'])->toArray(),
                 'stok' => $data['stok'] ?? 0,
+                'gambar' => $gambarPath,
             ]);
 
             foreach ($data['satuan'] as $i => $s) {
@@ -130,8 +148,23 @@ class ObatController extends Controller
             'perlu_resep' => 'boolean',
             'aktif_dijual' => 'boolean',
             'tampil_online' => 'boolean',
+            'gambar_base64' => 'nullable|string',
+            'hapus_gambar' => 'nullable|boolean',
             'satuan' => 'nullable|array',
         ]);
+
+        if (!empty($data['gambar_base64'])) {
+            if (preg_match('/^data:image\/(\w+);base64,/', $data['gambar_base64'], $tipe)) {
+                $ekstensi = $tipe[1] === 'jpeg' ? 'jpg' : $tipe[1];
+                $isiFile = base64_decode(substr($data['gambar_base64'], strpos($data['gambar_base64'], ',') + 1));
+                $namaFile = 'obat-' . $obat->id . '-' . time() . '.' . $ekstensi;
+                Storage::disk('public')->put('obat/' . $namaFile, $isiFile);
+                $data['gambar'] = 'obat/' . $namaFile;
+            }
+        } elseif (!empty($data['hapus_gambar'])) {
+            $data['gambar'] = null;
+        }
+        unset($data['gambar_base64'], $data['hapus_gambar']);
 
         $satuanInput = $data['satuan'] ?? null;
         unset($data['satuan']);

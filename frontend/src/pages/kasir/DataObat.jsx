@@ -126,7 +126,17 @@ export default function DataObat() {
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
                   <td>
-                    <span className="obat-nama-cell">{obat.nama}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {obat.gambar_url || obat.gambar ? (
+                        <img
+                          src={obat.gambar_url || `/storage/${obat.gambar}`}
+                          alt=""
+                          style={{ width: 28, height: 28, borderRadius: 4, objectFit: "cover", flexShrink: 0 }}
+                          onError={(e) => { e.target.style.display = "none"; }}
+                        />
+                      ) : null}
+                      <span className="obat-nama-cell">{obat.nama}</span>
+                    </div>
                   </td>
                   <td>{obat.kemasan || "-"}</td>
                   <td>{satuanNames}</td>

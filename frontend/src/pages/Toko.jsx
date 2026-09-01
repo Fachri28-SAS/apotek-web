@@ -170,9 +170,18 @@ export default function Toko() {
               <div className="produk-card" key={obat.id}>
                 {obat.perlu_resep && <span className="badge-resep-produk">Resep</span>}
                 <div className="produk-thumb">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                    <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" />
-                  </svg>
+                  {obat.gambar_url || obat.gambar ? (
+                    <img
+                      src={obat.gambar_url || `/storage/${obat.gambar}`}
+                      alt={obat.nama}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => { e.target.style.display = "none"; }}
+                    />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" />
+                    </svg>
+                  )}
                 </div>
                 <div className="produk-body">
                   <h3>{obat.nama}</h3>
