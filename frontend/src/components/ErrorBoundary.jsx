@@ -54,28 +54,55 @@ export default class ErrorBoundary extends React.Component {
           <p style={{ color: "var(--ink-soft)", maxWidth: 440, fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
             {this.state.error?.message || "Halaman tidak dapat dimuat. Silakan muat ulang atau coba login kembali."}
           </p>
-          <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            {window.location.pathname.startsWith("/kasir") || window.location.pathname === "/login" ? (
+              <button
+                onClick={() => {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  window.location.href = "/login";
+                }}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 100,
+                  border: "none",
+                  background: "var(--magenta)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: "pointer",
+                }}
+              >
+                Reset &amp; Login Ulang
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  window.location.href = "/toko";
+                }}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 100,
+                  border: "none",
+                  background: "var(--magenta)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: "pointer",
+                }}
+              >
+                Kembali ke Toko
+              </button>
+            )}
             <button
               onClick={() => {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = "/login";
+                if (window.caches) {
+                  caches.keys().then((names) => {
+                    for (let name of names) caches.delete(name);
+                  });
+                }
+                window.location.reload(true);
               }}
-              style={{
-                padding: "10px 18px",
-                borderRadius: 100,
-                border: "none",
-                background: "var(--magenta)",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 13.5,
-                cursor: "pointer",
-              }}
-            >
-              Reset &amp; Login Ulang
-            </button>
-            <button
-              onClick={() => window.location.reload()}
               style={{
                 padding: "10px 18px",
                 borderRadius: 100,
