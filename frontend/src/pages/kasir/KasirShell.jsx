@@ -77,8 +77,14 @@ export default function KasirShell({ children }) {
   const [badgeCounter, setBadgeCounter] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [gantiPasswordOpen, setGantiPasswordOpen] = useState(false);
+  const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
+
+  // Tutup sidebar mobile saat navigasi pindah halaman
+  useEffect(() => {
+    setSidebarMobileOpen(false);
+  }, [location.pathname]);
 
   // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir secara realtime (setiap 3.5 detik)
   useEffect(() => {
@@ -115,13 +121,30 @@ export default function KasirShell({ children }) {
 
   return (
     <div className="kasir-shell">
-      <aside className="kasir-sidebar">
+      {/* Backdrop gelap saat drawer menu mobile terbuka */}
+      {sidebarMobileOpen && (
+        <div
+          className="kasir-sidebar-backdrop"
+          onClick={() => setSidebarMobileOpen(false)}
+        />
+      )}
+
+      <aside className={`kasir-sidebar ${sidebarMobileOpen ? "open" : ""}`}>
         <div className="logo-area">
           <svg><use href="#cross-mark" /></svg>
-          <div>
+          <div style={{ flex: 1 }}>
             <div className="logo-apotek">APOTEK</div>
             <div className="logo-nama">BIMA FARMA</div>
           </div>
+          {/* Tombol close sidebar di mobile */}
+          <button
+            type="button"
+            className="sidebar-close-mobile-btn"
+            onClick={() => setSidebarMobileOpen(false)}
+            aria-label="Tutup Menu"
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="kasir-menu">
@@ -179,11 +202,24 @@ export default function KasirShell({ children }) {
 
       <div className="kasir-main">
         <div className="kasir-topbar">
-          <div className="topbar-left">
-            <h2 className="topbar-title">{halamanAktif?.label || "Sistem Kasir"}</h2>
-            <div className="topbar-status">
-              <span className="topbar-dot-online" />
-              Online — {user?.nama}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              type="button"
+              className="kasir-hamburger-btn"
+              onClick={() => setSidebarMobileOpen(!sidebarMobileOpen)}
+              aria-label="Buka Menu Navigasi"
+              title="Menu Navigasi"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 22, height: 22 }}>
+                <path d="M3 12h18M3 6h18M3 18h18" />
+              </svg>
+            </button>
+            <div className="topbar-left">
+              <h2 className="topbar-title">{halamanAktif?.label || "Sistem Kasir"}</h2>
+              <div className="topbar-status">
+                <span className="topbar-dot-online" />
+                Online — {user?.nama}
+              </div>
             </div>
           </div>
           <JamRealtime />
