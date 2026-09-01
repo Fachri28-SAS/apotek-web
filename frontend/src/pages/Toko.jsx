@@ -122,7 +122,7 @@ export default function Toko() {
       if (!target) return prev;
 
       if (delta > 0) {
-        const obatObj = daftar.find((o) => o.id === target.obat_id);
+        const obatObj = (produk || []).find((o) => o.id === target.obat_id);
         const stokTerkini = obatObj ? Number(obatObj.stok || 0) : Number(target.stok_dasar || 9999);
         const maxTersedia = Math.floor(stokTerkini / Math.max(target.faktor || 1, 1));
 
@@ -417,7 +417,7 @@ export default function Toko() {
               </div>
             ) : (
               cart.map((it) => {
-                const obatObj = daftar.find((o) => o.id === it.obat_id);
+                const obatObj = (produk || []).find((o) => o.id === it.obat_id);
                 const stokDasarTerkini = obatObj ? Number(obatObj.stok || 0) : Number(it.stok_dasar || 0);
                 const maxStok = Math.floor(stokDasarTerkini / Math.max(Number(it.faktor || 1), 1));
                 const isMaxReached = it.qty >= maxStok;
