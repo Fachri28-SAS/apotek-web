@@ -299,7 +299,7 @@ class ObatController extends Controller
     public function riwayatPengadaan(Obat $obat)
     {
         $items = \App\Models\PenerimaanItem::where('obat_id', $obat->id)
-            ->with(['penerimaan', 'obatSatuan'])
+            ->with('penerimaan')
             ->orderByDesc('id')
             ->get();
 
