@@ -1,22 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- Background Badge Rounded -->
-  <rect width="64" height="64" rx="16" fill="#7C3AED" />
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#bg-grad)" />
-
-  <!-- Pharmacy Cross (Green & White/Purple Accent) -->
-  <path d="M26 12C26 10.8954 26.8954 10 28 10H36C37.1046 10 38 10.8954 38 12V26H52C53.1046 26 54 26.8954 54 28V36C54 37.1046 53.1046 38 52 38H38V52C38 53.1046 37.1046 54 36 54H28C26.8954 54 26 53.1046 26 52V38H12C10.8954 38 10 37.1046 10 36V28C10 26.8954 10.8954 26 12 26H26V12Z" fill="#10B981" />
-  
-  <!-- Modern Pill Capsule Accent inside Cross -->
-  <path d="M22 28C22 24.6863 24.6863 22 28 22H36C39.3137 22 42 24.6863 42 28V36C42 39.3137 39.3137 42 36 42H28C24.6863 42 22 39.3137 22 36V28Z" fill="#FFFFFF" opacity="0.95" />
-  <path d="M32 22H36C39.3137 22 42 24.6863 42 28V36C42 39.3137 39.3137 42 36 42H32V22Z" fill="#8B5CF6" />
-  
-  <!-- Sparkle Accent -->
-  <circle cx="48" cy="16" r="3" fill="#34D399" />
-  
-  <defs>
-    <linearGradient id="bg-grad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8B5CF6" />
-      <stop offset="1" stop-color="#6D28D9" />
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 67 100">
+  <rect x="34" y="3" width="30" height="46" rx="15" fill="#A64BC7" />
+  <rect x="34" y="51" width="30" height="46" rx="15" fill="#A64BC7" />
+  <rect x="3" y="34" width="46" height="30" rx="15" fill="#39A048" />
 </svg>
