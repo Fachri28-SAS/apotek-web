@@ -3,7 +3,7 @@
  * supaya header Authorization otomatis terpasang di mana pun, dan
  * base URL cuma perlu diubah di satu tempat kalau nanti pindah hosting.
  */
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getToken() {
   return sessionStorage.getItem("bimafarma_token") || localStorage.getItem("bimafarma_token");
