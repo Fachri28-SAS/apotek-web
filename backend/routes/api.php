@@ -71,6 +71,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pembayaran-online/{pembayaran}/konfirmasi', [PembayaranOnlineController::class, 'konfirmasi']);
         Route::post('/pembayaran-online/{pembayaran}/kurang-bayar', [PembayaranOnlineController::class, 'kurangBayar']);
         Route::post('/pembayaran-online/{pembayaran}/tolak', [PembayaranOnlineController::class, 'tolak']);
+
+        // Mobile Alias
+        Route::get('/pesanan-online', [PembayaranOnlineController::class, 'index']);
+        Route::post('/pesanan-online/{pembayaran}/verifikasi', [PembayaranOnlineController::class, 'konfirmasi']);
     });
 
     // ---- HANYA admin — Laporan & Kelola Pengguna Kasir/Staf ----
