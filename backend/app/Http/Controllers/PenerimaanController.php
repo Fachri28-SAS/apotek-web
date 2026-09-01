@@ -174,6 +174,18 @@ class PenerimaanController extends Controller
     {
         $q = Penerimaan::query();
 
+        if ($r->filled('search')) {
+            $search = trim($r->search);
+            $q->where(function ($query) use ($search) {
+                $query->where('no_faktur', 'like', "%{$search}%")
+                    ->orWhere('nama_supplier', 'like', "%{$search}%")
+                    ->orWhereHas('items', function ($itemQ) use ($search) {
+                        $itemQ->where('nama_obat', 'like', "%{$search}%")
+                            ->orWhere('nomor_batch', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         match ($r->periode) {
             'hari-ini' => $q->whereDate('tanggal_terima', now()->toDateString()),
             'minggu-ini' => $q->whereBetween('tanggal_terima', [now()->startOfWeek(), now()->endOfWeek()]),
@@ -183,7 +195,7 @@ class PenerimaanController extends Controller
             default => null,
         };
 
-        return $q->withCount('items')->orderByDesc('id')->limit(200)->get();
+        return $q->withCount('items')->with('items:id,penerimaan_id,nama_obat,qty,nama_satuan,harga_beli,nomor_batch')->orderByDesc('id')->limit(200)->get();
     }
 
     /** GET /api/penerimaan/{id} — detail lengkap untuk modal Riwayat */
