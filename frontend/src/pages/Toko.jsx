@@ -179,10 +179,15 @@ export default function Toko() {
         <div className="result-meta"><span>{loading ? "Memuat…" : `${produk.length} produk tersedia`}</span></div>
         <div className="produk-grid">
           {produk.map((obat) => {
-            const satuan = obat.satuan[0];
+            const satuan = obat.satuan?.[0];
+            const stokTersedia = satuan?.faktor ? Math.floor(obat.stok / satuan.faktor) : Number(obat.stok || 0);
+            const namaSatuan = satuan?.nama_satuan || obat.kemasan || obat.satuan_dasar || "Pcs";
             const diKeranjang = cart.find((it) => it.obat_satuan_id === satuan?.id);
+            const habis = stokTersedia <= 0;
+            const menipis = stokTersedia > 0 && stokTersedia <= 5;
+
             return (
-              <div className="produk-card" key={obat.id}>
+              <div className={`produk-card ${habis ? "produk-habis" : ""}`} key={obat.id}>
                 {obat.perlu_resep && <span className="badge-resep-produk">Resep</span>}
                 <div className="produk-thumb">
                   {obat.gambar_url || obat.gambar ? (
@@ -200,7 +205,23 @@ export default function Toko() {
                 </div>
                 <div className="produk-body">
                   <h3>{obat.nama}</h3>
-                  <div className="kemasan">{obat.kemasan}</div>
+                  <div className="kemasan-row" style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", fontSize: 12, margin: "2px 0 6px" }}>
+                    <span style={{ color: "var(--ink-soft)" }}>{namaSatuan}</span>
+                    <span style={{ color: "var(--line)" }}>•</span>
+                    {habis ? (
+                      <span style={{ color: "#DC2626", fontWeight: 700, fontSize: 11, background: "#FEE2E2", padding: "1px 6px", borderRadius: 4 }}>
+                        ✕ Stok Habis
+                      </span>
+                    ) : menipis ? (
+                      <span style={{ color: "#C2410C", fontWeight: 700, fontSize: 11, background: "#FFEDD5", padding: "1px 6px", borderRadius: 4 }}>
+                        ⚠️ Sisa {stokTersedia} {namaSatuan}
+                      </span>
+                    ) : (
+                      <span style={{ color: "#15803D", fontWeight: 600, fontSize: 11, background: "#DCFCE7", padding: "1px 6px", borderRadius: 4 }}>
+                        ✓ Stok: {stokTersedia} {namaSatuan}
+                      </span>
+                    )}
+                  </div>
                   <div className="produk-foot">
                     {obat.perlu_resep ? (
                       <span className="produk-harga resep">Hubungi Apoteker</span>
@@ -209,11 +230,15 @@ export default function Toko() {
                     )}
                     <button
                       className={`mini-btn ${diKeranjang ? "added" : ""}`}
-                      disabled={obat.perlu_resep || obat.stok <= 0}
+                      disabled={obat.perlu_resep || habis}
                       onClick={() => tambahKeKeranjang(obat)}
-                      title={obat.perlu_resep ? "Perlu resep dokter" : obat.stok <= 0 ? "Stok habis" : "Tambah ke keranjang"}
+                      title={obat.perlu_resep ? "Perlu resep dokter" : habis ? "Stok habis" : "Tambah ke keranjang"}
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
+                      {habis ? (
+                        <span style={{ fontSize: 10.5, fontWeight: 700 }}>Habis</span>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
+                      )}
                     </button>
                   </div>
                 </div>
