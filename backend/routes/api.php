@@ -40,6 +40,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/ganti-password', [AuthController::class, 'gantiPassword']);
 
     // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
     Route::middleware('role:admin,kasir')->group(function () {

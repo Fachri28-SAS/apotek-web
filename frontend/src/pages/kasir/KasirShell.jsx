@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
+import GantiPasswordModal from "./komponen/GantiPasswordModal";
 import "./Kasir.css";
 
 const MENU = [
@@ -73,6 +74,7 @@ export default function KasirShell({ children }) {
   const navigate = useNavigate();
   const [badgeCounter, setBadgeCounter] = useState(0);
   const [showToast, setShowToast] = useState(false);
+  const [gantiPasswordOpen, setGantiPasswordOpen] = useState(false);
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
 
@@ -138,7 +140,12 @@ export default function KasirShell({ children }) {
           ))}
         </nav>
 
-        <div className="kasir-sidebar-footer">
+        <div
+          className="kasir-sidebar-footer"
+          onClick={() => setGantiPasswordOpen(true)}
+          style={{ cursor: "pointer", transition: "background 0.2s" }}
+          title="Klik untuk Ganti Kata Sandi Akun"
+        >
           <div className="kasir-footer-avatar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.5 3.6-7 8-7s8 2.5 8 7" />
@@ -146,9 +153,21 @@ export default function KasirShell({ children }) {
           </div>
           <div className="kasir-footer-who">
             <div className="kasir-user-nama">{user?.nama}</div>
-            <div className="kasir-user-role">{user?.role}</div>
+            <div className="kasir-user-role" style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span>{user?.role}</span>
+              <span style={{ fontSize: 9.5, color: "var(--magenta-dark)", background: "var(--magenta-tint)", padding: "1px 5px", borderRadius: 3, fontWeight: 700 }}>
+                🔑 Ganti Sandi
+              </span>
+            </div>
           </div>
-          <button className="kasir-logout-btn" onClick={handleLogout} title="Keluar">
+          <button
+            className="kasir-logout-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLogout();
+            }}
+            title="Keluar"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
@@ -229,6 +248,10 @@ export default function KasirShell({ children }) {
               ✕
             </button>
           </div>
+        )}
+
+        {gantiPasswordOpen && (
+          <GantiPasswordModal user={user} onClose={() => setGantiPasswordOpen(false)} />
         )}
       </div>
     </div>

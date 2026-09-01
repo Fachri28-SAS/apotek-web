@@ -59,4 +59,32 @@ class AuthController extends Controller
     {
         return $r->user()->only(['id', 'nama', 'username', 'role']);
     }
+
+    /**
+     * POST /api/ganti-password
+     * Kasir atau Admin ganti kata sandi sendiri
+     */
+    public function gantiPassword(Request $r)
+    {
+        $data = $r->validate([
+            'password_lama' => 'required|string',
+            'password_baru' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = $r->user();
+
+        if (!Hash::check($data['password_lama'], $user->password)) {
+            throw ValidationException::withMessages([
+                'password_lama' => ['Kata sandi saat ini salah.'],
+            ]);
+        }
+
+        $user->update([
+            'password' => Hash::make($data['password_baru']),
+        ]);
+
+        return response()->json([
+            'message' => 'Kata sandi berhasil diperbarui.',
+        ]);
+    }
 }
