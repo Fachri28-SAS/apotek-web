@@ -1,0 +1,6 @@
+﻿User-agent: *
+Allow: /
+Disallow: /kasir/
+Disallow: /login
+
+Sitemap: https://apotekbimafarma.com/sitemap.xml
