@@ -8,7 +8,11 @@ export default function DetailBatchModal({ obat, onClose, onSimpan }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!obat?.id) return;
+    const obatId = obat?.id || obat?.obat_id;
+    if (!obatId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -20,7 +24,7 @@ export default function DetailBatchModal({ obat, onClose, onSimpan }) {
     }
 
     // Ambil dari server
-    api(`/obat/${obat.id}/batches`)
+    api(`/obat/${obatId}/batches`)
       .then((res) => {
         const mapped = (res || []).map((b) => ({
           id: b.id || null,
@@ -31,15 +35,15 @@ export default function DetailBatchModal({ obat, onClose, onSimpan }) {
         }));
         setBatches(mapped);
       })
-      .catch((err) => {
+      .catch(() => {
         // Fallback jika belum ada data batch di server
         setBatches([
           {
             id: null,
             nomor_batch: obat.nomor_batch || "BATCH-01",
             tanggal_exp: obat.tanggal_exp ? String(obat.tanggal_exp).substring(0, 10) : "",
-            stok_old: Number(obat.stok_sistem || obat.stok || 0),
-            stok: Number(obat.stok_sistem || obat.stok || 0),
+            stok_old: Number(obat.stok_sistem ?? obat.stok ?? 0),
+            stok: Number(obat.stok_sistem ?? obat.stok ?? 0),
           },
         ]);
       })

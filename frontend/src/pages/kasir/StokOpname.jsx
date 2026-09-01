@@ -101,8 +101,11 @@ export default function StokOpname() {
 
   function tambahItem(obat) {
     setItems((prev) => [...prev, {
+      id: obat.id,
       obat_id: obat.id,
       nama: obat.nama,
+      nomor_batch: obat.nomor_batch,
+      tanggal_exp: obat.tanggal_exp,
       satuan_dasar: obat.satuan_dasar,
       stok_sistem: obat.stok,
       stok_fisik: "",
