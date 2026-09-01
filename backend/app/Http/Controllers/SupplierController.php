@@ -33,6 +33,17 @@ class SupplierController extends Controller
             ]
         );
 
+        // Jika sebelumnya sempat dinonaktifkan, aktifkan kembali
+        if (!$supplier->aktif) {
+            $supplier->update(['aktif' => true]);
+        }
+
         return response()->json($supplier, 201);
+    }
+
+    public function destroy(Supplier $supplier)
+    {
+        $supplier->update(['aktif' => false]);
+        return response()->noContent();
     }
 }

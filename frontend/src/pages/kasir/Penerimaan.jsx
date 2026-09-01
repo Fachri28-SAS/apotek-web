@@ -72,6 +72,15 @@ export default function Penerimaan() {
     setSukses(`Supplier "${s.nama}" berhasil ditambahkan dan langsung dipilih.`);
   }
 
+  function supplierDihapus(id) {
+    setSupplierList((prev) => prev.filter((x) => x.id !== id));
+    if (String(supplierId) === String(id)) {
+      setSupplierId("");
+      setNamaSupplier("");
+      setIsPkp(false);
+    }
+  }
+
   function ubahTempo(key) {
     setTempoLabel(key);
     const opsi = TEMPO_OPSI.find((o) => o.key === key);
@@ -345,8 +354,10 @@ export default function Penerimaan() {
 
       {modalSupplierOpen && (
         <TambahSupplierModal
+          supplierList={supplierList}
           onClose={() => setModalSupplierOpen(false)}
           onSukses={supplierBaruDitambahkan}
+          onHapusSupplier={supplierDihapus}
         />
       )}
     </KasirShell>

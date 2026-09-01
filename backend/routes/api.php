@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/suppliers', [SupplierController::class, 'store']);
+        Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy']);
         Route::post('/penerimaan', [PenerimaanController::class, 'store']);
         Route::get('/penerimaan', [PenerimaanController::class, 'index']);
         Route::get('/penerimaan/{penerimaan}', [PenerimaanController::class, 'show']);
