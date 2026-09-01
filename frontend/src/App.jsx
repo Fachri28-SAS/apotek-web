@@ -17,6 +17,7 @@ import Penerimaan from "./pages/kasir/Penerimaan";
 import RiwayatPenerimaan from "./pages/kasir/RiwayatPenerimaan";
 import PembayaranOnline from "./pages/kasir/PembayaranOnline";
 import Laporan from "./pages/kasir/Laporan";
+import KelolaUser from "./pages/kasir/KelolaUser";
 
 function App() {
   return (
@@ -47,6 +48,14 @@ function App() {
               element={
                 <RutePrivat rolesBoleh={["admin"]}>
                   <Laporan />
+                </RutePrivat>
+              }
+            />
+            <Route
+              path="/kasir/users"
+              element={
+                <RutePrivat rolesBoleh={["admin"]}>
+                  <KelolaUser />
                 </RutePrivat>
               }
             />

@@ -68,8 +68,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pembayaran-online/{pembayaran}/tolak', [PembayaranOnlineController::class, 'tolak']);
     });
 
-    // ---- HANYA admin — cuma Laporan yang eksklusif admin ----
+    // ---- HANYA admin — Laporan & Kelola Pengguna Kasir/Staf ----
     Route::middleware('role:admin')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index']);
+        Route::get('/users/kelola', [UserController::class, 'kelola']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
     });
 });
