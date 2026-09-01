@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../lib/api";
 import KasirShell from "./KasirShell";
+import DetailBatchModal from "./komponen/DetailBatchModal";
 
 const PERIODE = [
   { key: "", label: "Semua" },
@@ -88,6 +89,7 @@ export default function StokOpname() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sukses, setSukses] = useState("");
+  const [modalBatchObat, setModalBatchObat] = useState(null);
 
   function muatRiwayat() {
     api(`/stok-mutasi?tipe=penyesuaian${periode ? `&periode=${periode}` : ""}`)
@@ -105,6 +107,7 @@ export default function StokOpname() {
       stok_sistem: obat.stok,
       stok_fisik: "",
       keterangan: "",
+      batches: null,
     }]);
     setSukses("");
   }
@@ -117,7 +120,16 @@ export default function StokOpname() {
     setItems((prev) => prev.filter((it) => it.obat_id !== id));
   }
 
-  // Baris yang stok fisiknya belum diisi tidak dihitung sebagai selisih
+  function handleSimpanBatch(obatId, { batches, totalStokFisik }) {
+    setItems((prev) =>
+      prev.map((it) =>
+        it.obat_id === obatId
+          ? { ...it, batches, stok_fisik: totalStokFisik }
+          : it
+      )
+    );
+  }
+
   const itemTerisi = items.filter((it) => it.stok_fisik !== "");
   const totalSelisih = itemTerisi.reduce((s, it) => s + (Number(it.stok_fisik) - it.stok_sistem), 0);
   const adaSelisih = itemTerisi.filter((it) => Number(it.stok_fisik) !== it.stok_sistem).length;
@@ -139,10 +151,11 @@ export default function StokOpname() {
             obat_id: it.obat_id,
             stok_fisik: Number(it.stok_fisik),
             keterangan: it.keterangan || null,
+            batches: it.batches || null,
           })),
         }),
       });
-      setSukses(`Berhasil menyesuaikan ${itemTerisi.length} obat. Stok sistem sudah diperbarui.`);
+      setSukses(`Berhasil menyesuaikan ${itemTerisi.length} obat. Stok sistem & rincian batch sudah diperbarui.`);
       setItems([]);
       muatRiwayat();
     } catch (err) {
@@ -157,7 +170,7 @@ export default function StokOpname() {
       <div className="halaman-header">
         <div>
           <h1 style={{ fontSize: 24 }}>Stok Opname</h1>
-          <p className="halaman-sub">Hitung stok fisik, sistem otomatis catat selisihnya</p>
+          <p className="halaman-sub">Hitung stok fisik per obat & batch, sistem otomatis sinkronkan selisihnya</p>
         </div>
       </div>
 
@@ -180,9 +193,10 @@ export default function StokOpname() {
               <thead>
                 <tr>
                   <th>Nama Obat</th>
-                  <th style={{ width: 120 }}>Stok Sistem</th>
+                  <th style={{ width: 140, textAlign: "center" }}>Rincian Batch</th>
+                  <th style={{ width: 110 }}>Stok Sistem</th>
                   <th style={{ width: 120 }}>Stok Fisik</th>
-                  <th style={{ width: 110 }}>Selisih</th>
+                  <th style={{ width: 100 }}>Selisih</th>
                   <th>Keterangan</th>
                   <th style={{ width: 44 }}></th>
                 </tr>
@@ -191,9 +205,33 @@ export default function StokOpname() {
                 {items.map((it) => {
                   const terisi = it.stok_fisik !== "";
                   const selisih = terisi ? Number(it.stok_fisik) - it.stok_sistem : null;
+                  const adaBatchConfig = it.batches && it.batches.length > 0;
                   return (
                     <tr key={it.obat_id}>
                       <td><span className="obat-nama-cell">{it.nama}</span></td>
+                      <td style={{ textAlign: "center" }}>
+                        <button
+                          type="button"
+                          onClick={() => setModalBatchObat(it)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "6px 12px",
+                            borderRadius: 8,
+                            border: adaBatchConfig ? "1.5px solid var(--magenta)" : "1px solid var(--line)",
+                            background: adaBatchConfig ? "#FAF5FF" : "#fff",
+                            color: adaBatchConfig ? "var(--magenta-dark)" : "var(--ink)",
+                            fontWeight: 700,
+                            fontSize: 12,
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          <span>📦</span>
+                          <span>{adaBatchConfig ? `${it.batches.length} Batch` : "Pilih Batch"}</span>
+                        </button>
+                      </td>
                       <td>{it.stok_sistem} {it.satuan_dasar}</td>
                       <td>
                         <input
@@ -252,6 +290,15 @@ export default function StokOpname() {
           </>
         )}
       </div>
+
+      {/* ---------- MODAL RINCIAN BATCH ---------- */}
+      {modalBatchObat && (
+        <DetailBatchModal
+          obat={modalBatchObat}
+          onClose={() => setModalBatchObat(null)}
+          onSimpan={(hasilBatch) => handleSimpanBatch(modalBatchObat.obat_id, hasilBatch)}
+        />
+      )}
 
       {/* ---------- RIWAYAT ---------- */}
       <div className="panel">

@@ -9,12 +9,14 @@ class ObatBatch extends Model
     protected $table = 'obat_batch';
 
     protected $fillable = [
-        'obat_id', 'nomor_batch', 'tanggal_exp', 'qty_masuk', 'tanggal_masuk', 'penerimaan_item_id',
+        'obat_id', 'nomor_batch', 'tanggal_exp', 'stok', 'qty_masuk', 'tanggal_masuk', 'penerimaan_item_id',
     ];
 
     protected $casts = [
-        'tanggal_exp' => 'date',
-        'tanggal_masuk' => 'date',
+        'stok' => 'integer',
+        'qty_masuk' => 'integer',
+        'tanggal_exp' => 'date:Y-m-d',
+        'tanggal_masuk' => 'date:Y-m-d',
     ];
 
     public function obat()

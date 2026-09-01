@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/obat/{obat}/batches', [ObatController::class, 'getBatches']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);

@@ -269,15 +269,32 @@ class ObatController extends Controller
     }
 
     /**
+     * GET /api/obat/{obat}/batches
+     * Ambil seluruh daftar batch dan stoknya untuk obat tertentu
+     */
+    public function getBatches(Obat $obat)
+    {
+        $batches = $obat->batches()->orderBy('tanggal_exp')->get();
+
+        if ($batches->isEmpty()) {
+            return response()->json([
+                [
+                    'id' => null,
+                    'obat_id' => $obat->id,
+                    'nomor_batch' => $obat->nomor_batch ?: 'BATCH-01',
+                    'tanggal_exp' => $obat->tanggal_exp ? $obat->tanggal_exp->format('Y-m-d') : null,
+                    'stok' => (int) $obat->stok,
+                    'is_default' => true,
+                ]
+            ]);
+        }
+
+        return response()->json($batches);
+    }
+
+    /**
      * POST /api/obat/opname
-     * Endpoint untuk fitur Stok Opname yang baru disepakati (lihat BACKLOG.md).
-     * Body:
-     * {
-     *   "items": [
-     *     {"obat_id": 1, "stok_fisik": 1180, "keterangan": "selisih wajar"},
-     *     {"obat_id": 5, "stok_fisik": 480, "keterangan": "3 strip rusak"}
-     *   ]
-     * }
+     * Endpoint untuk fitur Stok Opname (mendukung penyesuaian per batch).
      */
     public function opname(Request $r, StokService $stok)
     {
@@ -286,12 +303,83 @@ class ObatController extends Controller
             'items.*.obat_id' => 'required|exists:obat,id',
             'items.*.stok_fisik' => 'required|integer|min:0',
             'items.*.keterangan' => 'nullable|string',
+            'items.*.batches' => 'nullable|array',
+            'items.*.batches.*.id' => 'nullable',
+            'items.*.batches.*.nomor_batch' => 'required_with:items.*.batches|string|max:50',
+            'items.*.batches.*.tanggal_exp' => 'nullable|date',
+            'items.*.batches.*.stok' => 'required_with:items.*.batches|integer|min:0',
         ]);
 
-        $hasil = collect($data['items'])->map(
-            fn ($item) => $stok->opname($item['obat_id'], $item['stok_fisik'], $item['keterangan'] ?? null)
-        );
+        $hasil = collect($data['items'])->map(function ($item) use ($stok) {
+            $obat = Obat::findOrFail($item['obat_id']);
 
-        return response()->json(['message' => 'Penyesuaian stok tersimpan', 'data' => $hasil]);
+            if (isset($item['batches']) && is_array($item['batches']) && count($item['batches']) > 0) {
+                $totalStokBatches = 0;
+                $earliestExp = null;
+                $activeBatchNo = null;
+                $activeBatchId = null;
+
+                foreach ($item['batches'] as $b) {
+                    $batchStok = (int) $b['stok'];
+                    $totalStokBatches += $batchStok;
+
+                    $batch = null;
+                    if (!empty($b['id'])) {
+                        $batch = \App\Models\ObatBatch::where('obat_id', $obat->id)->find($b['id']);
+                    }
+                    if (!$batch) {
+                        $batch = \App\Models\ObatBatch::where('obat_id', $obat->id)
+                            ->where('nomor_batch', $b['nomor_batch'])
+                            ->first();
+                    }
+
+                    $expDate = !empty($b['tanggal_exp']) ? date('Y-m-d', strtotime($b['tanggal_exp'])) : null;
+
+                    if ($batch) {
+                        $batch->update([
+                            'nomor_batch' => $b['nomor_batch'],
+                            'tanggal_exp' => $expDate,
+                            'stok' => $batchStok,
+                        ]);
+                    } else {
+                        $batch = \App\Models\ObatBatch::create([
+                            'obat_id' => $obat->id,
+                            'nomor_batch' => $b['nomor_batch'],
+                            'tanggal_exp' => $expDate,
+                            'stok' => $batchStok,
+                            'qty_masuk' => $batchStok,
+                            'tanggal_masuk' => now()->toDateString(),
+                        ]);
+                    }
+
+                    if ($expDate) {
+                        if (!$earliestExp || $expDate < $earliestExp) {
+                            $earliestExp = $expDate;
+                            $activeBatchNo = $batch->nomor_batch;
+                            $activeBatchId = $batch->id;
+                        }
+                    } elseif (!$activeBatchNo) {
+                        $activeBatchNo = $batch->nomor_batch;
+                        $activeBatchId = $batch->id;
+                    }
+                }
+
+                $obatUpdates = [];
+                if ($activeBatchNo) $obatUpdates['nomor_batch'] = $activeBatchNo;
+                if ($earliestExp) $obatUpdates['tanggal_exp'] = $earliestExp;
+                if ($activeBatchId) $obatUpdates['batch_aktif_id'] = $activeBatchId;
+                if (!empty($obatUpdates)) {
+                    $obat->update($obatUpdates);
+                }
+
+                $stokFisikFinal = $totalStokBatches;
+            } else {
+                $stokFisikFinal = (int) $item['stok_fisik'];
+            }
+
+            return $stok->opname($item['obat_id'], $stokFisikFinal, $item['keterangan'] ?? null);
+        });
+
+        return response()->json(['message' => 'Penyesuaian stok & rincian batch tersimpan', 'data' => $hasil]);
     }
 }
