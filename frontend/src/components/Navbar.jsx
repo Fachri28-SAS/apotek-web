@@ -73,114 +73,141 @@ export default function Navbar({ cartCount, onOpenCart }) {
   }
 
   return (
-    <header className={scrolled ? "scrolled" : ""}>
-      <div className="wrap">
-        <nav>
-          <Link to="/" className="brand">
-            <svg className="brand-mark"><use href="#cross-mark" /></svg>
-            <span className="brand-text">
-              <span className="apotek">APOTEK</span>
-              <span className="nama">BIMA FARMA</span>
-            </span>
-          </Link>
+    <>
+      <header className={scrolled ? "scrolled" : ""}>
+        <div className="wrap">
+          <nav>
+            <Link to="/" className="brand">
+              <svg className="brand-mark"><use href="#cross-mark" /></svg>
+              <span className="brand-text">
+                <span className="apotek">APOTEK</span>
+                <span className="nama">BIMA FARMA</span>
+              </span>
+            </Link>
 
-          <div className="nav-links">
-            <Link to="/#beranda">Beranda</Link>
-            <Link to="/toko" className={diToko ? "active" : ""}>Toko</Link>
+            <div className="nav-links">
+              <Link to="/#beranda">Beranda</Link>
+              <Link to="/toko" className={diToko ? "active" : ""}>Toko</Link>
+              <button
+                type="button"
+                onClick={handleBukaCekPesanan}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--ink)",
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  padding: "6px 0",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <span>🔍</span> Cek Pesanan
+              </button>
+              {!diToko && (
+                <>
+                  <a href="#tentang">Tentang Kami</a>
+                  <a href="#lokasi">Lokasi</a>
+                </>
+              )}
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              {diToko ? (
+                <button className="cart-btn" onClick={onOpenCart}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                  </svg>
+                  Keranjang
+                  {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+                </button>
+              ) : (
+                <a href="#lokasi" className="btn btn-primary">Hubungi Kami</a>
+              )}
+              <button
+                className="hamburger"
+                aria-label="Buka menu"
+                onClick={() => setMobileOpen((v) => !v)}
+              >
+                <span></span>
+              </button>
+            </div>
+          </nav>
+
+          <div className={`mobile-menu ${mobileOpen ? "open" : ""}`}>
+            <Link to="/#beranda" onClick={() => setMobileOpen(false)}>Beranda</Link>
+            <Link to="/toko" onClick={() => setMobileOpen(false)}>Toko</Link>
             <button
               type="button"
               onClick={handleBukaCekPesanan}
               style={{
                 background: "none",
                 border: "none",
+                textAlign: "left",
                 color: "var(--ink)",
-                fontSize: 14.5,
+                fontSize: 15,
                 fontWeight: 600,
+                padding: "10px 0",
                 cursor: "pointer",
-                padding: "6px 0",
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
-                gap: 5,
+                gap: 8,
               }}
             >
-              <span>🔍</span> Cek Pesanan
+              <span>🔍</span> Cek Status Pesanan
             </button>
             {!diToko && (
               <>
-                <a href="#tentang">Tentang Kami</a>
-                <a href="#lokasi">Lokasi</a>
+                <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
+                <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi</a>
               </>
             )}
           </div>
+        </div>
+      </header>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            {diToko ? (
-              <button className="cart-btn" onClick={onOpenCart}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-                  <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-                </svg>
-                Keranjang
-                {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-              </button>
-            ) : (
-              <a href="#lokasi" className="btn btn-primary">Hubungi Kami</a>
-            )}
-            <button
-              className="hamburger"
-              aria-label="Buka menu"
-              onClick={() => setMobileOpen((v) => !v)}
-            >
-              <span></span>
-            </button>
-          </div>
-        </nav>
-
-        <div className={`mobile-menu ${mobileOpen ? "open" : ""}`}>
-          <Link to="/#beranda" onClick={() => setMobileOpen(false)}>Beranda</Link>
-          <Link to="/toko" onClick={() => setMobileOpen(false)}>Toko</Link>
-          <button
-            type="button"
-            onClick={handleBukaCekPesanan}
+      {/* ---------- MODAL CEK STATUS PESANAN (DI LUAR HEADER SUPAYA TIDAK KEPOTONG) ---------- */}
+      {modalCek && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background: "rgba(18, 12, 28, 0.75)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px 16px",
+            overflowY: "auto",
+          }}
+          onClick={() => setModalCek(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
             style={{
-              background: "none",
-              border: "none",
+              maxWidth: 460,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              background: "#ffffff",
+              borderRadius: 20,
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.35)",
+              padding: "24px 26px",
               textAlign: "left",
-              color: "var(--ink)",
-              fontSize: 15,
-              fontWeight: 600,
-              padding: "10px 0",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
+              position: "relative",
+              margin: "auto",
             }}
           >
-            <span>🔍</span> Cek Status Pesanan
-          </button>
-          {!diToko && (
-            <>
-              <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
-              <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi</a>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ---------- MODAL CEK STATUS PESANAN ---------- */}
-      {modalCek && (
-        <div className="qris-lightbox-overlay" onClick={() => setModalCek(false)} style={{ zIndex: 9999 }}>
-          <div
-            className="qris-lightbox-box"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 440, width: "90vw", textAlign: "left", padding: "24px 26px" }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 24 }}>🔍</span>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Cek Status Pesanan</h3>
-                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Lacak pembayaran & pengambilan obat</div>
+                  <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Lacak pembayaran & bukti pengambilan obat</div>
                 </div>
               </div>
               <button
@@ -362,6 +389,6 @@ export default function Navbar({ cartCount, onOpenCart }) {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
