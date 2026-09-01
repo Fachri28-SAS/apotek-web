@@ -7,12 +7,30 @@ import Navbar from "../components/Navbar";
 import "./Landing.css";
 import "./Toko.css";
 
+export function keteranganSatuan(namaSatuan) {
+  if (!namaSatuan) return "";
+  const s = namaSatuan.toLowerCase().trim();
+  if (s.includes("blister") || s.includes("blitser")) return "1 Lempeng Mika";
+  if (s.includes("strip")) return "1 Lempeng Foil";
+  if (s.includes("box") || s.includes("dus") || s.includes("kotak")) return "1 Kotak Utuh";
+  if (s.includes("botol") || s.includes("fls") || s.includes("btl")) return "1 Botol Cairan/Sirup";
+  if (s.includes("tube") || s.includes("tub")) return "1 Tube Salep/Krim";
+  if (s.includes("sachet") || s.includes("sch") || s.includes("sct")) return "1 Bungkus/Sachet";
+  if (s.includes("tablet") || s.includes("tab")) return "1 Butir Tablet";
+  if (s.includes("kapsul") || s.includes("kap")) return "1 Butir Kapsul";
+  if (s.includes("pcs") || s.includes("biji") || s.includes("buah")) return "1 Satuan/Pcs";
+  if (s.includes("ampul") || s.includes("vial")) return "1 Ampul Cair";
+  if (s.includes("supp")) return "1 Peluru Rektal";
+  return "";
+}
+
 export default function Toko() {
   const [produk, setProduk] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]); // [{obat_satuan_id, obat_id, nama, satuan, harga, qty, perlu_resep}]
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalPanduan, setModalPanduan] = useState(false);
   const [tahap, setTahap] = useState("keranjang"); // keranjang | checkout | qris | selesai
   const [order, setOrder] = useState(null); // {penjualan_id, pembayaran_id, no_struk, total}
   const [statusPesanan, setStatusPesanan] = useState("pending");
@@ -173,6 +191,29 @@ export default function Toko() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           <input type="text" placeholder="Cari obat…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <button
+          type="button"
+          onClick={() => setModalPanduan(true)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 100,
+            border: "1.5px solid var(--magenta)",
+            background: "#FAF5FF",
+            color: "var(--magenta-dark)",
+            fontWeight: 700,
+            fontSize: 12.5,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+            <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+          </svg>
+          Panduan Satuan & Kemasan
+        </button>
       </div>
 
       <section className="produk-section wrap">
@@ -182,6 +223,7 @@ export default function Toko() {
             const satuan = obat.satuan?.[0];
             const stokTersedia = satuan?.faktor ? Math.floor(obat.stok / satuan.faktor) : Number(obat.stok || 0);
             const namaSatuan = satuan?.nama_satuan || obat.kemasan || obat.satuan_dasar || "Pcs";
+            const ketSatuan = keteranganSatuan(namaSatuan);
             const diKeranjang = cart.find((it) => it.obat_satuan_id === satuan?.id);
             const habis = stokTersedia <= 0;
             const menipis = stokTersedia > 0 && stokTersedia <= 5;
@@ -205,12 +247,23 @@ export default function Toko() {
                 </div>
                 <div className="produk-body">
                   <h3>{obat.nama}</h3>
-                  <div className="kemasan-row" style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", fontSize: 12, margin: "2px 0 6px" }}>
-                    <span style={{ color: "var(--ink-soft)" }}>{namaSatuan}</span>
+                  <div className="kemasan-row" style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", fontSize: 11.5, margin: "2px 0 6px" }}>
+                    <span
+                      style={{
+                        color: "var(--magenta-dark)",
+                        fontWeight: 700,
+                        background: "var(--magenta-tint)",
+                        padding: "1.5px 7px",
+                        borderRadius: 4,
+                      }}
+                      title={ketSatuan || namaSatuan}
+                    >
+                      {namaSatuan} {ketSatuan ? `(${ketSatuan})` : ""}
+                    </span>
                     <span style={{ color: "var(--line)" }}>•</span>
                     {habis ? (
                       <span style={{ color: "#DC2626", fontWeight: 700, fontSize: 11, background: "#FEE2E2", padding: "1px 6px", borderRadius: 4 }}>
-                        ✕ Stok Habis
+                        ✕ Habis
                       </span>
                     ) : menipis ? (
                       <span style={{ color: "#C2410C", fontWeight: 700, fontSize: 11, background: "#FFEDD5", padding: "1px 6px", borderRadius: 4 }}>
@@ -218,7 +271,7 @@ export default function Toko() {
                       </span>
                     ) : (
                       <span style={{ color: "#15803D", fontWeight: 600, fontSize: 11, background: "#DCFCE7", padding: "1px 6px", borderRadius: 4 }}>
-                        ✓ Stok: {stokTersedia} {namaSatuan}
+                        ✓ Stok: {stokTersedia}
                       </span>
                     )}
                   </div>
@@ -226,7 +279,10 @@ export default function Toko() {
                     {obat.perlu_resep ? (
                       <span className="produk-harga resep">Hubungi Apoteker</span>
                     ) : (
-                      <span className="produk-harga">{rupiah(satuan?.harga_jual)}</span>
+                      <span className="produk-harga">
+                        {rupiah(satuan?.harga_jual)}{" "}
+                        <small style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-soft)" }}>/ {namaSatuan}</small>
+                      </span>
                     )}
                     <button
                       className={`mini-btn ${diKeranjang ? "added" : ""}`}
@@ -279,7 +335,9 @@ export default function Toko() {
                   <div className="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="9" width="18" height="6" rx="3" /></svg></div>
                   <div className="info">
                     <h4>{it.nama}</h4>
-                    <div className="harga">{it.satuan} · {rupiah(it.harga)}</div>
+                    <div className="harga">
+                      {it.satuan} {keteranganSatuan(it.satuan) ? `(${keteranganSatuan(it.satuan)})` : ""} · {rupiah(it.harga)}
+                    </div>
                     <div className="qty-row">
                       <button className="qty-btn" onClick={() => ubahQty(it.obat_satuan_id, -1)}>−</button>
                       <span className="qty-val">{it.qty}</span>
@@ -516,6 +574,71 @@ export default function Toko() {
             <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 10 }}>
               Buka aplikasi e-wallet / m-banking dan pilih menu <strong>Scan dari Galeri</strong>.
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- MODAL PANDUAN SATUAN & KEMASAN OBAT ---------- */}
+      {modalPanduan && (
+        <div className="qris-lightbox-overlay" onClick={() => setModalPanduan(false)}>
+          <div
+            className="qris-lightbox-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 540, width: "92vw", textAlign: "left", maxHeight: "88vh", overflowY: "auto" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 24 }}>💡</span>
+                <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Panduan Satuan & Kemasan Obat</h3>
+              </div>
+              <button className="drawer-close" onClick={() => setModalPanduan(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 16 }}>
+              Agar tidak salah membeli jumlah obat, berikut penjelasan arti kemasan obat yang dijual di Apotek Bima Farma:
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { nama: "Blister (Blitser)", desc: "1 Lempeng plastik mika kaku bergelembung + aluminium foil belakang (dikeluarkan dengan ditekan). Biasanya berisi 4–10 butir tablet/kapsul.", contoh: "Contoh: Panadol, Enzyplex, Mylanta tablet" },
+                { nama: "Strip", desc: "1 Lempeng bungkus foil lentur (dikeluarkan dengan disobek pinggirnya). Biasanya berisi 10 butir tablet.", contoh: "Contoh: Paracetamol generik, Amoxicillin" },
+                { nama: "Box / Dus / Kotak", desc: "1 Kotak kardus utuh dari pabrik (biasanya berisi 5 hingga 10 strip/blister).", contoh: "Cocok untuk persediaan obat di rumah" },
+                { nama: "Botol / Fls (Flask)", desc: "1 Botol utuh obat cair, sirup anak, tetes mata/telinga, atau antiseptik.", contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh" },
+                { nama: "Tube / Tub", desc: "1 Tube salep, gel, atau krim kulit / obat luka.", contoh: "Contoh: Bioplacenton, Salep 88, Hydrocortisone" },
+                { nama: "Sachet (Bungkus)", desc: "1 Bungkus serbuk atau cairan siap minum.", contoh: "Contoh: Komix, Tolak Angin, Adem Sari, Promag cair" },
+                { nama: "Tablet / Kapsul / Pcs", desc: "1 Butir satuan terkecil obat.", contoh: "Harga yang tertera adalah harga per 1 butir" },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: "#FAF5FF",
+                    border: "1px solid #E9D5FF",
+                    borderRadius: 10,
+                    padding: "11px 14px",
+                  }}
+                >
+                  <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--magenta-dark)", marginBottom: 3 }}>
+                    💊 {item.nama}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "var(--ink)", lineHeight: 1.4 }}>
+                    {item.desc}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 4, fontStyle: "italic" }}>
+                    {item.contoh}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn-full"
+              onClick={() => setModalPanduan(false)}
+              style={{ marginTop: 18, width: "100%", cursor: "pointer" }}
+            >
+              Saya Mengerti
+            </button>
           </div>
         </div>
       )}
