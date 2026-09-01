@@ -331,18 +331,58 @@ export default function Toko() {
                         <small style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-soft)" }}>/ {namaSatuan}</small>
                       </span>
                     )}
-                    <button
-                      className={`mini-btn ${diKeranjang ? "added" : ""}`}
-                      disabled={obat.perlu_resep || habis}
-                      onClick={() => tambahKeKeranjang(obat)}
-                      title={obat.perlu_resep ? "Perlu resep dokter" : habis ? "Stok habis" : "Tambah ke keranjang"}
-                    >
-                      {habis ? (
-                        <span style={{ fontSize: 10.5, fontWeight: 700 }}>Habis</span>
-                      ) : (
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 5v14M5 12h14" /></svg>
-                      )}
-                    </button>
+                    {habis ? (
+                      <button
+                        className="mini-btn"
+                        disabled={true}
+                        style={{
+                          background: "#F1F5F9",
+                          color: "#94A3B8",
+                          border: "1px solid #CBD5E1",
+                          cursor: "not-allowed",
+                          padding: "6px 12px",
+                          borderRadius: 8,
+                          fontWeight: 700,
+                          fontSize: 11,
+                          boxShadow: "none",
+                        }}
+                        title="Stok obat ini sedang habis"
+                      >
+                        Stok Habis
+                      </button>
+                    ) : obat.perlu_resep ? (
+                      <a
+                        href={`https://wa.me/6281287781519?text=${encodeURIComponent(`Halo Apotek Bima Farma, saya ingin konsultasi/pesan obat resep: ${obat.nama}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mini-btn"
+                        style={{
+                          background: "#059669",
+                          color: "#fff",
+                          padding: "6px 10px",
+                          borderRadius: 8,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          textDecoration: "none",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                        title="Hubungi Apoteker via WhatsApp"
+                      >
+                        💬 Resep
+                      </a>
+                    ) : (
+                      <button
+                        className={`mini-btn ${diKeranjang ? "added" : ""}`}
+                        onClick={() => tambahKeKeranjang(obat)}
+                        title="Tambah ke keranjang"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M12 5v14M5 12h14" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -377,23 +417,51 @@ export default function Toko() {
                 Keranjang masih kosong.
               </div>
             ) : (
-              cart.map((it) => (
-                <div className="cart-item" key={it.obat_satuan_id}>
-                  <div className="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="9" width="18" height="6" rx="3" /></svg></div>
-                  <div className="info">
-                    <h4>{it.nama}</h4>
-                    <div className="harga">
-                      {it.satuan} {keteranganSatuan(it.satuan) ? `(${keteranganSatuan(it.satuan)})` : ""} · {rupiah(it.harga)}
+              cart.map((it) => {
+                const obatObj = daftar.find((o) => o.id === it.obat_id);
+                const stokDasarTerkini = obatObj ? Number(obatObj.stok || 0) : Number(it.stok_dasar || 0);
+                const maxStok = Math.floor(stokDasarTerkini / Math.max(Number(it.faktor || 1), 1));
+                const isMaxReached = it.qty >= maxStok;
+
+                return (
+                  <div className="cart-item" key={it.obat_satuan_id}>
+                    <div className="thumb">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <rect x="3" y="9" width="18" height="6" rx="3" />
+                      </svg>
                     </div>
-                    <div className="qty-row">
-                      <button className="qty-btn" onClick={() => ubahQty(it.obat_satuan_id, -1)}>−</button>
-                      <span className="qty-val">{it.qty}</span>
-                      <button className="qty-btn" onClick={() => ubahQty(it.obat_satuan_id, 1)}>+</button>
-                      <button className="remove-btn" onClick={() => hapusItem(it.obat_satuan_id)}>Hapus</button>
+                    <div className="info">
+                      <h4>{it.nama}</h4>
+                      <div className="harga">
+                        {it.satuan} {keteranganSatuan(it.satuan) ? `(${keteranganSatuan(it.satuan)})` : ""} · {rupiah(it.harga)}
+                      </div>
+                      <div className="qty-row" style={{ alignItems: "center" }}>
+                        <button className="qty-btn" onClick={() => ubahQty(it.obat_satuan_id, -1)}>−</button>
+                        <span className="qty-val">{it.qty}</span>
+                        <button
+                          className="qty-btn"
+                          disabled={isMaxReached}
+                          onClick={() => ubahQty(it.obat_satuan_id, 1)}
+                          style={{
+                            opacity: isMaxReached ? 0.35 : 1,
+                            cursor: isMaxReached ? "not-allowed" : "pointer",
+                            background: isMaxReached ? "#E2E8F0" : undefined,
+                          }}
+                          title={isMaxReached ? `Stok maksimal ${maxStok} ${it.satuan} sudah tercapai` : "Tambah jumlah"}
+                        >
+                          +
+                        </button>
+                        <button className="remove-btn" onClick={() => hapusItem(it.obat_satuan_id)}>Hapus</button>
+                      </div>
+                      {isMaxReached && (
+                        <div style={{ fontSize: 11, color: "#C2410C", fontWeight: 700, marginTop: 4 }}>
+                          ⚠️ Stok maksimal tercapai (tersedia {maxStok} {it.satuan})
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )
           )}
 
