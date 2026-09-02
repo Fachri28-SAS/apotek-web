@@ -25,11 +25,10 @@ function Hero() {
       <div className="wrap hero-grid">
         <div>
           <span className="eyebrow magenta">Apotek Keluarga · Tanimulya, Ngamprah</span>
-          <h1>Teman sehat warga <em>Bandung Barat</em>, sedia setiap hari</h1>
+          <h1>Apotek Bima Farma <em>Tanimulya</em></h1>
           <p className="lead">
             Bima Farma melayani penebusan resep dokter, obat bebas, vitamin,
-            hingga alat kesehatan — dilayani apoteker berizin dengan harga
-            yang jelas dan bersahabat.
+            hingga alat kesehatan.
           </p>
           <div className="hero-cta">
             <Link to="/toko" className="btn btn-primary">Lihat Produk Toko</Link>
