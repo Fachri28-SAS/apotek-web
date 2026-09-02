@@ -24,6 +24,17 @@ export function keteranganSatuan(namaSatuan) {
   return "";
 }
 
+export function getGambarObatUrl(itemOrObat) {
+  if (!itemOrObat) return null;
+  const src = itemOrObat.gambar_url || itemOrObat.gambar;
+  if (!src) return null;
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) {
+    return src;
+  }
+  if (src.startsWith("/")) return src;
+  return `/storage/${src}`;
+}
+
 export default function Toko() {
   const [produk, setProduk] = useState([]);
   const [search, setSearch] = useState("");
@@ -105,6 +116,8 @@ export default function Toko() {
         faktor: Number(satuan.faktor || 1),
         stok_dasar: Number(obat.stok || 0),
         harga: satuan.harga_jual,
+        gambar: obat.gambar,
+        gambar_url: obat.gambar_url,
         qty: 1,
       }];
     });
@@ -255,16 +268,28 @@ export default function Toko() {
             const diKeranjang = cart.find((it) => it.obat_satuan_id === satuan?.id);
             const habis = stokTersedia <= 0;
 
+            const imgUrl = getGambarObatUrl(obat);
+
             return (
               <div className={`produk-card ${habis ? "produk-habis" : ""}`} key={obat.id}>
                 {obat.perlu_resep && <span className="badge-resep-produk">Resep</span>}
                 <div className="produk-thumb">
-                  {obat.gambar_url || obat.gambar ? (
+                  {imgUrl ? (
                     <img
-                      src={obat.gambar_url || `/storage/${obat.gambar}`}
+                      src={imgUrl}
                       alt={obat.nama}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={(e) => { e.target.style.display = "none"; }}
+                      onError={(e) => {
+                        if (!e.target.dataset.triedApi) {
+                          e.target.dataset.triedApi = "true";
+                          const g = obat.gambar;
+                          if (g && !g.startsWith("http")) {
+                            e.target.src = `/api/storage/${g.replace(/^\/?storage\//, "")}`;
+                            return;
+                          }
+                        }
+                        e.target.style.display = "none";
+                      }}
                     />
                   ) : (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -399,12 +424,33 @@ export default function Toko() {
                 const maxStok = Math.floor(stokDasarTerkini / Math.max(Number(it.faktor || 1), 1));
                 const isMaxReached = it.qty >= maxStok;
 
+                const imgUrl = getGambarObatUrl(it) || getGambarObatUrl(obatObj);
+
                 return (
                   <div className="cart-item" key={it.obat_satuan_id}>
                     <div className="thumb">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                        <rect x="3" y="9" width="18" height="6" rx="3" />
-                      </svg>
+                      {imgUrl ? (
+                        <img
+                          src={imgUrl}
+                          alt={it.nama}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }}
+                          onError={(e) => {
+                            if (!e.target.dataset.triedApi) {
+                              e.target.dataset.triedApi = "true";
+                              const g = it.gambar || obatObj?.gambar;
+                              if (g && !g.startsWith("http")) {
+                                e.target.src = `/api/storage/${g.replace(/^\/?storage\//, "")}`;
+                                return;
+                              }
+                            }
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                          <rect x="3" y="9" width="18" height="6" rx="3" />
+                        </svg>
+                      )}
                     </div>
                     <div className="info">
                       <h4>{it.nama}</h4>
