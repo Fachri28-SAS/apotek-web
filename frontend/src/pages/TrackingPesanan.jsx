@@ -139,6 +139,7 @@ export default function TrackingPesanan() {
               <div className="tracking-brand-text">
                 <span className="brand-sub">APOTEK</span>
                 <span className="brand-title">BIMA FARMA</span>
+                <span className="brand-lokasi" style={{ fontSize: "9.5px", fontWeight: 700, color: "var(--ink-soft)" }}>Tanimulya, Ngamprah</span>
               </div>
             </Link>
           </div>
@@ -160,6 +161,7 @@ export default function TrackingPesanan() {
               <div className="tracking-brand-text">
                 <span className="brand-sub">APOTEK</span>
                 <span className="brand-title">BIMA FARMA</span>
+                <span className="brand-lokasi" style={{ fontSize: "9.5px", fontWeight: 700, color: "var(--ink-soft)" }}>Tanimulya, Ngamprah</span>
               </div>
             </Link>
           </div>
@@ -185,6 +187,7 @@ export default function TrackingPesanan() {
             <div className="tracking-brand-text">
               <span className="brand-sub">APOTEK</span>
               <span className="brand-title">BIMA FARMA</span>
+              <span className="brand-lokasi" style={{ fontSize: "9.5px", fontWeight: 700, color: "var(--ink-soft)" }}>Tanimulya, Ngamprah</span>
             </div>
           </Link>
           <Link to="/toko" className="tracking-nav-btn">

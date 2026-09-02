@@ -83,6 +83,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
               <span className="brand-text">
                 <span className="apotek">APOTEK</span>
                 <span className="nama">BIMA FARMA</span>
+                <span className="lokasi-sub">Tanimulya, Ngamprah</span>
               </span>
             </Link>
 

@@ -269,6 +269,7 @@ function Footer() {
               <span className="brand-text">
                 <span className="apotek">APOTEK</span>
                 <span className="nama">BIMA FARMA</span>
+                <span className="lokasi-sub" style={{ color: "#A9B2A9" }}>Tanimulya, Ngamprah</span>
               </span>
             </a>
             <p>Apotek keluarga di Tanimulya, Ngamprah — melayani kebutuhan obat dan kesehatan warga Bandung Barat setiap hari.</p>
