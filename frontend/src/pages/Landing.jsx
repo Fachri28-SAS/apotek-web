@@ -1,6 +1,12 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { api } from "../lib/api";
 import "./Landing.css";
+
+function rupiah(n) {
+  return "Rp" + Number(n || 0).toLocaleString("id-ID");
+}
 
 export default function Landing() {
   return (
@@ -49,19 +55,42 @@ function Hero() {
   );
 }
 
-/* ==================== CUPLIKAN TOKO ==================== */
-const PRODUK_PREVIEW = [
-  { nama: "Paracetamol 500mg", kemasan: "Strip isi 10 tablet",
-    icon: <><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" /></> },
-  { nama: "Vitamin C 1000mg", kemasan: "Tabung isi 10 tablet",
-    icon: <><path d="M12 3v6M9 6h6" /><circle cx="12" cy="14" r="7" /></> },
-  { nama: "Termometer Digital", kemasan: "1 unit + baterai",
-    icon: <><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 12h6M12 9v6" /></> },
-  { nama: "Sunscreen SPF 50", kemasan: "Tube 40ml",
-    icon: <><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></> },
+/* ==================== CUPLIKAN TOKO DENGAN DATA REALISTIK ==================== */
+const DEFAULT_PREVIEW = [
+  { id: 1, nama: "Paracetamol 500mg", kemasan: "Strip (10 Tablet)", harga: 5000, satuan: "Strip" },
+  { id: 2, nama: "Sanmol Sirup 60ml", kemasan: "Botol", harga: 22000, satuan: "Botol" },
+  { id: 3, nama: "Vitamin C 500mg IPI", kemasan: "Botol (45 Tablet)", harga: 9000, satuan: "Botol" },
+  { id: 4, nama: "Tolak Angin Cair Herbal", kemasan: "Sachet", harga: 4500, satuan: "Sachet" },
 ];
 
 function TokoPreview() {
+  const [items, setItems] = useState(DEFAULT_PREVIEW);
+
+  useEffect(() => {
+    api("/obat?untuk=toko")
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          const formatted = res.slice(0, 4).map((o) => {
+            const sat = o.satuan?.[0];
+            return {
+              id: o.id,
+              nama: o.nama,
+              kemasan: sat?.nama_satuan || o.kemasan || "Pcs",
+              satuan: sat?.nama_satuan || "Pcs",
+              harga: sat?.harga_jual || 0,
+              gambar_url: o.gambar_url,
+              gambar: o.gambar,
+              perlu_resep: o.perlu_resep,
+            };
+          });
+          setItems(formatted);
+        }
+      })
+      .catch(() => {
+        // Fallback tetap menggunakan DEFAULT_PREVIEW
+      });
+  }, []);
+
   return (
     <section className="toko" id="toko">
       <div className="wrap">
@@ -72,13 +101,59 @@ function TokoPreview() {
         </div>
 
         <div className="produk-grid">
-          {PRODUK_PREVIEW.map((p) => (
-            <div className="produk-card" key={p.nama}>
-              <div className="produk-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{p.icon}</svg>
+          {items.map((p) => (
+            <div className="produk-card" key={p.id}>
+              {p.perlu_resep && <span className="badge-resep-produk">Resep</span>}
+              <div className="produk-thumb">
+                {p.gambar_url || p.gambar ? (
+                  <img
+                    src={p.gambar_url || `/storage/${p.gambar}`}
+                    alt={p.nama}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={(e) => { e.target.style.display = "none"; }}
+                  />
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M12 9v6" />
+                  </svg>
+                )}
               </div>
-              <h3>{p.nama}</h3>
-              <p>{p.kemasan}</p>
+              <div className="produk-body">
+                <h3>{p.nama}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, margin: "2px 0 6px" }}>
+                  <span
+                    style={{
+                      color: "var(--magenta-dark)",
+                      fontWeight: 700,
+                      background: "var(--magenta-tint)",
+                      padding: "1.5px 7px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    {p.satuan || p.kemasan}
+                  </span>
+                  <span style={{ color: "var(--line)" }}>•</span>
+                  <span style={{ color: "#15803D", fontWeight: 600, fontSize: 11, background: "#DCFCE7", padding: "1px 6px", borderRadius: 4 }}>
+                    Tersedia
+                  </span>
+                </div>
+                <div className="produk-foot">
+                  <span className="produk-harga">
+                    {rupiah(p.harga)}{" "}
+                    <small style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-soft)" }}>/ {p.satuan || "Pcs"}</small>
+                  </span>
+                  <Link
+                    to="/toko"
+                    className="mini-btn"
+                    title="Beli di toko online"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
             </div>
           ))}
         </div>
