@@ -235,32 +235,19 @@ export default function Toko() {
         </div>
         <button
           type="button"
+          className="panduan-kemasan-btn"
           onClick={() => setModalPanduan(true)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "11px 20px",
-            borderRadius: 14,
-            border: "1.5px solid #C084FC",
-            background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
-            color: "#6B21A8",
-            cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(168, 85, 247, 0.12)",
-            transition: "all 0.2s ease",
-            textAlign: "left",
-          }}
         >
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", color: "#7C3AED", flexShrink: 0 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
+          <div className="panduan-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 13.5, color: "#581C87", lineHeight: 1.2 }}>
+            <div className="panduan-title">
               Panduan Satuan & Kemasan Obat
             </div>
-            <div style={{ fontSize: 11.5, color: "#9333EA", fontWeight: 600 }}>
+            <div className="panduan-sub">
               Cek penjelasan Blister, Strip, Box, dll
             </div>
           </div>
@@ -694,65 +681,104 @@ export default function Toko() {
 
       {/* ---------- MODAL PANDUAN SATUAN & KEMASAN OBAT ---------- */}
       {modalPanduan && (
-        <div className="qris-lightbox-overlay" onClick={() => setModalPanduan(false)}>
+        <div className="panduan-modal-overlay" onClick={() => setModalPanduan(false)}>
           <div
-            className="qris-lightbox-box"
+            className="panduan-modal-card"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 540, width: "92vw", textAlign: "left", maxHeight: "88vh", overflowY: "auto" }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 24 }}>💡</span>
-                <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Panduan Satuan & Kemasan Obat</h3>
+            <div className="panduan-modal-header">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="panduan-modal-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 18, height: 18 }}>
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Panduan Satuan &amp; Kemasan</h3>
+                  <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>Kenali arti kemasan obat sebelum membeli</div>
+                </div>
               </div>
-              <button className="drawer-close" onClick={() => setModalPanduan(false)}>
+              <button
+                type="button"
+                className="drawer-close"
+                onClick={() => setModalPanduan(false)}
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
             </div>
-            <p style={{ fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 16 }}>
-              Agar tidak salah membeli jumlah obat, berikut penjelasan arti kemasan obat yang dijual di Apotek Bima Farma:
-            </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { nama: "Blister (Blitser)", desc: "1 Lempeng plastik mika kaku bergelembung + aluminium foil belakang (dikeluarkan dengan ditekan). Biasanya berisi 4–10 butir tablet/kapsul.", contoh: "Contoh: Panadol, Enzyplex, Mylanta tablet" },
-                { nama: "Strip", desc: "1 Lempeng bungkus foil lentur (dikeluarkan dengan disobek pinggirnya). Biasanya berisi 10 butir tablet.", contoh: "Contoh: Paracetamol generik, Amoxicillin" },
-                { nama: "Box / Dus / Kotak", desc: "1 Kotak kardus utuh dari pabrik (biasanya berisi 5 hingga 10 strip/blister).", contoh: "Cocok untuk persediaan obat di rumah" },
-                { nama: "Botol / Fls (Flask)", desc: "1 Botol utuh obat cair, sirup anak, tetes mata/telinga, atau antiseptik.", contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh" },
-                { nama: "Tube / Tub", desc: "1 Tube salep, gel, atau krim kulit / obat luka.", contoh: "Contoh: Bioplacenton, Salep 88, Hydrocortisone" },
-                { nama: "Sachet (Bungkus)", desc: "1 Bungkus serbuk atau cairan siap minum.", contoh: "Contoh: Komix, Tolak Angin, Adem Sari, Promag cair" },
-                { nama: "Tablet / Kapsul / Pcs", desc: "1 Butir satuan terkecil obat.", contoh: "Harga yang tertera adalah harga per 1 butir" },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    background: "#FAF5FF",
-                    border: "1px solid #E9D5FF",
-                    borderRadius: 10,
-                    padding: "11px 14px",
-                  }}
-                >
-                  <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--magenta-dark)", marginBottom: 3 }}>
-                    💊 {item.nama}
+            <div className="panduan-modal-body">
+              <div className="panduan-notice">
+                ℹ️ Agar tidak salah membeli jumlah obat, berikut penjelasan arti kemasan obat resmi di Apotek Bima Farma:
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  {
+                    icon: "💊",
+                    nama: "Blister / Blitser",
+                    desc: "1 Lempeng plastik mika kaku bergelembung + aluminium foil belakang (dikeluarkan dengan ditekan). Biasanya berisi 4–10 butir.",
+                    contoh: "Contoh: Panadol, Enzyplex, Mylanta tablet",
+                  },
+                  {
+                    icon: "📄",
+                    nama: "Strip",
+                    desc: "1 Lempeng bungkus foil lentur (dikeluarkan dengan disobek pinggirnya). Biasanya berisi 10 butir tablet.",
+                    contoh: "Contoh: Paracetamol generik, Amoxicillin",
+                  },
+                  {
+                    icon: "📦",
+                    nama: "Box / Dus / Kotak",
+                    desc: "1 Kotak kardus utuh dari pabrik (berisi 3–10 strip/blister). Cocok untuk stok obat di rumah.",
+                    contoh: "Contoh: 1 Box Tolak Angin, 1 Box Vitamin C",
+                  },
+                  {
+                    icon: "🧴",
+                    nama: "Botol / Fls (Flask)",
+                    desc: "1 Botol utuh obat cair sirup anak, tetes mata/telinga, atau larutan antiseptik.",
+                    contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh",
+                  },
+                  {
+                    icon: "🧪",
+                    nama: "Tube / Salep",
+                    desc: "1 Tube salep, gel, atau krim kulit / obat luka.",
+                    contoh: "Contoh: Bioplacenton, Salep 88, Hydrocortisone",
+                  },
+                  {
+                    icon: "👝",
+                    nama: "Sachet / Bungkus",
+                    desc: "1 Bungkus serbuk atau larutan cair siap minum.",
+                    contoh: "Contoh: Komix, Tolak Angin cair, Adem Sari",
+                  },
+                  {
+                    icon: "🔘",
+                    nama: "Tablet / Kapsul / Pcs",
+                    desc: "1 Butir satuan terkecil obat.",
+                    contoh: "Harga yang tertera adalah harga per 1 butir obat",
+                  },
+                ].map((item, idx) => (
+                  <div key={idx} className="panduan-item-card">
+                    <div className="panduan-item-head">
+                      <span className="panduan-item-emoji">{item.icon}</span>
+                      <span className="panduan-item-nama">{item.nama}</span>
+                    </div>
+                    <div className="panduan-item-desc">{item.desc}</div>
+                    <div className="panduan-item-contoh">{item.contoh}</div>
                   </div>
-                  <div style={{ fontSize: 12.5, color: "var(--ink)", lineHeight: 1.4 }}>
-                    {item.desc}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 4, fontStyle: "italic" }}>
-                    {item.contoh}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            <button
-              type="button"
-              className="btn-full"
-              onClick={() => setModalPanduan(false)}
-              style={{ marginTop: 18, width: "100%", cursor: "pointer" }}
-            >
-              Saya Mengerti
-            </button>
+            <div className="panduan-modal-footer">
+              <button
+                type="button"
+                className="btn-full"
+                onClick={() => setModalPanduan(false)}
+                style={{ width: "100%", padding: "12px", borderRadius: 12 }}
+              >
+                Saya Mengerti
+              </button>
+            </div>
           </div>
         </div>
       )}
