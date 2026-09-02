@@ -373,45 +373,46 @@ export default function TrackingPesanan() {
                   <div className="qris-hint-text">
                     Scan via GoPay, BCA, Livin Mandiri, BRImo, DANA, ShopeePay, atau OVO (tinggal klik Bayar &amp; masukkan PIN)
                   </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      unduhQrisPng({
-                        svgId: "tracking-qris-svg",
-                        namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
-                        judul: "APOTEK BIMA FARMA",
-                        nominal: rupiah(pesanan.total),
-                      })
-                    }
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      marginTop: 10,
-                      padding: "7px 14px",
-                      borderRadius: 100,
-                      border: "1.5px solid var(--magenta)",
-                      background: "#fff",
-                      color: "var(--magenta)",
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-                      <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
-                    </svg>
-                    Unduh Gambar QRIS
-                  </button>
+                  <div style={{ marginTop: 14, marginBottom: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        unduhQrisPng({
+                          svgId: "tracking-qris-svg",
+                          namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
+                          judul: "APOTEK BIMA FARMA",
+                          nominal: rupiah(pesanan.total),
+                        })
+                      }
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        padding: "8px 18px",
+                        borderRadius: 100,
+                        border: "1.5px solid var(--magenta)",
+                        background: "#fff",
+                        color: "var(--magenta)",
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+                        <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
+                      </svg>
+                      Unduh Gambar QRIS
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* Form Upload Bukti */}
               {(statusPembayaran === "pending" || statusPembayaran === "kurang_bayar" || statusPembayaran === "menunggu_verifikasi") && (
-                <form onSubmit={handleKirimBukti}>
-                  {error && <div className="login-error" style={{ marginBottom: 12 }}>{error}</div>}
-                  {uploadPesan && <div className="pesan-sukses" style={{ marginBottom: 12 }}>{uploadPesan}</div>}
+                <form onSubmit={handleKirimBukti} style={{ marginTop: 24, paddingTop: 18, borderTop: "1px dashed var(--line)" }}>
+                  {error && <div className="login-error" style={{ marginBottom: 16 }}>{error}</div>}
+                  {uploadPesan && <div className="pesan-sukses" style={{ marginBottom: 18 }}>{uploadPesan}</div>}
 
                   <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
                     {buktiPreview ? (
