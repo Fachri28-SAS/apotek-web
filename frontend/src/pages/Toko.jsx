@@ -705,43 +705,71 @@ export default function Toko() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
                   {
-                    icon: "💊",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="8" cy="8" r="2" /><circle cx="16" cy="8" r="2" /><circle cx="8" cy="16" r="2" /><circle cx="16" cy="16" r="2" />
+                      </svg>
+                    ),
                     nama: "Blister / Blitser",
                     desc: "1 Lempeng plastik mika kaku bergelembung + aluminium foil belakang (dikeluarkan dengan ditekan). Biasanya berisi 4–10 butir.",
                     contoh: "Contoh: Panadol, Enzyplex, Mylanta tablet",
                   },
                   {
-                    icon: "📄",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 9h16M4 15h16" />
+                      </svg>
+                    ),
                     nama: "Strip",
                     desc: "1 Lempeng bungkus foil lentur (dikeluarkan dengan disobek pinggirnya). Biasanya berisi 10 butir tablet.",
                     contoh: "Contoh: Paracetamol generik, Amoxicillin",
                   },
                   {
-                    icon: "📦",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
+                      </svg>
+                    ),
                     nama: "Box / Dus / Kotak",
                     desc: "1 Kotak kardus utuh dari pabrik (berisi 3–10 strip/blister). Cocok untuk stok obat di rumah.",
                     contoh: "Contoh: 1 Box Tolak Angin, 1 Box Vitamin C",
                   },
                   {
-                    icon: "🧴",
-                    nama: "Botol / Fls (Flask)",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <path d="M9 3h6M10 3v3h4V3M7 7h10a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" /><path d="M12 11v6M9 14h6" />
+                      </svg>
+                    ),
+                    nama: "Botol / Fls (Flask / Sirup)",
                     desc: "1 Botol utuh obat cair sirup anak, tetes mata/telinga, atau larutan antiseptik.",
-                    contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh",
+                    contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh, Curcuma Plus",
                   },
                   {
-                    icon: "🧪",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <path d="M5 19 19 5M16 3l5 5-2 2-5-5 2-2ZM3 21l3-1-2-2-1 3Z" />
+                      </svg>
+                    ),
                     nama: "Tube / Salep",
                     desc: "1 Tube salep, gel, atau krim kulit / obat luka.",
                     contoh: "Contoh: Bioplacenton, Salep 88, Hydrocortisone",
                   },
                   {
-                    icon: "👝",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <rect x="5" y="4" width="14" height="16" rx="2" /><path d="M5 8h14M10 12h4" />
+                      </svg>
+                    ),
                     nama: "Sachet / Bungkus",
                     desc: "1 Bungkus serbuk atau larutan cair siap minum.",
-                    contoh: "Contoh: Komix, Tolak Angin cair, Adem Sari",
+                    contoh: "Contoh: Komix, Tolak Angin cair, Adem Sari, Promag cair",
                   },
                   {
-                    icon: "🔘",
+                    icon: (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
+                        <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M12 9v6" />
+                      </svg>
+                    ),
                     nama: "Tablet / Kapsul / Pcs",
                     desc: "1 Butir satuan terkecil obat.",
                     contoh: "Harga yang tertera adalah harga per 1 butir obat",
