@@ -67,8 +67,8 @@ function TokoPreview() {
       <div className="wrap">
         <div className="section-head">
           <span className="eyebrow">Toko Online</span>
-          <h2>Pesan obat &amp; kebutuhan sehat, langsung dari HP</h2>
-          <p>Pilih produk, bayar online, dan kasir kami langsung siapkan pesanan Anda — tinggal ambil atau tunggu diantar.</p>
+          <h2>Pesan obat langsung dari HP</h2>
+          <p>Pilih produk, bayar online, dan kasir kami langsung siapkan pesanan Anda — tinggal ambil.</p>
         </div>
 
         <div className="produk-grid">
