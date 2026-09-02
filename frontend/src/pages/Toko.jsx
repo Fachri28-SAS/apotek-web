@@ -228,29 +228,19 @@ export default function Toko() {
         </div>
       </section>
 
-      <div className="wrap toolbar-modern" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, padding: "0 0 24px" }}>
-        <div className="search-box" style={{ flex: 1, minWidth: 280, maxWidth: 540, margin: 0 }}>
+      <div className="wrap toolbar-modern">
+        <div className="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
           <input type="text" placeholder="Cari nama obat atau gejala…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        
         <button
           type="button"
-          className="panduan-kemasan-btn"
+          className="panduan-chip-btn"
           onClick={() => setModalPanduan(true)}
         >
-          <div className="panduan-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-            </svg>
-          </div>
-          <div>
-            <div className="panduan-title">
-              Panduan Satuan & Kemasan Obat
-            </div>
-            <div className="panduan-sub">
-              Cek penjelasan Blister, Strip, Box, dll
-            </div>
-          </div>
+          <span className="panduan-chip-icon">💡</span>
+          <span>Panduan Satuan: <strong>Blister, Strip, Box, dll</strong></span>
         </button>
       </div>
 

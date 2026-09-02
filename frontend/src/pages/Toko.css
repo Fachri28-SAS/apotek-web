@@ -1,5 +1,5 @@
 ﻿/* ============================================================
-   TOKO CSS — Desain Bersih, Elegan & 100% Responsif (Square Images)
+   TOKO CSS — Desain Bersih, Elegan & 100% Responsif
    ============================================================ */
 
 .toko-page {
@@ -16,64 +16,92 @@
 
 /* ---------- HERO TOKO ---------- */
 .toko-page .shop-hero {
-  padding: 32px 0 20px;
+  padding: 30px 0 18px;
   background: radial-gradient(circle at 90% 6%, var(--magenta-tint) 0%, transparent 45%);
 }
 .toko-page .shop-hero h1 { font-size: clamp(24px, 4vw, 36px); font-weight: 700; margin: 8px 0 6px; }
 .toko-page .shop-hero p { color: var(--ink-soft); max-width: 540px; font-size: 14px; line-height: 1.5; }
 
-/* ---------- TOOLBAR & SEARCH ---------- */
-.toko-page .toolbar {
-  padding: 0 0 20px;
+/* ---------- TOOLBAR & SEARCH (CLEAN & SPACIOUS) ---------- */
+.toolbar-modern {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  padding: 0 0 20px;
 }
 
 .toko-page .search-box {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px;
-  padding: 12px 16px; max-width: 480px; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-.toko-page .search-box svg { width: 18px; height: 18px; color: var(--ink-soft); flex-shrink: 0; }
-.toko-page .search-box input { border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; color: var(--ink); }
-.toko-page .result-meta { margin-bottom: 14px; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
-
-/* ---------- PANDUAN BUTTON (RESPONSIF) ---------- */
-.panduan-kemasan-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px;
+  background: #ffffff;
+  border: 1.5px solid var(--line);
   border-radius: 14px;
-  border: 1.5px solid #C084FC;
-  background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
-  color: #6B21A8;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.12);
-  transition: all 0.2s ease;
-  text-align: left;
+  padding: 12px 18px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.panduan-kemasan-btn:hover {
-  background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+.toko-page .search-box:focus-within {
+  border-color: var(--magenta);
+  box-shadow: 0 4px 16px rgba(163, 22, 112, 0.12);
+}
+.toko-page .search-box svg { width: 18px; height: 18px; color: var(--ink-soft); flex-shrink: 0; }
+.toko-page .search-box input {
+  border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px; width: 100%; color: var(--ink);
+}
+
+/* ---------- PANDUAN CHIP BUTTON (COMPACT & SLEEK) ---------- */
+.panduan-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1.5px solid #E9D5FF;
+  background: #FAF5FF;
+  color: #6B21A8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(168, 85, 247, 0.08);
+  font-family: inherit;
+  white-space: nowrap;
+}
+.panduan-chip-btn:hover {
+  background: #F3E8FF;
+  border-color: #C084FC;
   transform: translateY(-1px);
 }
-.panduan-icon {
-  width: 34px; height: 34px; border-radius: 10px; background: #EDE9FE;
-  display: flex; align-items: center; justify-content: center; color: #7C3AED; flex-shrink: 0;
+.panduan-chip-icon {
+  font-size: 14px;
 }
-.panduan-icon svg { width: 18px; height: 18px; }
-.panduan-title { fontWeight: 800; font-size: 13.5px; color: #581C87; line-height: 1.2; font-weight: 800; }
-.panduan-sub { font-size: 11.5px; color: #9333EA; font-weight: 600; margin-top: 2px; }
+.panduan-chip-btn strong {
+  color: var(--magenta-dark);
+  font-weight: 800;
+}
 
-@media (max-width: 768px) {
-  .panduan-kemasan-btn {
-    width: 100%;
-    justify-content: flex-start;
+@media (max-width: 640px) {
+  .toolbar-modern {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 16px;
+  }
+  .toko-page .search-box {
+    max-width: 100%;
+  }
+  .panduan-chip-btn {
+    font-size: 11.5px;
+    padding: 6px 14px;
   }
 }
+
+.toko-page .result-meta { margin-bottom: 14px; font-size: 13px; color: var(--ink-soft); font-weight: 600; }
 
 /* ---------- KATEGORI FILTER TABS ---------- */
 .kategori-pills {
@@ -230,7 +258,27 @@
   font-weight: 700; font-size: 13.5px; cursor: pointer; margin-top: 8px; font-family: inherit;
 }
 
-/* ---------- MODAL PANDUAN SATUAN (PREMIUM DIALOG) ---------- */
+/* ---------- FORM CHECKOUT ---------- */
+.toko-page .form-group { margin-bottom: 14px; }
+.toko-page .form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--ink-soft); margin-bottom: 5px; }
+.toko-page .form-group input, .toko-page .form-group textarea {
+  width: 100%; padding: 11px 13px; border-radius: 10px; border: 1.5px solid var(--line);
+  font-family: inherit; font-size: 13.5px; outline: none;
+}
+.toko-page .form-group input:focus, .toko-page .form-group textarea:focus { border-color: var(--magenta); }
+.toko-page .back-link { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; margin-bottom: 12px; background: none; border: none; }
+.toko-page .back-link svg { width: 14px; height: 14px; }
+
+/* ---------- QRIS BOX ---------- */
+.qris-box { text-align: center; padding: 10px 0; }
+.qris-image {
+  width: 200px; height: 200px; margin: 0 auto 12px; border-radius: 14px; border: 1.5px solid var(--line);
+  display: flex; align-items: center; justify-content: center; background: var(--bg); overflow: hidden;
+}
+.qris-image img { width: 100%; height: 100%; object-fit: contain; }
+.qris-tap-hint { font-size: 11.5px; color: var(--ink-soft); margin-top: -4px; margin-bottom: 10px; }
+
+/* ---------- MODAL PANDUAN SATUAN ---------- */
 .panduan-modal-overlay {
   position: fixed;
   inset: 0;
@@ -365,7 +413,6 @@
   .toko-page .produk-harga { font-size: 13.5px; }
   .toko-page .mini-btn { width: 30px; height: 30px; border-radius: 8px; }
   .toko-page .mini-btn svg { width: 14px; height: 14px; }
-  .toko-page .search-box { max-width: 100%; padding: 10px 14px; }
   
   /* Mobile Drawer Bottom Sheet */
   .toko-page .drawer {
