@@ -156,124 +156,172 @@
 }
 
 /* 1. SUKSES / LUNAS / DITERIMA (HIJAU / IJO) */
-.status-hero.status-sukses {
-  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
-  border-color: #86EFAC;
+.status-hero.sukses,
+.status-hero.status-sukses,
+.status-hero.lunas,
+.status-hero.status-lunas {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  border-color: #86EFAC !important;
 }
-.status-hero.status-sukses .status-icon-wrap {
-  background: #16A34A;
-  color: #FFFFFF;
+.status-hero.sukses .status-icon-wrap,
+.status-hero.status-sukses .status-icon-wrap,
+.status-hero.lunas .status-icon-wrap,
+.status-hero.status-lunas .status-icon-wrap {
+  background: #16A34A !important;
+  color: #FFFFFF !important;
 }
-.status-hero.status-sukses .status-badge-live {
-  background: #15803D;
-  color: #FFFFFF;
+.status-hero.sukses .status-badge-live,
+.status-hero.status-sukses .status-badge-live,
+.status-hero.lunas .status-badge-live,
+.status-hero.status-lunas .status-badge-live {
+  background: #15803D !important;
+  color: #FFFFFF !important;
 }
-.status-hero.status-sukses .live-pulse {
-  background: #86EFAC;
+.status-hero.sukses .live-pulse,
+.status-hero.status-sukses .live-pulse,
+.status-hero.lunas .live-pulse,
+.status-hero.status-lunas .live-pulse {
+  background: #86EFAC !important;
 }
-.status-hero.status-sukses .status-hero-title {
-  color: #14532D;
+.status-hero.sukses .status-hero-title,
+.status-hero.status-sukses .status-hero-title,
+.status-hero.lunas .status-hero-title,
+.status-hero.status-lunas .status-hero-title {
+  color: #14532D !important;
 }
-.status-hero.status-sukses .status-hero-desc {
-  color: #166534;
+.status-hero.sukses .status-hero-desc,
+.status-hero.status-sukses .status-hero-desc,
+.status-hero.lunas .status-hero-desc,
+.status-hero.status-lunas .status-hero-desc {
+  color: #166534 !important;
 }
 
 /* 2. MENUNGGU VERIFIKASI (BIRU) */
+.status-hero.menunggu_verifikasi,
 .status-hero.status-menunggu_verifikasi {
-  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-  border-color: #93C5FD;
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+  border-color: #93C5FD !important;
 }
+.status-hero.menunggu_verifikasi .status-icon-wrap,
 .status-hero.status-menunggu_verifikasi .status-icon-wrap {
-  background: #2563EB;
-  color: #FFFFFF;
+  background: #2563EB !important;
+  color: #FFFFFF !important;
 }
+.status-hero.menunggu_verifikasi .status-badge-live,
 .status-hero.status-menunggu_verifikasi .status-badge-live {
-  background: #1D4ED8;
-  color: #FFFFFF;
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
 }
+.status-hero.menunggu_verifikasi .live-pulse,
 .status-hero.status-menunggu_verifikasi .live-pulse {
-  background: #93C5FD;
+  background: #93C5FD !important;
 }
+.status-hero.menunggu_verifikasi .status-hero-title,
 .status-hero.status-menunggu_verifikasi .status-hero-title {
-  color: #1E3A8A;
+  color: #1E3A8A !important;
 }
+.status-hero.menunggu_verifikasi .status-hero-desc,
 .status-hero.status-menunggu_verifikasi .status-hero-desc {
-  color: #1E40AF;
+  color: #1E40AF !important;
 }
 
 /* 3. PENDING / MENUNGGU PEMBAYARAN (AMBER / KUNING) */
+.status-hero.pending,
 .status-hero.status-pending {
-  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
-  border-color: #FCD34D;
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+  border-color: #FCD34D !important;
 }
+.status-hero.pending .status-icon-wrap,
 .status-hero.status-pending .status-icon-wrap {
-  background: #D97706;
-  color: #FFFFFF;
+  background: #D97706 !important;
+  color: #FFFFFF !important;
 }
+.status-hero.pending .status-badge-live,
 .status-hero.status-pending .status-badge-live {
-  background: #B45309;
-  color: #FFFFFF;
+  background: #B45309 !important;
+  color: #FFFFFF !important;
 }
+.status-hero.pending .live-pulse,
 .status-hero.status-pending .live-pulse {
-  background: #FDE68A;
+  background: #FDE68A !important;
 }
+.status-hero.pending .status-hero-title,
 .status-hero.status-pending .status-hero-title {
-  color: #78350F;
+  color: #78350F !important;
 }
+.status-hero.pending .status-hero-desc,
 .status-hero.status-pending .status-hero-desc {
-  color: #92400E;
+  color: #92400E !important;
 }
 
 /* 4. KURANG BAYAR (ORANYE) */
+.status-hero.kurang_bayar,
 .status-hero.status-kurang_bayar {
-  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
-  border-color: #FDBA74;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%) !important;
+  border-color: #FDBA74 !important;
 }
+.status-hero.kurang_bayar .status-icon-wrap,
 .status-hero.status-kurang_bayar .status-icon-wrap {
-  background: #EA580C;
-  color: #FFFFFF;
+  background: #EA580C !important;
+  color: #FFFFFF !important;
 }
+.status-hero.kurang_bayar .status-badge-live,
 .status-hero.status-kurang_bayar .status-badge-live {
-  background: #C2410C;
-  color: #FFFFFF;
+  background: #C2410C !important;
+  color: #FFFFFF !important;
 }
+.status-hero.kurang_bayar .live-pulse,
 .status-hero.status-kurang_bayar .live-pulse {
-  background: #FED7AA;
+  background: #FED7AA !important;
 }
+.status-hero.kurang_bayar .status-hero-title,
 .status-hero.status-kurang_bayar .status-hero-title {
-  color: #7C2D12;
+  color: #7C2D12 !important;
 }
+.status-hero.kurang_bayar .status-hero-desc,
 .status-hero.status-kurang_bayar .status-hero-desc {
-  color: #9A3412;
+  color: #9A3412 !important;
 }
 
 /* 5. GAGAL / DIBATALKAN (MERAH) */
+.status-hero.gagal,
 .status-hero.status-gagal,
+.status-hero.expired,
 .status-hero.status-expired {
-  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
-  border-color: #FCA5A5;
+  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%) !important;
+  border-color: #FCA5A5 !important;
 }
+.status-hero.gagal .status-icon-wrap,
 .status-hero.status-gagal .status-icon-wrap,
+.status-hero.expired .status-icon-wrap,
 .status-hero.status-expired .status-icon-wrap {
-  background: #DC2626;
-  color: #FFFFFF;
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
 }
+.status-hero.gagal .status-badge-live,
 .status-hero.status-gagal .status-badge-live,
+.status-hero.expired .status-badge-live,
 .status-hero.status-expired .status-badge-live {
-  background: #B91C1C;
-  color: #FFFFFF;
+  background: #B91C1C !important;
+  color: #FFFFFF !important;
 }
+.status-hero.gagal .live-pulse,
 .status-hero.status-gagal .live-pulse,
+.status-hero.expired .live-pulse,
 .status-hero.status-expired .live-pulse {
-  background: #FECACA;
+  background: #FECACA !important;
 }
+.status-hero.gagal .status-hero-title,
 .status-hero.status-gagal .status-hero-title,
+.status-hero.expired .status-hero-title,
 .status-hero.status-expired .status-hero-title {
-  color: #7F1D1D;
+  color: #7F1D1D !important;
 }
+.status-hero.gagal .status-hero-desc,
 .status-hero.status-gagal .status-hero-desc,
+.status-hero.expired .status-hero-desc,
 .status-hero.status-expired .status-hero-desc {
-  color: #991B1B;
+  color: #991B1B !important;
 }
 
 /* ---------- 2-COLUMN GRID ---------- */
@@ -415,3 +463,25 @@
   box-shadow: 0 6px 16px rgba(166, 75, 199, 0.3);
   font-family: inherit;
 }
+
+/* Breakdown Total Pembayaran */
+.total-breakdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1.5px dashed var(--line);
+}
+.total-breakdown-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.total-breakdown-val {
+  font-family: 'Fraunces', serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--magenta);
+}
+

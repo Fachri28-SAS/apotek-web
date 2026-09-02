@@ -201,7 +201,7 @@ export default function TrackingPesanan() {
 
       <div className="tracking-container">
         {/* ---------- HERO STATUS BANNER (REAKTIF VIA POLLING) ---------- */}
-        <div className={`status-hero ${statusPembayaran}`}>
+        <div className={`status-hero status-${statusPembayaran} ${statusPembayaran}`}>
           <div className="status-icon-wrap">
             {statusPembayaran === "pending" && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
