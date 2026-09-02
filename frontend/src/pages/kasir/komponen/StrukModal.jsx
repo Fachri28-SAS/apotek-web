@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { rupiah } from "../../../utils/format";
 
 /**
@@ -13,7 +14,16 @@ function cetakStruk(noStruk) {
   setTimeout(() => { document.title = judulAsli; }, 500);
 }
 
-export default function StrukModal({ data, onClose }) {
+export default function StrukModal({ data, onClose, autoPrint = true }) {
+  useEffect(() => {
+    if (data && autoPrint) {
+      const timer = setTimeout(() => {
+        cetakStruk(data.no_struk);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [data, autoPrint]);
+
   if (!data) return null;
 
   const tanggal = new Date(data.created_at).toLocaleString("id-ID", {
