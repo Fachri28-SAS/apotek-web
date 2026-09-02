@@ -463,88 +463,111 @@ export default function Toko() {
             </>
           )}
 
-          {/* ---- TAHAP 3: QRIS ---- */}
+          {/* ---- TAHAP 3: QRIS & UPLOAD BUKTI ---- */}
           {tahap === "qris" && order && (
-            <div className="qris-box">
-              <div
-                className="qris-image"
-                onClick={() => setQrisBesar(true)}
-                style={{
-                  cursor: "zoom-in",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#fff",
-                  padding: 12,
-                }}
-              >
-                {order.qris_dinamis ? (
-                  <QRCodeSVG
-                    id="toko-qris-svg"
-                    value={order.qris_dinamis}
-                    size={185}
-                    level="M"
-                    includeMargin={false}
-                  />
-                ) : (
-                  <img src="/qris.png" alt="QRIS Apotek Bima Farma" onError={(e) => { e.target.style.display = "none"; }} />
-                )}
+            <div className="qris-checkout-container">
+              {/* 1. Header Tagihan */}
+              <div className="qris-header-tagihan">
+                <span className="tagihan-label">TOTAL PEMBAYARAN</span>
+                <div className="tagihan-amount">{rupiah(order.total)}</div>
+                <div className="tagihan-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 13, height: 13 }}>
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Nominal Pas &amp; Otomatis Terkunci
+                </div>
               </div>
-              <div style={{ display: "inline-block", background: "var(--green-tint)", color: "var(--green-dark)", padding: "3px 8px", borderRadius: 100, fontSize: 11.5, fontWeight: 800, margin: "6px 0" }}>
-                ✓ Nominal Terkunci Otomatis: {rupiah(order.total)}
-              </div>
-              <p className="qris-tap-hint">Ketuk barcode untuk memperbesar</p>
-              <button
-                type="button"
-                onClick={() =>
-                  unduhQrisPng({
-                    svgId: "toko-qris-svg",
-                    namaFile: `qris-bima-farma-${order.kode_tracking || "checkout"}.png`,
-                    judul: "APOTEK BIMA FARMA",
-                    nominal: rupiah(order.total),
-                  })
-                }
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  margin: "4px auto 10px",
-                  padding: "6px 14px",
-                  borderRadius: 100,
-                  border: "1.5px solid var(--magenta)",
-                  background: "#fff",
-                  color: "var(--magenta)",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
-                  <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
-                </svg>
-                Unduh Gambar QRIS
-              </button>
-              <div className="qris-nominal">
-                Total Tagihan
-                <strong>{rupiah(order.total)}</strong>
-              </div>
-              <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6, lineHeight: 1.5 }}>
-                Scan via GoPay, BCA, Livin, BRImo, DANA, OVO, ShopeePay (tinggal masukkan PIN), lalu upload bukti transfer di bawah.
-              </p>
 
-              <div className="upload-bukti-box" onClick={() => fileInputRef.current?.click()}>
-                {buktiPreview ? (
-                  <img src={buktiPreview} className="upload-bukti-preview" alt="Preview bukti" />
-                ) : (
-                  <>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{ width: 28, height: 28, margin: "0 auto 8px", color: "var(--ink-soft)" }}>
-                      <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+              {/* 2. QR Code Box (Clean Card) */}
+              <div className="qris-card-box">
+                <div className="qris-card-brand">
+                  <span className="qris-logo-text">QRIS <strong>NASIONAL</strong></span>
+                  <span className="qris-nama-apotek">APOTEK BIMA FARMA</span>
+                </div>
+
+                <div
+                  className="qris-image-wrapper"
+                  onClick={() => setQrisBesar(true)}
+                  title="Ketuk barcode untuk memperbesar"
+                >
+                  {order.qris_dinamis ? (
+                    <QRCodeSVG
+                      id="toko-qris-svg"
+                      value={order.qris_dinamis}
+                      size={195}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  ) : (
+                    <img src="/qris.png" alt="QRIS Apotek Bima Farma" onError={(e) => { e.target.style.display = "none"; }} style={{ maxWidth: 195 }} />
+                  )}
+                </div>
+
+                <div className="qris-actions-row">
+                  <button
+                    type="button"
+                    className="qris-action-pill"
+                    onClick={() => setQrisBesar(true)}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /><path d="M11 8v6M8 11h6" />
                     </svg>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>Upload Bukti Transfer</div>
-                  </>
-                )}
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={pilihFileBukti} style={{ display: "none" }} />
+                    Perbesar QR
+                  </button>
+                  <button
+                    type="button"
+                    className="qris-action-pill"
+                    onClick={() =>
+                      unduhQrisPng({
+                        svgId: "toko-qris-svg",
+                        namaFile: `qris-bima-farma-${order.kode_tracking || "checkout"}.png`,
+                        judul: "APOTEK BIMA FARMA",
+                        nominal: rupiah(order.total),
+                      })
+                    }
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
+                    </svg>
+                    Unduh QR
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Panduan Singkat Bank */}
+              <div className="qris-bank-strip">
+                Scan via <strong>BCA · Livin · BRImo · GoPay · DANA · OVO · ShopeePay</strong>
+              </div>
+
+              {/* 4. Upload Bukti Transfer */}
+              <div className="qris-upload-section">
+                <label className="upload-section-title">Upload Bukti Transfer</label>
+                <div
+                  className={`upload-dropzone ${buktiPreview ? "has-file" : ""}`}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {buktiPreview ? (
+                    <div className="upload-preview-wrapper">
+                      <img src={buktiPreview} className="upload-preview-img" alt="Preview bukti transfer" />
+                      <div className="upload-change-badge">Ketuk untuk ganti foto</div>
+                    </div>
+                  ) : (
+                    <div className="upload-placeholder">
+                      <div className="upload-icon-circle">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="4" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                      </div>
+                      <div className="upload-prompt-text">
+                        <strong>Pilih Foto / Screenshot Bukti</strong>
+                        <span>Ketuk di sini untuk mengupload bukti bayar</span>
+                      </div>
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={pilihFileBukti} style={{ display: "none" }} />
+                </div>
               </div>
             </div>
           )}
