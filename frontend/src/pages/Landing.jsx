@@ -110,7 +110,7 @@ function TokoPreview() {
           <p>Pilih produk, bayar online, dan kasir kami langsung siapkan pesanan Anda — tinggal ambil atau tunggu diantar.</p>
         </div>
 
-        <div className="produk-grid" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+        <div className="produk-grid">
           {PRODUK_PREVIEW.map((p) => (
             <div className="produk-card" key={p.nama}>
               <div className="produk-icon">

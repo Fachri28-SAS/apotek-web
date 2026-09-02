@@ -129,7 +129,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                   {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                 </button>
               ) : (
-                <a href="#lokasi" className="btn btn-primary">Hubungi Kami</a>
+                <a href="#lokasi" className="btn btn-primary nav-cta-btn">Hubungi Kami</a>
               )}
               <button
                 className="hamburger"
@@ -169,7 +169,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
             {!diToko && (
               <>
                 <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
-                <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi</a>
+                <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi &amp; Kontak</a>
               </>
             )}
           </div>
