@@ -7,7 +7,6 @@ export default function Landing() {
     <div className="landing-page">
       <Navbar />
       <Hero />
-      <TrustStrip />
       <TokoPreview />
       <Divider />
       <TentangKami />
@@ -31,7 +30,7 @@ function Hero() {
             hingga alat kesehatan.
           </p>
           <div className="hero-cta">
-            <Link to="/toko" className="btn btn-primary">Lihat Produk Toko</Link>
+            <Link to="/toko" className="btn btn-primary">Buka Toko Online</Link>
             <a href="#lokasi" className="btn btn-outline">Hubungi Apotek</a>
           </div>
           <div className="hero-meta">
@@ -50,44 +49,7 @@ function Hero() {
   );
 }
 
-/* ==================== TRUST STRIP ==================== */
-const TRUST_ITEMS = [
-  {
-    title: "Apoteker Berizin", sub: "Konsultasi langsung", stroke: "#E4B8F2",
-    path: <><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="9" /></>,
-  },
-  {
-    title: "Buka Setiap Hari", sub: "Termasuk akhir pekan", stroke: "#F0A9D2",
-    path: <><path d="M12 7v5l3 3" /><circle cx="12" cy="12" r="9" /></>,
-  },
-  {
-    title: "Stok Obat Lengkap", sub: "Resep & obat bebas", stroke: "#E4B8F2",
-    path: <><rect x="4" y="7" width="16" height="13" rx="2" /><path d="M8 7V5a4 4 0 018 0v2" /></>,
-  },
-  {
-    title: "Pelayanan Ramah", sub: "Untuk seluruh keluarga", stroke: "#F0A9D2",
-    path: <path d="M12 21c-4-3-8-6.5-8-11a5 5 0 019-3 5 5 0 019 3c0 4.5-4 8-10 11z" />,
-  },
-];
-
-function TrustStrip() {
-  return (
-    <div className="trust">
-      <div className="wrap">
-        {TRUST_ITEMS.map((t) => (
-          <div className="trust-item" key={t.title}>
-            <svg viewBox="0 0 24 24" fill="none" stroke={t.stroke} strokeWidth="1.8">{t.path}</svg>
-            <div className="t">{t.title}</div>
-            <div className="s">{t.sub}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ==================== CUPLIKAN TOKO ==================== */
-// Data dummy — ganti fetch("/api/produk?limit=4") begitu backend siap
 const PRODUK_PREVIEW = [
   { nama: "Paracetamol 500mg", kemasan: "Strip isi 10 tablet",
     icon: <><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" /></> },
@@ -104,7 +66,7 @@ function TokoPreview() {
     <section className="toko" id="toko">
       <div className="wrap">
         <div className="section-head">
-          <span className="eyebrow">Toko</span>
+          <span className="eyebrow">Toko Online</span>
           <h2>Pesan obat &amp; kebutuhan sehat, langsung dari HP</h2>
           <p>Pilih produk, bayar online, dan kasir kami langsung siapkan pesanan Anda — tinggal ambil atau tunggu diantar.</p>
         </div>
@@ -121,12 +83,10 @@ function TokoPreview() {
           ))}
         </div>
 
-        <div className="toko-cta">
-          <div>
-            <h3>Lihat semua produk &amp; pesan sekarang</h3>
-            <p>Semua obat dan kebutuhan kami ada dalam satu daftar, tinggal cari &amp; pilih.</p>
-          </div>
-          <Link to="/toko" className="btn btn-primary">Buka Toko Online</Link>
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <Link to="/toko" className="btn btn-primary" style={{ padding: "12px 30px", fontSize: "15px" }}>
+            Lihat Semua Produk di Toko Online →
+          </Link>
         </div>
       </div>
     </section>
