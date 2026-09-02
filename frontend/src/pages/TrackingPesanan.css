@@ -87,40 +87,193 @@
   .tracking-nav-inner { padding: 12px 14px; }
 }
 
-/* ---------- HERO STATUS BANNER ---------- */
+/* ---------- HERO STATUS BANNER & WARNA-WARNI STATUS ---------- */
 .status-hero {
   border-radius: 18px;
   padding: 22px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   border: 1.5px solid var(--line);
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   background: var(--surface);
+  transition: all 0.3s ease;
 }
 
 .status-icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.status-icon-wrap svg { width: 28px; height: 28px; }
+.status-icon-wrap svg { width: 30px; height: 30px; }
 
-.status-text h2 {
-  font-size: clamp(17px, 3.5vw, 22px);
-  font-weight: 800;
-  margin: 0 0 4px;
+.status-hero-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.status-text p {
+
+.status-badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 100px;
+  width: fit-content;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.live-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  animation: pulse-live 1.5s infinite;
+}
+@keyframes pulse-live {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+.status-hero-title {
+  font-size: clamp(18px, 3.8vw, 22px);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.status-hero-desc {
   font-size: 13.5px;
-  color: var(--ink-soft);
-  margin: 0;
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+/* 1. SUKSES / LUNAS / DITERIMA (HIJAU / IJO) */
+.status-hero.status-sukses {
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+  border-color: #86EFAC;
+}
+.status-hero.status-sukses .status-icon-wrap {
+  background: #16A34A;
+  color: #FFFFFF;
+}
+.status-hero.status-sukses .status-badge-live {
+  background: #15803D;
+  color: #FFFFFF;
+}
+.status-hero.status-sukses .live-pulse {
+  background: #86EFAC;
+}
+.status-hero.status-sukses .status-hero-title {
+  color: #14532D;
+}
+.status-hero.status-sukses .status-hero-desc {
+  color: #166534;
+}
+
+/* 2. MENUNGGU VERIFIKASI (BIRU) */
+.status-hero.status-menunggu_verifikasi {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-color: #93C5FD;
+}
+.status-hero.status-menunggu_verifikasi .status-icon-wrap {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+.status-hero.status-menunggu_verifikasi .status-badge-live {
+  background: #1D4ED8;
+  color: #FFFFFF;
+}
+.status-hero.status-menunggu_verifikasi .live-pulse {
+  background: #93C5FD;
+}
+.status-hero.status-menunggu_verifikasi .status-hero-title {
+  color: #1E3A8A;
+}
+.status-hero.status-menunggu_verifikasi .status-hero-desc {
+  color: #1E40AF;
+}
+
+/* 3. PENDING / MENUNGGU PEMBAYARAN (AMBER / KUNING) */
+.status-hero.status-pending {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border-color: #FCD34D;
+}
+.status-hero.status-pending .status-icon-wrap {
+  background: #D97706;
+  color: #FFFFFF;
+}
+.status-hero.status-pending .status-badge-live {
+  background: #B45309;
+  color: #FFFFFF;
+}
+.status-hero.status-pending .live-pulse {
+  background: #FDE68A;
+}
+.status-hero.status-pending .status-hero-title {
+  color: #78350F;
+}
+.status-hero.status-pending .status-hero-desc {
+  color: #92400E;
+}
+
+/* 4. KURANG BAYAR (ORANYE) */
+.status-hero.status-kurang_bayar {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  border-color: #FDBA74;
+}
+.status-hero.status-kurang_bayar .status-icon-wrap {
+  background: #EA580C;
+  color: #FFFFFF;
+}
+.status-hero.status-kurang_bayar .status-badge-live {
+  background: #C2410C;
+  color: #FFFFFF;
+}
+.status-hero.status-kurang_bayar .live-pulse {
+  background: #FED7AA;
+}
+.status-hero.status-kurang_bayar .status-hero-title {
+  color: #7C2D12;
+}
+.status-hero.status-kurang_bayar .status-hero-desc {
+  color: #9A3412;
+}
+
+/* 5. GAGAL / DIBATALKAN (MERAH) */
+.status-hero.status-gagal,
+.status-hero.status-expired {
+  background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+  border-color: #FCA5A5;
+}
+.status-hero.status-gagal .status-icon-wrap,
+.status-hero.status-expired .status-icon-wrap {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+.status-hero.status-gagal .status-badge-live,
+.status-hero.status-expired .status-badge-live {
+  background: #B91C1C;
+  color: #FFFFFF;
+}
+.status-hero.status-gagal .live-pulse,
+.status-hero.status-expired .live-pulse {
+  background: #FECACA;
+}
+.status-hero.status-gagal .status-hero-title,
+.status-hero.status-expired .status-hero-title {
+  color: #7F1D1D;
+}
+.status-hero.status-gagal .status-hero-desc,
+.status-hero.status-expired .status-hero-desc {
+  color: #991B1B;
 }
 
 /* ---------- 2-COLUMN GRID ---------- */
