@@ -90,6 +90,12 @@ export default function Navbar({ cartCount, onOpenCart }) {
             <div className="nav-links">
               <Link to="/#beranda">Beranda</Link>
               <Link to="/toko" className={diToko ? "active" : ""}>Toko</Link>
+              {!diToko && (
+                <>
+                  <a href="#tentang">Tentang Kami</a>
+                  <a href="#lokasi">Lokasi</a>
+                </>
+              )}
               <button
                 type="button"
                 onClick={handleBukaCekPesanan}
@@ -111,12 +117,6 @@ export default function Navbar({ cartCount, onOpenCart }) {
                 </svg>
                 Cek Pesanan
               </button>
-              {!diToko && (
-                <>
-                  <a href="#tentang">Tentang Kami</a>
-                  <a href="#lokasi">Lokasi</a>
-                </>
-              )}
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -145,6 +145,12 @@ export default function Navbar({ cartCount, onOpenCart }) {
           <div className={`mobile-menu ${mobileOpen ? "open" : ""}`}>
             <Link to="/#beranda" onClick={() => setMobileOpen(false)}>Beranda</Link>
             <Link to="/toko" onClick={() => setMobileOpen(false)}>Toko</Link>
+            {!diToko && (
+              <>
+                <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
+                <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi &amp; Kontak</a>
+              </>
+            )}
             <button
               type="button"
               onClick={handleBukaCekPesanan}
@@ -167,12 +173,6 @@ export default function Navbar({ cartCount, onOpenCart }) {
               </svg>
               Cek Status Pesanan
             </button>
-            {!diToko && (
-              <>
-                <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
-                <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi &amp; Kontak</a>
-              </>
-            )}
           </div>
         </div>
       </header>
