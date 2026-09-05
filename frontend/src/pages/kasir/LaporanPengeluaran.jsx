@@ -478,17 +478,76 @@ export default function LaporanPengeluaran() {
         )}
       </div>
 
-      {/* MODAL CATAT PENGELUARAN */}
+      {/* MODAL CATAT PENGELUARAN (POP-UP FLOATING DI TENGAH) */}
       {modalBuka && (
-        <div className="modal-backdrop" onClick={() => !saving && setModalBuka(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
-            <div className="modal-header">
-              <h2>Catat Pengeluaran Kas</h2>
+        <div
+          className="modal-backdrop"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background: "rgba(18, 12, 28, 0.75)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+          onClick={() => !saving && setModalBuka(false)}
+        >
+          <div
+            className="modal-box"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#ffffff",
+              borderRadius: 20,
+              maxWidth: 520,
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.35)",
+              border: "1px solid var(--line)",
+            }}
+          >
+            <div
+              className="modal-header"
+              style={{
+                padding: "18px 22px 14px",
+                borderBottom: "1px solid var(--line)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "#FAF5FF",
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  💸 Catat Pengeluaran Kas
+                </h2>
+                <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
+                  Catat pengeluaran operasional toko atau gaji karyawan
+                </div>
+              </div>
               <button
                 type="button"
                 className="modal-close"
                 onClick={() => !saving && setModalBuka(false)}
                 disabled={saving}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: "1px solid var(--line)",
+                  background: "#ffffff",
+                  color: "var(--ink)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
               >
                 ✕
               </button>
