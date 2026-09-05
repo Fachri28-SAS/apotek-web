@@ -12,9 +12,9 @@ const PERIODE = [
 ];
 
 const KATEGORI_OPTIONS = [
+  { key: "gaji", label: "Gaji Karyawan", badgeColor: "#15803D", bg: "#DCFCE7" },
   { key: "operasional", label: "Operasional Harian", badgeColor: "#A64BC7", bg: "#F3E8FF" },
   { key: "listrik_air", label: "Listrik, Air & Internet", badgeColor: "#D97706", bg: "#FEF3C7" },
-  { key: "gaji", label: "Gaji & Uang Makan", badgeColor: "#15803D", bg: "#DCFCE7" },
   { key: "perlengkapan", label: "ATK & Perlengkapan", badgeColor: "#BE185D", bg: "#FCE7F3" },
   { key: "sewa", label: "Sewa & Tempat", badgeColor: "#4338CA", bg: "#EEF2FF" },
   { key: "pemeliharaan", label: "Perawatan & Kebersihan", badgeColor: "#0F766E", bg: "#CCFBF1" },
@@ -27,7 +27,8 @@ export default function LaporanPengeluaran() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [tabAktif, setTabAktif] = useState("operasional"); // 'operasional' | 'supplier'
+  const [tabAktif, setTabAktif] = useState("operasional"); // 'operasional' | 'gaji' | 'supplier'
+  const [karyawanList, setKaryawanList] = useState([]);
 
   // Modal State
   const [modalBuka, setModalBuka] = useState(false);
@@ -35,12 +36,18 @@ export default function LaporanPengeluaran() {
   const [formError, setFormError] = useState("");
   const [form, setForm] = useState({
     tanggal: new Date().toISOString().slice(0, 10),
-    kategori: "operasional",
+    kategori: "gaji",
     nama_pengeluaran: "",
     nominal: "",
-    metode_bayar: "tunai",
+    metode_bayar: "transfer",
     keterangan: "",
   });
+
+  useEffect(() => {
+    api("/users")
+      .then((users) => setKaryawanList(users || []))
+      .catch(() => {});
+  }, []);
 
   function muatData() {
     setLoading(true);
@@ -219,7 +226,23 @@ export default function LaporanPengeluaran() {
           </div>
         </div>
 
-        {/* Biaya Operasional */}
+        {/* Gaji Karyawan */}
+        <div className="kpi-card hijau" style={{ border: "1.5px solid #86EFAC" }}>
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          </div>
+          <div>
+            <div className="kpi-angka" style={{ color: "var(--green-dark)" }}>
+              {loading ? "…" : rupiah(data?.kpi?.total_gaji || 0)}
+            </div>
+            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Gaji Karyawan</div>
+            <div className="kpi-sub">Gaji kasir & staf ({labelPeriode})</div>
+          </div>
+        </div>
+
+        {/* Biaya Operasional Lainnya */}
         <div className="kpi-card kuning">
           <div className="kpi-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -227,9 +250,11 @@ export default function LaporanPengeluaran() {
             </svg>
           </div>
           <div>
-            <div className="kpi-angka">{loading ? "…" : rupiah(data?.kpi?.total_operasional || 0)}</div>
-            <div className="kpi-label">Biaya Operasional</div>
-            <div className="kpi-sub">Kas keluar rutin ({labelPeriode})</div>
+            <div className="kpi-angka">
+              {loading ? "…" : rupiah(Math.max(0, (data?.kpi?.total_operasional || 0) - (data?.kpi?.total_gaji || 0)))}
+            </div>
+            <div className="kpi-label">Operasional & Listrik</div>
+            <div className="kpi-sub">Di luar gaji ({labelPeriode})</div>
           </div>
         </div>
 
@@ -242,7 +267,7 @@ export default function LaporanPengeluaran() {
           </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : data?.kpi?.jumlah_catatan || 0}</div>
-            <div className="kpi-label">Jumlah Catatan Transaksi</div>
+            <div className="kpi-label">Jumlah Catatan</div>
             <div className="kpi-sub">{labelPeriode}</div>
           </div>
         </div>
@@ -276,14 +301,22 @@ export default function LaporanPengeluaran() {
       {/* TAB SWITCHER & DAFTAR DATA */}
       <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
               className={`periode-chip ${tabAktif === "operasional" ? "active" : ""}`}
               onClick={() => setTabAktif("operasional")}
               style={{ fontWeight: 700, padding: "7px 14px" }}
             >
-              Kas Operasional ({data?.operasional?.length || 0})
+              Semua Operasional ({data?.operasional?.length || 0})
+            </button>
+            <button
+              type="button"
+              className={`periode-chip ${tabAktif === "gaji" ? "active" : ""}`}
+              onClick={() => setTabAktif("gaji")}
+              style={{ fontWeight: 700, padding: "7px 14px" }}
+            >
+              Khusus Gaji Karyawan ({data?.operasional?.filter((o) => o.kategori === "gaji").length || 0})
             </button>
             <button
               type="button"
@@ -304,78 +337,95 @@ export default function LaporanPengeluaran() {
           </button>
         </div>
 
-        {/* TAB 1: KAS OPERASIONAL */}
-        {tabAktif === "operasional" && (
+        {/* TAB 1: KAS OPERASIONAL & TAB KHUSUS GAJI */}
+        {(tabAktif === "operasional" || tabAktif === "gaji") && (
           <>
-            {!loading && data && data.operasional && data.operasional.length > 0 ? (
-              <table className="obat-table">
-                <thead>
-                  <tr>
-                    <th>Tanggal</th>
-                    <th>Kategori</th>
-                    <th>Nama Pengeluaran</th>
-                    <th>Nominal</th>
-                    <th>Metode</th>
-                    <th>Keterangan</th>
-                    <th>Kasir / Petugas</th>
-                    {user?.role === "admin" && <th style={{ textAlign: "center" }}>Aksi</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.operasional.map((item) => {
-                    const katInfo = KATEGORI_OPTIONS.find((k) => k.key === item.kategori);
-                    return (
-                      <tr key={item.id}>
-                        <td>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                        <td>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              padding: "3px 8px",
-                              borderRadius: 6,
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              color: katInfo?.badgeColor || "#475569",
-                              background: katInfo?.bg || "#F1F5F9",
-                            }}
-                          >
-                            {katInfo?.label || item.kategori}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: 600 }}>{item.nama_pengeluaran}</td>
-                        <td style={{ fontWeight: 700, color: "#DC2626" }}>-{rupiah(item.nominal)}</td>
-                        <td><span className="metode-badge">{item.metode_bayar}</span></td>
-                        <td style={{ color: "var(--ink-soft)", fontSize: 12.5 }}>{item.keterangan || "—"}</td>
-                        <td>{item.nama_kasir || "—"}</td>
-                        {user?.role === "admin" && (
-                          <td style={{ textAlign: "center" }}>
-                            <button
-                              type="button"
-                              onClick={() => handleHapus(item.id, item.nama_pengeluaran)}
+            {(() => {
+              const listTampil = tabAktif === "gaji"
+                ? (data?.operasional || []).filter((o) => o.kategori === "gaji")
+                : (data?.operasional || []);
+
+              if (loading) return <div className="panel-kosong">Memuat data pengeluaran…</div>;
+              if (!listTampil.length) {
+                return (
+                  <div className="panel-kosong">
+                    {tabAktif === "gaji"
+                      ? "Belum ada catatan pembayaran gaji karyawan pada periode ini."
+                      : "Belum ada catatan pengeluaran operasional pada periode ini."}
+                  </div>
+                );
+              }
+
+              return (
+                <table className="obat-table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Kategori</th>
+                      <th>Nama Pengeluaran</th>
+                      <th>Nominal</th>
+                      <th>Metode</th>
+                      <th>Keterangan</th>
+                      <th>Kasir / Petugas</th>
+                      {user?.role === "admin" && <th style={{ textAlign: "center" }}>Aksi</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listTampil.map((item) => {
+                      const katInfo = KATEGORI_OPTIONS.find((k) => k.key === item.kategori);
+                      return (
+                        <tr key={item.id}>
+                          <td>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                          <td>
+                            <span
                               style={{
-                                background: "#FEE2E2",
-                                color: "#DC2626",
-                                border: "none",
-                                padding: "4px 8px",
+                                display: "inline-block",
+                                padding: "3px 8px",
                                 borderRadius: 6,
                                 fontSize: 11.5,
                                 fontWeight: 700,
-                                cursor: "pointer",
+                                color: katInfo?.badgeColor || "#475569",
+                                background: katInfo?.bg || "#F1F5F9",
                               }}
-                              title="Hapus Catatan"
                             >
-                              Hapus
-                            </button>
+                              {katInfo?.label || item.kategori}
+                            </span>
                           </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada catatan pengeluaran operasional pada periode ini."}</div>
-            )}
+                          <td style={{ fontWeight: 600 }}>{item.nama_pengeluaran}</td>
+                          <td style={{ fontWeight: 700, color: item.kategori === "gaji" ? "#15803D" : "#DC2626" }}>
+                            -{rupiah(item.nominal)}
+                          </td>
+                          <td><span className="metode-badge">{item.metode_bayar}</span></td>
+                          <td style={{ color: "var(--ink-soft)", fontSize: 12.5 }}>{item.keterangan || "—"}</td>
+                          <td>{item.nama_kasir || "—"}</td>
+                          {user?.role === "admin" && (
+                            <td style={{ textAlign: "center" }}>
+                              <button
+                                type="button"
+                                onClick={() => handleHapus(item.id, item.nama_pengeluaran)}
+                                style={{
+                                  background: "#FEE2E2",
+                                  color: "#DC2626",
+                                  border: "none",
+                                  padding: "4px 8px",
+                                  borderRadius: 6,
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                }}
+                                title="Hapus Catatan"
+                              >
+                                Hapus
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              );
+            })()}
           </>
         )}
 
@@ -464,7 +514,14 @@ export default function LaporanPengeluaran() {
                 <select
                   className="input-text"
                   value={form.kategori}
-                  onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+                  onChange={(e) => {
+                    const kat = e.target.value;
+                    let namaDefault = form.nama_pengeluaran;
+                    if (kat !== "gaji" && namaDefault.startsWith("Gaji ")) {
+                      namaDefault = "";
+                    }
+                    setForm({ ...form, kategori: kat, nama_pengeluaran: namaDefault });
+                  }}
                   style={{ width: "100%" }}
                 >
                   {KATEGORI_OPTIONS.map((k) => (
@@ -472,6 +529,35 @@ export default function LaporanPengeluaran() {
                   ))}
                 </select>
               </div>
+
+              {/* Helper Selector Karyawan saat memilih Gaji Karyawan */}
+              {form.kategori === "gaji" && (
+                <div className="form-group" style={{ marginBottom: 14 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4, color: "#15803D" }}>
+                    Pilih Karyawan / Staf
+                  </label>
+                  <select
+                    className="input-text"
+                    style={{ width: "100%", background: "#F0FDF4", borderColor: "#86EFAC" }}
+                    onChange={(e) => {
+                      if (e.target.value && e.target.value !== "lainnya") {
+                        const tgl = new Date(form.tanggal || new Date());
+                        const bulanStr = tgl.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+                        setForm({
+                          ...form,
+                          nama_pengeluaran: `Gaji ${e.target.value} (${bulanStr})`,
+                        });
+                      }
+                    }}
+                  >
+                    <option value="">-- Pilih Nama Staf (Otomatis Isi Judul) --</option>
+                    {karyawanList.map((k) => (
+                      <option key={k.id} value={k.nama}>{k.nama}</option>
+                    ))}
+                    <option value="lainnya">Karyawan Lain (Ketik Manual)</option>
+                  </select>
+                </div>
+              )}
 
               <div className="form-group" style={{ marginBottom: 14 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Nama Pengeluaran</label>

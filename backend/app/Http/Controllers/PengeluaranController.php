@@ -49,11 +49,13 @@ class PengeluaranController extends Controller
             ->keyBy('kategori');
 
         $breakdown = [];
+        $totalGaji = (float) ($kategoriSummary['gaji']->total ?? 0);
+
         $daftarKategori = [
             'pembelian_obat' => ['label' => 'Pembelian Obat (Supplier)', 'total' => $totalPembelianSupplier, 'warna' => '#1A56B8'],
+            'gaji' => ['label' => 'Gaji Karyawan', 'total' => $totalGaji, 'warna' => '#15803D'],
             'operasional' => ['label' => 'Operasional Harian', 'total' => (float) ($kategoriSummary['operasional']->total ?? 0), 'warna' => '#A64BC7'],
             'listrik_air' => ['label' => 'Listrik, Air & Internet', 'total' => (float) ($kategoriSummary['listrik_air']->total ?? 0), 'warna' => '#F59E0B'],
-            'gaji' => ['label' => 'Gaji & Uang Makan', 'total' => (float) ($kategoriSummary['gaji']->total ?? 0), 'warna' => '#39A048'],
             'perlengkapan' => ['label' => 'ATK & Perlengkapan', 'total' => (float) ($kategoriSummary['perlengkapan']->total ?? 0), 'warna' => '#EC4899'],
             'sewa' => ['label' => 'Sewa & Gedung', 'total' => (float) ($kategoriSummary['sewa']->total ?? 0), 'warna' => '#6366F1'],
             'pemeliharaan' => ['label' => 'Perawatan & Kebersihan', 'total' => (float) ($kategoriSummary['pemeliharaan']->total ?? 0), 'warna' => '#14B8A6'],
@@ -81,6 +83,7 @@ class PengeluaranController extends Controller
             'kpi' => [
                 'total_pengeluaran' => $totalPengeluaran,
                 'total_operasional' => $totalOperasional,
+                'total_gaji' => $totalGaji,
                 'total_pembelian_obat' => $totalPembelianSupplier,
                 'jumlah_catatan' => $daftarOperasional->count() + $fakturSupplier->count(),
             ],
