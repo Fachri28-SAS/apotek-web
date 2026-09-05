@@ -77,6 +77,7 @@ class PenjualanController extends Controller
                     'nomor_batch' => $obat->nomor_batch,
                     'faktor' => $satuan->faktor,
                     'qty' => $it['qty'],
+                    'harga_beli' => $satuan->harga_beli ?? 0,
                     'harga_asli' => $it['harga_asli'],
                     'harga_jual' => $it['harga_jual'],
                     'tuslah' => $tuslah,

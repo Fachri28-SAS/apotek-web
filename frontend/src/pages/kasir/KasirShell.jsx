@@ -22,8 +22,10 @@ const MENU = [
     icon: <><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" /></> },
   { label: "Stok Opname", path: "/kasir/opname",
     icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 14l2 2 4-4" /></> },
-  { label: "Laporan", path: "/kasir/laporan", hanyaAdmin: true,
+  { label: "Laporan Penjualan", path: "/kasir/laporan", hanyaAdmin: true,
     icon: <><path d="M5 19V9M12 19V5M19 19v-6" /></> },
+  { label: "Laporan Pengeluaran", path: "/kasir/pengeluaran",
+    icon: <><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></> },
   { label: "Kelola Pengguna", path: "/kasir/users", hanyaAdmin: true,
     icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></> },
 ];

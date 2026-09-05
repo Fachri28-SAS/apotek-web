@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +40,13 @@ Route::get('/robots.txt', function () {
         'Content-Type' => 'text/plain',
     ]);
 });
+
+Route::get('/storage/{path}', function ($path) {
+    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        $file = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+        $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($path);
+        return response($file, 200)->header('Content-Type', $mime);
+    }
+    abort(404);
+})->where('path', '.*');
+

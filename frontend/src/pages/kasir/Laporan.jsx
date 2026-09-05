@@ -81,7 +81,7 @@ function GrafikArea({ data }) {
 }
 
 function exportCSV(transaksi) {
-  var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total,Metode Bayar\n";
+  var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total Penjualan,Total Modal (HPP),Total Pendapatan (Laba),Margin,Metode Bayar\n";
   var rows = transaksi.map(function(t) {
     return [
       t.no_struk,
@@ -93,6 +93,9 @@ function exportCSV(transaksi) {
       t.subtotal,
       t.diskon,
       t.total,
+      t.total_modal || 0,
+      t.total_pendapatan || 0,
+      (t.margin_persen || 0) + "%",
       t.metode_bayar,
     ].join(",");
   }).join("\n");
@@ -101,7 +104,7 @@ function exportCSV(transaksi) {
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
   a.href = url;
-  a.download = "transaksi-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.download = "laporan-penjualan-" + new Date().toISOString().slice(0, 10) + ".csv";
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -134,8 +137,8 @@ export default function Laporan() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Laporan</h1>
-          <p className="halaman-sub">Ringkasan penjualan dan stok</p>
+          <h1 style={{ fontSize: 24 }}>Laporan Penjualan</h1>
+          <p className="halaman-sub">Ringkasan omzet, laba kotor, dan perputaran obat</p>
         </div>
         <div className="periode-chips">
           {PERIODE.map(function(p) {
@@ -153,24 +156,78 @@ export default function Laporan() {
       {error && <div className="login-error">{error}</div>}
 
       <div className="kpi-grid">
+        {/* Total Pendapatan (Laba Kotor dari Selisih Harga Jual dan Beli) */}
+        <div className="kpi-card hijau" style={{ border: "1.5px solid #86EFAC" }}>
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+              <span className="kpi-angka" style={{ color: "var(--green-dark)" }}>
+                {loading ? "…" : rupiah(data.kpi.total_pendapatan)}
+              </span>
+              {!loading && (
+                <span className={"kpi-margin-badge " + (data.kpi.margin_persen >= 15 ? "" : "warning")}>
+                  {data.kpi.margin_persen}% Margin
+                </span>
+              )}
+            </div>
+            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Total Pendapatan (Laba)</div>
+            <div className="kpi-sub">Selisih Jual - Beli ({labelPeriode})</div>
+          </div>
+        </div>
+
+        {/* Total Penjualan (Omzet) */}
         <div className="kpi-card ungu">
-          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 19V9M12 19V5M19 19v-6" /></svg></div>
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M5 19V9M12 19V5M19 19v-6" />
+            </svg>
+          </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.total_penjualan)}</div>
             <div className="kpi-label">Total Penjualan</div>
-            <div className="kpi-sub">{labelPeriode}</div>
+            <div className="kpi-sub">Omzet kotor ({labelPeriode})</div>
           </div>
         </div>
+
+        {/* Total Modal (HPP) */}
+        <div className="kpi-card biru">
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+            </svg>
+          </div>
+          <div>
+            <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.total_modal)}</div>
+            <div className="kpi-label">Total Modal (HPP)</div>
+            <div className="kpi-sub">Harga beli obat terjual</div>
+          </div>
+        </div>
+
+        {/* Jumlah Transaksi */}
         <div className="kpi-card ungu">
-          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M8 6V4h8v2" /></svg></div>
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="3" y="6" width="18" height="13" rx="2" /><path d="M8 6V4h8v2" />
+            </svg>
+          </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : data.kpi.jumlah_transaksi}</div>
             <div className="kpi-label">Jumlah Transaksi</div>
             <div className="kpi-sub">{labelPeriode}</div>
           </div>
         </div>
-        <div className="kpi-card ungu">
-          <div className="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg></div>
+
+        {/* Rata-rata per Transaksi */}
+        <div className="kpi-card kuning">
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" />
+            </svg>
+          </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.rata_rata)}</div>
             <div className="kpi-label">Rata-rata per Transaksi</div>
@@ -257,7 +314,19 @@ export default function Laporan() {
         {!loading && data && data.transaksi && data.transaksi.length ? (
           <table className="obat-table">
             <thead>
-              <tr><th>No. Struk</th><th>Sumber</th><th>Waktu</th><th>Kasir</th><th>Pembeli</th><th>Item</th><th>Subtotal</th><th>Diskon</th><th>Total</th><th>Bayar</th></tr>
+              <tr>
+                <th>No. Struk</th>
+                <th>Sumber</th>
+                <th>Waktu</th>
+                <th>Kasir</th>
+                <th>Pembeli</th>
+                <th>Item</th>
+                <th>Total Jual</th>
+                <th>Modal (HPP)</th>
+                <th>Pendapatan (Laba)</th>
+                <th>Margin</th>
+                <th>Bayar</th>
+              </tr>
             </thead>
             <tbody>
               {data.transaksi.map(function(t) {
@@ -269,9 +338,16 @@ export default function Laporan() {
                     <td>{t.nama_kasir}</td>
                     <td>{t.nama_pembeli || "\u2014"}</td>
                     <td>{t.items_count}</td>
-                    <td>{rupiah(t.subtotal)}</td>
-                    <td>{t.diskon > 0 ? "-" + rupiah(t.diskon) : "\u2014"}</td>
                     <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
+                    <td style={{ color: "var(--ink-soft)" }}>{rupiah(t.total_modal || 0)}</td>
+                    <td style={{ color: "var(--green-dark)", fontWeight: 700 }}>
+                      +{rupiah(t.total_pendapatan || 0)}
+                    </td>
+                    <td>
+                      <span className={"kpi-margin-badge " + ((t.margin_persen || 0) >= 15 ? "" : "warning")}>
+                        {t.margin_persen || 0}%
+                      </span>
+                    </td>
                     <td><span className="metode-badge">{t.metode_bayar}</span></td>
                   </tr>
                 );

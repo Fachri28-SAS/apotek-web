@@ -13,10 +13,11 @@ class PenjualanItem extends Model
 
     protected $fillable = [
         'penjualan_id', 'obat_id', 'obat_satuan_id', 'nama_obat', 'nama_satuan',
-        'nomor_batch', 'faktor', 'qty', 'harga_asli', 'harga_jual', 'tuslah', 'subtotal',
+        'nomor_batch', 'faktor', 'qty', 'harga_beli', 'harga_asli', 'harga_jual', 'tuslah', 'subtotal',
     ];
 
     protected $casts = [
+        'harga_beli' => 'float',
         'harga_asli' => 'float',
         'harga_jual' => 'float',
         'tuslah' => 'float',

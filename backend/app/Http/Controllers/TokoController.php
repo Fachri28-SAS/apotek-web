@@ -71,6 +71,7 @@ class TokoController extends Controller
                     'nomor_batch' => $obat->nomor_batch,
                     'faktor' => $satuan->faktor,
                     'qty' => $it['qty'],
+                    'harga_beli' => $satuan->harga_beli ?? 0,
                     'harga_asli' => $satuan->harga_jual,
                     'harga_jual' => $satuan->harga_jual,
                     'tuslah' => 0,

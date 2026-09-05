@@ -12,6 +12,7 @@ use App\Http\Controllers\TokoController;
 use App\Http\Controllers\StokMutasiController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PengeluaranController;
 use Illuminate\Support\Facades\Route;
 
 // =====================================================================
@@ -23,6 +24,15 @@ Route::get('/obat', [ObatController::class, 'index']);
 Route::get('/obat/{obat}', [ObatController::class, 'show']);
 Route::get('/suppliers', [SupplierController::class, 'index']);
 Route::get('/obat-referensi', [ObatReferensiController::class, 'index']);
+
+Route::get('/storage/{path}', function ($path) {
+    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        $file = \Illuminate\Support\Facades\Storage::disk('public')->get($path);
+        $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($path);
+        return response($file, 200)->header('Content-Type', $mime);
+    }
+    abort(404);
+})->where('path', '.*');
 
 // ---- Toko Online — publik, checkout tanpa akun ----
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
@@ -75,11 +85,16 @@ Route::middleware('auth:sanctum')->group(function () {
         // Mobile Alias
         Route::get('/pesanan-online', [PembayaranOnlineController::class, 'index']);
         Route::post('/pesanan-online/{pembayaran}/verifikasi', [PembayaranOnlineController::class, 'konfirmasi']);
+
+        // Pengeluaran (Catat & Lihat)
+        Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
+        Route::post('/pengeluaran', [PengeluaranController::class, 'store']);
     });
 
     // ---- HANYA admin — Laporan & Kelola Pengguna Kasir/Staf ----
     Route::middleware('role:admin')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index']);
+        Route::delete('/pengeluaran/{id}', [PengeluaranController::class, 'destroy']);
         Route::get('/users/kelola', [UserController::class, 'kelola']);
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{user}', [UserController::class, 'update']);

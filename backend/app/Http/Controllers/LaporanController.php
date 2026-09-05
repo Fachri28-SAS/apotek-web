@@ -25,9 +25,20 @@ class LaporanController extends Controller
         $queryPeriode = Penjualan::where('status', 'lunas')->whereBetween('tanggal', [$mulai, $selesai]);
 
         // --- KPI mengikuti periode yang dipilih ---
-        $totalPenjualan = (clone $queryPeriode)->sum('total');
+        $totalPenjualan = (float) (clone $queryPeriode)->sum('total');
         $jumlahTransaksi = (clone $queryPeriode)->count();
         $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
+
+        // --- Hitung Total Modal (HPP) & Total Pendapatan (Laba) ---
+        $penjualanIds = (clone $queryPeriode)->pluck('id');
+        $totalModal = (float) (DB::table('penjualan_item')
+            ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
+            ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
+            ->selectRaw('SUM(COALESCE(penjualan_item.harga_beli, obat_satuan.harga_beli, 0) * penjualan_item.qty) as modal')
+            ->value('modal') ?? 0);
+
+        $totalPendapatan = (float) ($totalPenjualan - $totalModal);
+        $marginPersen = $totalPenjualan > 0 ? round(($totalPendapatan / $totalPenjualan) * 100, 1) : 0;
 
         // --- Breakdown metode pembayaran (untuk progress bar) ---
         $metodeBreakdown = (clone $queryPeriode)
@@ -68,18 +79,47 @@ class LaporanController extends Controller
             ->orderBy('tanggal_exp')
             ->get(['id', 'nama', 'satuan_dasar', 'stok', 'nomor_batch', 'tanggal_exp']);
 
-        // --- Tabel transaksi ikut periode yang dipilih ---
+        // --- Tabel transaksi ikut periode yang dipilih beserta laba per transaksi ---
         $transaksi = (clone $queryPeriode)
-            ->withCount('items')
+            ->with(['items' => function ($q) {
+                $q->select('id', 'penjualan_id', 'obat_satuan_id', 'qty', 'harga_beli', 'subtotal');
+            }])
             ->orderByDesc('id')
             ->limit(200)
             ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'subtotal',
-                    'diskon', 'total', 'metode_bayar', 'sumber', 'created_at']);
+                    'diskon', 'total', 'metode_bayar', 'sumber', 'created_at'])
+            ->map(function ($t) {
+                $modalTrx = (float) $t->items->sum(function ($item) {
+                    return ($item->harga_beli ?? 0) * $item->qty;
+                });
+                $labaTrx = (float) ($t->total - $modalTrx);
+                $marginTrx = $t->total > 0 ? round(($labaTrx / $t->total) * 100, 1) : 0;
+
+                return [
+                    'id' => $t->id,
+                    'no_struk' => $t->no_struk,
+                    'nama_kasir' => $t->nama_kasir,
+                    'nama_pembeli' => $t->nama_pembeli,
+                    'items_count' => $t->items->count(),
+                    'subtotal' => (float) $t->subtotal,
+                    'diskon' => (float) $t->diskon,
+                    'total' => (float) $t->total,
+                    'total_modal' => $modalTrx,
+                    'total_pendapatan' => $labaTrx,
+                    'margin_persen' => $marginTrx,
+                    'metode_bayar' => $t->metode_bayar,
+                    'sumber' => $t->sumber,
+                    'created_at' => $t->created_at,
+                ];
+            });
 
         return [
             'periode' => $periode,
             'kpi' => [
                 'total_penjualan' => (float) $totalPenjualan,
+                'total_modal' => (float) $totalModal,
+                'total_pendapatan' => (float) $totalPendapatan,
+                'margin_persen' => (float) $marginPersen,
                 'jumlah_transaksi' => $jumlahTransaksi,
                 'rata_rata' => round($rataRata),
             ],
