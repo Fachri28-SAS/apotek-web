@@ -28,6 +28,7 @@ export default function TrackingPesanan() {
   // QRIS Lightbox
   const [qrisBesar, setQrisBesar] = useState(false);
   const [salinTeks, setSalinTeks] = useState(false);
+  const [duitkuLoading, setDuitkuLoading] = useState(false);
 
   // 1. Muat data awal pesanan
   function muatDataAwal() {
@@ -46,6 +47,22 @@ export default function TrackingPesanan() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }
+
+  async function handleBayarDuitku() {
+    setDuitkuLoading(true);
+    try {
+      const res = await api(`/duitku/create/${kodeTracking}`, { method: "POST" });
+      if (res.payment_url) {
+        window.location.href = res.payment_url;
+      } else {
+        alert(res.message || "Gagal memuat pembayaran Duitku.");
+      }
+    } catch (err) {
+      alert(err.message || "Terjadi kesalahan saat memproses pembayaran Duitku.");
+    } finally {
+      setDuitkuLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -328,11 +345,11 @@ export default function TrackingPesanan() {
             </div>
           </div>
 
-          {/* KOLOM KANAN: QRIS & UPLOAD BUKTI */}
+          {/* KOLOM KANAN: PEMBAYARAN ONLINE (DUITKU) */}
           <div className="tracking-card">
             <div className="tracking-card-head">
               <h3>
-                {statusPembayaran === "sukses" ? "Bukti Terverifikasi" : "QRIS Dinamis Otomatis"}
+                {statusPembayaran === "sukses" ? "Status Pembayaran" : "Pembayaran Online"}
               </h3>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--magenta-dark)" }}>
                 {statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
@@ -340,125 +357,56 @@ export default function TrackingPesanan() {
             </div>
 
             <div className="qris-payment-panel">
-              {/* Barcode QRIS Dinamis — Nominal Terkunci Otomatis */}
-              {statusPembayaran !== "sukses" && (
-                <div className="qris-card-inner">
-                  <div
-                    className="qris-image-container"
-                    onClick={() => setQrisBesar(true)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: "#fff",
-                      cursor: "zoom-in",
-                      padding: 12,
-                    }}
-                  >
-                    {pesanan.pembayaran?.qris_dinamis ? (
-                      <QRCodeSVG
-                        id="tracking-qris-svg"
-                        value={pesanan.pembayaran.qris_dinamis}
-                        size={195}
-                        level="M"
-                        includeMargin={false}
-                      />
-                    ) : (
-                      <img src="/qris.png" alt="QRIS Apotek Bima Farma" onError={(e) => { e.target.style.display = "none"; }} />
-                    )}
+              {statusPembayaran !== "sukses" ? (
+                <div style={{ background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)", border: "1.5px solid #C084FC", borderRadius: 16, padding: "24px 20px", textAlign: "center", boxShadow: "0 4px 16px rgba(168, 85, 247, 0.12)" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: "50%", background: "#EDE9FE", marginBottom: 12 }}>
+                    <span style={{ fontSize: 26 }}>⚡</span>
                   </div>
-                  <div style={{ display: "inline-block", background: "var(--green-tint)", color: "var(--green-dark)", padding: "4px 10px", borderRadius: 100, fontSize: 12, fontWeight: 800, margin: "6px 0" }}>
-                    ✓ Nominal Terkunci Otomatis: {rupiah(pesanan.total)}
-                  </div>
-                  <div className="qris-hint-text">
-                    Scan via GoPay, BCA, Livin Mandiri, BRImo, DANA, ShopeePay, atau OVO (tinggal klik Bayar &amp; masukkan PIN)
-                  </div>
-                  <div style={{ marginTop: 14, marginBottom: 8 }}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        unduhQrisPng({
-                          svgId: "tracking-qris-svg",
-                          namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
-                          judul: "APOTEK BIMA FARMA",
-                          nominal: rupiah(pesanan.total),
-                        })
-                      }
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 6,
-                        padding: "8px 18px",
-                        borderRadius: 100,
-                        border: "1.5px solid var(--magenta)",
-                        background: "#fff",
-                        color: "var(--magenta)",
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-                        <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
-                      </svg>
-                      Unduh Gambar QRIS
-                    </button>
-                  </div>
-                </div>
-              )}
+                  <h4 style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 800, color: "var(--magenta-dark)" }}>Pembayaran Otomatis Duitku</h4>
+                  <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                    Mendukung <strong>QRIS (BCA, Mandiri, BRI, BNI, ShopeePay, GoPay, DANA, OVO)</strong>, Virtual Account &amp; E-Wallet.
+                  </p>
 
-              {/* Form Upload Bukti */}
-              {(statusPembayaran === "pending" || statusPembayaran === "kurang_bayar" || statusPembayaran === "menunggu_verifikasi") && (
-                <form onSubmit={handleKirimBukti} style={{ marginTop: 24, paddingTop: 18, borderTop: "1px dashed var(--line)" }}>
-                  {error && <div className="login-error" style={{ marginBottom: 16 }}>{error}</div>}
-                  {uploadPesan && <div className="pesan-sukses" style={{ marginBottom: 18 }}>{uploadPesan}</div>}
-
-                  <div className="upload-area" onClick={() => fileInputRef.current?.click()}>
-                    {buktiPreview ? (
-                      <div>
-                        <img src={buktiPreview} className="upload-preview-img" alt="Preview Bukti Transfer" />
-                        <div style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
-                          Ketuk untuk mengganti gambar
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 36, height: 36, margin: "0 auto 10px", color: "var(--ink-soft)" }}>
-                          <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
-                        </svg>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>
-                          Unggah Screenshot Bukti Transfer
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                          Format JPG, PNG atau WebP
-                        </div>
-                      </>
-                    )}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={pilihFileBukti}
-                      style={{ display: "none" }}
-                    />
+                  <div style={{ background: "var(--green-tint)", color: "var(--green-dark)", padding: "10px 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <span>✓</span> Konfirmasi otomatis instan — tanpa perlu upload struk!
                   </div>
 
                   <button
-                    type="submit"
-                    className="btn-upload-submit"
-                    disabled={uploading || (!buktiBase64 && !buktiPreview)}
+                    type="button"
+                    onClick={handleBayarDuitku}
+                    disabled={duitkuLoading}
+                    style={{
+                      width: "100%",
+                      padding: "14px 20px",
+                      fontSize: 15,
+                      fontWeight: 800,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      borderRadius: 12,
+                      background: "linear-gradient(135deg, #7C3AED, #A64BC7)",
+                      boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
+                      border: "none",
+                      color: "#fff",
+                      cursor: duitkuLoading ? "not-allowed" : "pointer",
+                      opacity: duitkuLoading ? 0.75 : 1,
+                      transition: "all 0.2s ease"
+                    }}
                   >
-                    {uploading ? "Mengunggah Bukti..." : statusPembayaran === "menunggu_verifikasi" ? "Unggah Ulang Bukti" : "Kirim Bukti Pembayaran"}
+                    {duitkuLoading ? "Menghubungkan ke Duitku…" : `Bayar Sekarang ${rupiah(pesanan.total)} ➔`}
                   </button>
-                </form>
-              )}
 
-              {statusPembayaran === "sukses" && buktiPreview && (
-                <div style={{ textAlign: "center", padding: "16px 0" }}>
-                  <img src={buktiPreview} className="upload-preview-img" alt="Bukti Transfer Lunas" style={{ maxHeight: 240 }} />
-                  <p style={{ fontSize: 13, color: "var(--green-dark)", fontWeight: 700, marginTop: 10 }}>
-                    Bukti transfer telah divalidasi oleh kasir apotek.
+                  <p style={{ fontSize: 11.5, color: "var(--ink-soft)", margin: "14px 0 0", lineHeight: 1.4 }}>
+                    Begitu Anda menyelesaikan pembayaran di aplikasi m-Banking atau E-Wallet, status halaman ini akan otomatis langsung berubah menjadi LUNAS.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", padding: "28px 20px", background: "var(--green-tint)", borderRadius: 16, border: "1.5px solid #86EFAC" }}>
+                  <div style={{ fontSize: 42, marginBottom: 8 }}>✅</div>
+                  <h4 style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas &amp; Terverifikasi</h4>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--ink-soft)" }}>
+                    Terima kasih! Pembayaran Anda telah diterima dan pesanan sedang disiapkan oleh tim Apotek Bima Farma.
                   </p>
                 </div>
               )}
@@ -472,59 +420,6 @@ export default function TrackingPesanan() {
           <span>Status pesanan diperbarui secara realtime otomatis setiap 5 detik</span>
         </div>
       </div>
-
-      {/* ---------- LIGHTBOX QRIS BESAR ---------- */}
-      {qrisBesar && (
-        <div className="qris-lightbox-overlay" onClick={() => setQrisBesar(false)}>
-          <div className="qris-lightbox-box" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center" }}>
-            <button className="drawer-close" onClick={() => setQrisBesar(false)} style={{ marginLeft: "auto", marginBottom: 8 }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-            <div style={{ fontWeight: 800, fontSize: 16, color: "var(--ink)", marginBottom: 4 }}>
-              APOTEK BIMA FARMA
-            </div>
-            <div style={{ fontSize: 13, color: "var(--green-dark)", fontWeight: 700, marginBottom: 12 }}>
-              Total Pembayaran: {rupiah(pesanan.total)}
-            </div>
-            <div style={{ background: "#fff", padding: 14, borderRadius: 16, display: "inline-block", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
-              {pesanan.pembayaran?.qris_dinamis ? (
-                <QRCodeSVG
-                  id="tracking-qris-svg-lightbox"
-                  value={pesanan.pembayaran.qris_dinamis}
-                  size={260}
-                  level="M"
-                  includeMargin={true}
-                />
-              ) : (
-                <img src="/qris.png" alt="QRIS Apotek Bima Farma — Perbesar" style={{ maxWidth: 260 }} />
-              )}
-            </div>
-            <div style={{ marginTop: 16 }}>
-              <button
-                type="button"
-                className="btn-upload-submit"
-                onClick={() =>
-                  unduhQrisPng({
-                    svgId: "tracking-qris-svg-lightbox",
-                    namaFile: `qris-bima-farma-${pesanan.kode_tracking}.png`,
-                    judul: "APOTEK BIMA FARMA",
-                    nominal: rupiah(pesanan.total),
-                  })
-                }
-                style={{ width: "100%", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
-                  <path d="M12 15V3m0 12l-4-4m4 4l4-4M4 17v4h16v-4" />
-                </svg>
-                Unduh / Simpan Gambar QRIS
-              </button>
-            </div>
-            <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 10 }}>
-              Buka aplikasi e-wallet / m-banking dan pilih menu <strong>Scan dari Galeri</strong>.
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

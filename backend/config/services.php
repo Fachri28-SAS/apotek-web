@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'duitku' => [
+        'merchant_code' => env('DUITKU_MERCHANT_CODE', 'DS35022'),
+        'api_key' => env('DUITKU_API_KEY', '0e6af8e653479171bb494b31170fe11b'),
+        'env' => env('DUITKU_ENV', 'sandbox'),
+        'callback_url' => env('DUITKU_CALLBACK_URL', 'https://apotekbimafarma.com/api/duitku/callback'),
+        'return_url' => env('DUITKU_RETURN_URL', 'https://apotekbimafarma.com/pesanan'),
+    ],
+
 ];

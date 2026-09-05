@@ -22,7 +22,7 @@ class LaporanController extends Controller
         $tujuhHariLalu = now()->subDays(6)->toDateString();
         $batasExp = now()->addDays(90)->toDateString();
 
-        $queryPeriode = Penjualan::where('status', 'lunas')->whereBetween('tanggal', [$mulai, $selesai]);
+        $queryPeriode = Penjualan::whereIn('status', ['lunas', 'selesai'])->whereBetween('tanggal', [$mulai, $selesai]);
 
         // --- KPI mengikuti periode yang dipilih ---
         $totalPenjualan = (float) (clone $queryPeriode)->sum('total');
@@ -55,7 +55,7 @@ class LaporanController extends Controller
         // --- Grafik 7 hari — SELALU trend 7 hari terakhir, tidak ikut filter periode ---
         $grafik = DB::table('penjualan')
             ->selectRaw("tanggal, COUNT(*) as jml_transaksi, SUM(total) as omzet")
-            ->where('status', 'lunas')
+            ->whereIn('status', ['lunas', 'selesai'])
             ->where('tanggal', '>=', $tujuhHariLalu)
             ->groupBy('tanggal')
             ->orderBy('tanggal')

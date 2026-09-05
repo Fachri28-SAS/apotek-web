@@ -55,7 +55,7 @@ function App() {
             <Route
               path="/kasir/pengeluaran"
               element={
-                <RutePrivat rolesBoleh={["admin", "kasir"]}>
+                <RutePrivat rolesBoleh={["admin"]}>
                   <LaporanPengeluaran />
                 </RutePrivat>
               }

@@ -150,7 +150,7 @@ class TokoController extends Controller
             'alamat_kirim' => $penjualan->alamat_kirim,
             'total' => (float) $penjualan->total,
             'subtotal' => (float) $penjualan->subtotal,
-            'status_penjualan' => $penjualan->status,
+            'status_penjualan' => ($pembayaran?->catatan_verifikasi === 'selesai' ? 'selesai' : $penjualan->status),
             'created_at' => $penjualan->created_at,
             'items' => $penjualan->items->map(fn ($it) => [
                 'id' => $it->id,
@@ -188,7 +188,7 @@ class TokoController extends Controller
 
         return response()->json([
             'kode_tracking' => $penjualan->kode_tracking,
-            'status_penjualan' => $penjualan->status,
+            'status_penjualan' => ($pembayaran?->catatan_verifikasi === 'selesai' ? 'selesai' : $penjualan->status),
             'status_pembayaran' => $pembayaran?->status ?? 'pending',
             'sudah_upload_bukti' => !empty($pembayaran?->bukti_path),
             'catatan_verifikasi' => $pembayaran?->catatan_verifikasi,

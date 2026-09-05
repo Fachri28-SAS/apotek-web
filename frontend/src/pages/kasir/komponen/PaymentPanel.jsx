@@ -12,8 +12,22 @@ function formatRibuan(val) {
   return parseInt(clean, 10).toLocaleString("id-ID");
 }
 
-export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian, onSubmit, loading, disabled }) {
+export default function PaymentPanel({
+  tab,
+  onChange,
+  subtotal,
+  subtotalKotor,
+  totalDiskonItem,
+  subtotalBersih,
+  diskonTransaksi = 0,
+  total,
+  kembalian,
+  onSubmit,
+  loading,
+  disabled,
+}) {
   const kurang = tab.metodeBayar === "tunai" && Number(tab.uangDiterima || 0) < total;
+  const tipeDiskonTransaksi = tab.diskonTipe || "rp";
 
   return (
     <div className="payment-panel">
@@ -46,26 +60,83 @@ export default function PaymentPanel({ tab, onChange, subtotal, total, kembalian
       </div>
 
       <div className="payment-row">
-        <span>Subtotal</span>
-        <strong>{rupiah(subtotal)}</strong>
+        <span>Subtotal Item</span>
+        <strong>{rupiah(subtotalKotor ?? subtotal ?? 0)}</strong>
       </div>
 
+      {Number(totalDiskonItem || 0) > 0 && (
+        <div className="payment-row" style={{ color: "#DC2626" }}>
+          <span>Diskon Item</span>
+          <strong>-{rupiah(totalDiskonItem)}</strong>
+        </div>
+      )}
+
+      {/* Diskon Keseluruhan Transaksi */}
       <div className="payment-field">
-        <label>Diskon (Rp)</label>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <label style={{ margin: 0 }}>Diskon Transaksi</label>
+          <div style={{ display: "flex", gap: 3 }}>
+            <button
+              type="button"
+              onClick={() => onChange("diskonTipe", "rp")}
+              style={{
+                padding: "2px 8px",
+                fontSize: 10.5,
+                fontWeight: 700,
+                borderRadius: 5,
+                border: "1px solid var(--line)",
+                background: tipeDiskonTransaksi === "rp" ? "var(--magenta)" : "#F3F4F6",
+                color: tipeDiskonTransaksi === "rp" ? "#fff" : "var(--ink)",
+                cursor: "pointer",
+              }}
+            >
+              Rp
+            </button>
+            <button
+              type="button"
+              onClick={() => onChange("diskonTipe", "%")}
+              style={{
+                padding: "2px 8px",
+                fontSize: 10.5,
+                fontWeight: 700,
+                borderRadius: 5,
+                border: "1px solid var(--line)",
+                background: tipeDiskonTransaksi === "%" ? "var(--magenta)" : "#F3F4F6",
+                color: tipeDiskonTransaksi === "%" ? "#fff" : "var(--ink)",
+                cursor: "pointer",
+              }}
+            >
+              % (Persen)
+            </button>
+          </div>
+        </div>
         <input
           type="text"
           inputMode="numeric"
           placeholder="0"
-          value={formatRibuan(tab.diskon)}
+          value={
+            tipeDiskonTransaksi === "%"
+              ? tab.diskonNilai === 0 || tab.diskonNilai === undefined
+                ? ""
+                : tab.diskonNilai
+              : formatRibuan(tab.diskonNilai !== undefined ? tab.diskonNilai : tab.diskon)
+          }
           onChange={(e) => {
             const raw = e.target.value.replace(/\D/g, "");
-            onChange("diskon", raw ? parseInt(raw, 10) : 0);
+            const val = raw ? parseInt(raw, 10) : 0;
+            const finalVal = tipeDiskonTransaksi === "%" ? Math.min(100, val) : val;
+            onChange("diskonNilai", finalVal);
           }}
         />
+        {diskonTransaksi > 0 && tipeDiskonTransaksi === "%" && (
+          <div style={{ fontSize: 11, color: "#DC2626", fontWeight: 700, marginTop: 4, textAlign: "right" }}>
+            Diskon {tab.diskonNilai}% = -{rupiah(diskonTransaksi)}
+          </div>
+        )}
       </div>
 
       <div className="payment-row payment-total">
-        <span>Total</span>
+        <span>Total Akhir</span>
         <strong>{rupiah(total)}</strong>
       </div>
 

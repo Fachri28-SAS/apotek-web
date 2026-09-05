@@ -27,7 +27,7 @@ class DashboardController extends Controller
         $produkTerjual = (int) DB::table('penjualan_item')
             ->join('penjualan', 'penjualan.id', '=', 'penjualan_item.penjualan_id')
             ->whereDate('penjualan.tanggal', $hariIni)
-            ->where('penjualan.status', 'lunas')
+            ->whereIn('penjualan.status', ['lunas', 'selesai'])
             ->sum('penjualan_item.qty');
 
         // --- KPI 2 & 3 ---
@@ -47,7 +47,7 @@ class DashboardController extends Controller
 
         // --- Panel: 5 transaksi terakhir hari ini ---
         $transaksiTerbaru = Penjualan::whereDate('tanggal', $hariIni)
-            ->where('status', 'lunas')
+            ->whereIn('status', ['lunas', 'selesai'])
             ->withCount('items')
             ->orderByDesc('id')
             ->limit(5)

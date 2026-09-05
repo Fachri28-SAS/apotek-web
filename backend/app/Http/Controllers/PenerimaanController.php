@@ -203,4 +203,19 @@ class PenerimaanController extends Controller
     {
         return $penerimaan->load('items');
     }
+
+    /** PUT /api/penerimaan/{penerimaan}/toggle-bayar — tandai lunas atau belum lunas (seperti checklist buku register) */
+    public function toggleBayar(Penerimaan $penerimaan)
+    {
+        $baru = $penerimaan->status_bayar === 'lunas' ? 'belum' : 'lunas';
+        $penerimaan->update([
+            'status_bayar' => $baru,
+            'tanggal_bayar' => $baru === 'lunas' ? now()->toDateString() : null,
+        ]);
+
+        return response()->json([
+            'message' => "Faktur {$penerimaan->no_faktur} ditandai " . ($baru === 'lunas' ? 'LUNAS (Sudah Dibayar)' : 'BELUM LUNAS'),
+            'penerimaan' => $penerimaan->fresh()->load('items'),
+        ]);
+    }
 }

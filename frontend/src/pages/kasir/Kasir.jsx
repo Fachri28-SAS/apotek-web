@@ -1,19 +1,20 @@
 import { useState } from "react";
+import { api } from "../../lib/api";
 import KasirShell from "./KasirShell";
 import SearchObat from "./komponen/SearchObat";
-import CartTable from "./komponen/CartTable";
+import CartTable, { hitungDiskonItem } from "./komponen/CartTable";
 import PaymentPanel from "./komponen/PaymentPanel";
 import StrukModal from "./komponen/StrukModal";
-import { api } from "../../lib/api";
 
-function tabKosong(nomor) {
+function tabKosong(id) {
   return {
-    id: Date.now() + Math.random(),
-    label: `Kasir ${nomor}`,
+    id,
     items: [],
     namaPembeli: "",
     noInvoice: "",
     catatan: "",
+    diskonTipe: "rp",
+    diskonNilai: 0,
     diskon: 0,
     metodeBayar: "tunai",
     uangDiterima: "",
@@ -21,7 +22,7 @@ function tabKosong(nomor) {
 }
 
 export default function Kasir() {
-  const [tabs, setTabs] = useState([tabKosong(1)]);
+  const [tabs, setTabs] = useState([tabKosong(Date.now())]);
   const [tabAktifId, setTabAktifId] = useState(tabs[0].id);
   const [struk, setStruk] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function Kasir() {
   }
 
   function tambahTab() {
-    const baru = tabKosong(tabs.length + 1);
+    const baru = tabKosong(Date.now());
     setTabs((prev) => [...prev, baru]);
     setTabAktifId(baru.id);
   }
@@ -45,8 +46,7 @@ export default function Kasir() {
 
     const sisa = tabs.filter((t) => t.id !== id);
     if (sisa.length === 0) {
-      // Selalu sisakan minimal 1 tab supaya kasir tidak kehilangan tempat kerja
-      const baru = tabKosong(1);
+      const baru = tabKosong(Date.now());
       setTabs([baru]);
       setTabAktifId(baru.id);
     } else {
@@ -81,6 +81,8 @@ export default function Kasir() {
           harga_asli: satuan.harga_jual,
           harga_jual: satuan.harga_jual,
           tuslah: 0,
+          diskon_tipe: "rp",
+          diskon_nilai: 0,
         },
       ],
     });
@@ -96,8 +98,16 @@ export default function Kasir() {
     updateTabAktif({ items: tabAktif.items.filter((it) => it.key !== key) });
   }
 
-  const subtotal = tabAktif.items.reduce((s, it) => s + it.qty * it.harga_jual + it.tuslah, 0);
-  const total = Math.max(subtotal - Number(tabAktif.diskon || 0), 0);
+  const subtotalKotor = tabAktif.items.reduce((s, it) => s + it.qty * it.harga_jual + (it.tuslah || 0), 0);
+  const totalDiskonItem = tabAktif.items.reduce((s, it) => s + hitungDiskonItem(it), 0);
+  const subtotalBersih = Math.max(subtotalKotor - totalDiskonItem, 0);
+
+  const diskonTransaksi =
+    (tabAktif.diskonTipe || "rp") === "%"
+      ? Math.round((subtotalBersih * Math.min(100, tabAktif.diskonNilai || 0)) / 100)
+      : Math.min(Number(tabAktif.diskonNilai !== undefined ? tabAktif.diskonNilai : tabAktif.diskon || 0), subtotalBersih);
+
+  const total = Math.max(subtotalBersih - diskonTransaksi, 0);
   const kembalian = Math.max(Number(tabAktif.uangDiterima || 0) - total, 0);
 
   async function simpanTransaksi() {
@@ -108,7 +118,7 @@ export default function Kasir() {
         nama_pembeli: tabAktif.namaPembeli || null,
         no_invoice: tabAktif.noInvoice || null,
         catatan: tabAktif.catatan || null,
-        diskon: Number(tabAktif.diskon || 0),
+        diskon: diskonTransaksi,
         metode_bayar: tabAktif.metodeBayar,
         uang_diterima: tabAktif.metodeBayar === "tunai" ? Number(tabAktif.uangDiterima || 0) : null,
         items: tabAktif.items.map((it) => ({
@@ -117,17 +127,24 @@ export default function Kasir() {
           qty: it.qty,
           harga_asli: it.harga_asli,
           harga_jual: it.harga_jual,
-          tuslah: it.tuslah,
+          tuslah: it.tuslah || 0,
+          diskon: hitungDiskonItem(it),
         })),
       };
 
       const hasil = await api("/penjualan", { method: "POST", body: JSON.stringify(payload) });
       setStruk(hasil);
 
-      // Reset tab ini supaya siap dipakai pelanggan berikutnya, tab lain tidak diganggu
       updateTabAktif({
-        items: [], namaPembeli: "", noInvoice: "", catatan: "",
-        diskon: 0, metodeBayar: "tunai", uangDiterima: "",
+        items: [],
+        namaPembeli: "",
+        noInvoice: "",
+        catatan: "",
+        diskonTipe: "rp",
+        diskonNilai: 0,
+        diskon: 0,
+        metodeBayar: "tunai",
+        uangDiterima: "",
       });
     } catch (err) {
       setError(err.message);
@@ -138,30 +155,46 @@ export default function Kasir() {
 
   return (
     <KasirShell>
-      <div className="kasir-tabs-bar">
-        {tabs.map((t) => (
-          <div
-            key={t.id}
-            className={`kasir-tab ${t.id === tabAktifId ? "active" : ""}`}
-            onClick={() => setTabAktifId(t.id)}
-          >
-            {t.label}
-            {t.items.length > 0 && <span className="kasir-tab-dot" />}
-            {tabs.length > 1 && (
-              <button
-                type="button"
-                className="kasir-tab-close"
-                onClick={(e) => { e.stopPropagation(); tutupTab(t.id); }}
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-        <button type="button" className="kasir-tab-add" onClick={tambahTab}>+</button>
+      <div className="halaman-header">
+        <div>
+          <h1 style={{ fontSize: 24 }}>Kasir / Penjualan</h1>
+          <p className="halaman-sub">Catat transaksi penjualan langsung di apotek</p>
+        </div>
       </div>
 
-      {error && <div className="login-error" style={{ marginBottom: 16 }}>{error}</div>}
+      {error && <div className="login-error">{error}</div>}
+
+      <div className="kasir-tabs-bar">
+        <div className="kasir-tabs-list">
+          {tabs.map((t) => (
+            <div
+              key={t.id}
+              className={`kasir-tab ${t.id === tabAktifId ? "active" : ""}`}
+              onClick={() => setTabAktifId(t.id)}
+            >
+              <span>
+                {t.namaPembeli ? t.namaPembeli : `Pelanggan ${t.id}`}
+                {t.items.length > 0 && ` (${t.items.length})`}
+              </span>
+              {tabs.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    tutupTab(t.id);
+                  }}
+                  aria-label="Tutup tab"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" className="kasir-tab-tambah" onClick={tambahTab} title="Buka transaksi baru">
+            + Transaksi Baru
+          </button>
+        </div>
+      </div>
 
       <div className="kasir-jual-grid">
         <div className="kasir-jual-kiri">
@@ -173,7 +206,11 @@ export default function Kasir() {
           <PaymentPanel
             tab={tabAktif}
             onChange={(field, value) => updateTabAktif({ [field]: value })}
-            subtotal={subtotal}
+            subtotal={subtotalKotor}
+            subtotalKotor={subtotalKotor}
+            totalDiskonItem={totalDiskonItem}
+            subtotalBersih={subtotalBersih}
+            diskonTransaksi={diskonTransaksi}
             total={total}
             kembalian={kembalian}
             onSubmit={simpanTransaksi}

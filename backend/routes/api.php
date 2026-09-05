@@ -13,6 +13,7 @@ use App\Http\Controllers\StokMutasiController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\DuitkuController;
 use Illuminate\Support\Facades\Route;
 
 // =====================================================================
@@ -36,6 +37,10 @@ Route::get('/storage/{path}', function ($path) {
 
 // ---- Toko Online — publik, checkout tanpa akun ----
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
+
+// ---- Duitku Payment Gateway (Inquiry & Callback) ----
+Route::post('/duitku/create/{kodeTracking}', [DuitkuController::class, 'createInvoice']);
+Route::post('/duitku/callback', [DuitkuController::class, 'callback']);
 
 // ---- Tracking Pesanan & Upload Bukti Publik (via kode_tracking) ----
 Route::get('/pesanan-cari', [TokoController::class, 'cari']);
@@ -66,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/penerimaan', [PenerimaanController::class, 'store']);
         Route::get('/penerimaan', [PenerimaanController::class, 'index']);
         Route::get('/penerimaan/{penerimaan}', [PenerimaanController::class, 'show']);
+        Route::put('/penerimaan/{penerimaan}/toggle-bayar', [PenerimaanController::class, 'toggleBayar']);
         Route::post('/obat', [ObatController::class, 'store']);
         Route::put('/obat/{obat}', [ObatController::class, 'update']);
         Route::delete('/obat/{obat}', [ObatController::class, 'destroy']);
@@ -78,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/penjualan/{penjualan}', [PenjualanController::class, 'show']);
         Route::get('/pembayaran-online', [PembayaranOnlineController::class, 'index']);
         Route::get('/pembayaran-online/counter', [PembayaranOnlineController::class, 'counter']);
+        Route::post('/pembayaran-online/{pembayaran}/tandai-selesai', [PembayaranOnlineController::class, 'tandaiSelesai']);
         Route::post('/pembayaran-online/{pembayaran}/konfirmasi', [PembayaranOnlineController::class, 'konfirmasi']);
         Route::post('/pembayaran-online/{pembayaran}/kurang-bayar', [PembayaranOnlineController::class, 'kurangBayar']);
         Route::post('/pembayaran-online/{pembayaran}/tolak', [PembayaranOnlineController::class, 'tolak']);
@@ -85,15 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // Mobile Alias
         Route::get('/pesanan-online', [PembayaranOnlineController::class, 'index']);
         Route::post('/pesanan-online/{pembayaran}/verifikasi', [PembayaranOnlineController::class, 'konfirmasi']);
-
-        // Pengeluaran (Catat & Lihat)
-        Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
-        Route::post('/pengeluaran', [PengeluaranController::class, 'store']);
     });
 
-    // ---- HANYA admin — Laporan & Kelola Pengguna Kasir/Staf ----
+    // ---- HANYA admin — Laporan, Pengeluaran & Kelola Pengguna Kasir/Staf ----
     Route::middleware('role:admin')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index']);
+        Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
+        Route::post('/pengeluaran', [PengeluaranController::class, 'store']);
         Route::delete('/pengeluaran/{id}', [PengeluaranController::class, 'destroy']);
         Route::get('/users/kelola', [UserController::class, 'kelola']);
         Route::post('/users', [UserController::class, 'store']);

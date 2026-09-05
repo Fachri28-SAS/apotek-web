@@ -11,28 +11,36 @@ class PembayaranOnlineController extends Controller
 {
     /**
      * GET /api/pembayaran-online
-     * Dipolling tiap 5-10 detik oleh halaman Kasir "Pembayaran Online".
+     * Mengambil daftar pesanan toko online yang SUDAH LUNAS (via Duitku).
      */
     public function index(Request $r)
     {
         $this->batalkanYangKadaluwarsa();
 
+        // Hanya pesanan yang pembayaran SUDAH SUKSES / LUNAS
         $query = Pembayaran::with(['penjualan.items'])
-            ->whereIn('status', ['menunggu_verifikasi', 'pending', 'kurang_bayar']);
+            ->where('status', 'sukses');
 
-        if ($r->filled('status') && $r->status !== 'semua') {
-            $query->where('status', $r->status);
+        $tab = $r->input('tab', 'perlu_disiapkan');
+
+        if ($tab === 'perlu_disiapkan') {
+            $query->where(function ($q) {
+                $q->whereNull('catatan_verifikasi')
+                  ->orWhere('catatan_verifikasi', '!=', 'selesai');
+            });
+        } elseif ($tab === 'selesai') {
+            $query->where('catatan_verifikasi', 'selesai');
         }
 
         $daftar = $query->orderByDesc('id')->get()->map(fn ($p) => [
             'id' => $p->id,
             'status' => $p->status,
+            'status_pembayaran' => $p->status,
+            'status_penjualan' => $p->catatan_verifikasi === 'selesai' ? 'selesai' : ($p->penjualan?->status ?? 'lunas'),
+            'metode' => $p->metode ?: 'Duitku',
+            'provider' => $p->provider,
             'jumlah' => (float) $p->jumlah,
-            'sudah_upload_bukti' => !is_null($p->bukti_path),
-            'bukti_url' => $p->bukti_path ? asset('storage/' . $p->bukti_path) : null,
-            'nominal_klaim_customer' => $p->nominal_klaim_customer ? (float) $p->nominal_klaim_customer : null,
-            'catatan_verifikasi' => $p->catatan_verifikasi,
-            'expired_at' => $p->expired_at,
+            'paid_at' => $p->paid_at ?? $p->updated_at,
             'created_at' => $p->created_at,
             'penjualan' => $p->penjualan ? [
                 'id' => $p->penjualan->id,
@@ -41,6 +49,7 @@ class PembayaranOnlineController extends Controller
                 'nama_pembeli' => $p->penjualan->nama_pembeli,
                 'telepon_pembeli' => $p->penjualan->telepon_pembeli,
                 'alamat_kirim' => $p->penjualan->alamat_kirim,
+                'status' => $p->catatan_verifikasi === 'selesai' ? 'selesai' : $p->penjualan->status,
                 'total' => (float) $p->penjualan->total,
                 'items_count' => $p->penjualan->items->count(),
                 'items' => $p->penjualan->items->map(fn ($it) => [
@@ -59,17 +68,65 @@ class PembayaranOnlineController extends Controller
 
     /**
      * GET /api/pembayaran-online/counter
-     * Polling ringan untuk badge counter sidebar kasir.
+     * Polling ringan untuk badge counter sidebar kasir: pesanan lunas yang perlu disiapkan.
      */
     public function counter()
     {
-        $menungguVerifikasi = Pembayaran::whereIn('status', ['menunggu_verifikasi', 'pending', 'kurang_bayar'])->count();
-        $denganBukti = Pembayaran::whereIn('status', ['menunggu_verifikasi', 'pending', 'kurang_bayar'])->whereNotNull('bukti_path')->count();
+        $perluDisiapkan = Pembayaran::where('status', 'sukses')
+            ->where(function ($q) {
+                $q->whereNull('catatan_verifikasi')
+                  ->orWhere('catatan_verifikasi', '!=', 'selesai');
+            })
+            ->count();
 
         return response()->json([
-            'menunggu_verifikasi' => $menungguVerifikasi,
-            'dengan_bukti' => $denganBukti,
-            'total_notifikasi' => $menungguVerifikasi,
+            'menunggu_verifikasi' => $perluDisiapkan,
+            'perlu_disiapkan' => $perluDisiapkan,
+            'total_notifikasi' => $perluDisiapkan,
+        ]);
+    }
+
+    /**
+     * POST /api/pembayaran-online/{pembayaran}/tandai-selesai
+     * Kasir menandai obat sudah disiapkan / sudah diserahkan kepada pembeli.
+     */
+    public function tandaiSelesai(Pembayaran $pembayaran, StokService $stok)
+    {
+        $penjualan = $pembayaran->penjualan;
+        if (!$penjualan) {
+            abort(404, 'Data penjualan tidak ditemukan.');
+        }
+
+        // Tandai status selesai pada pembayaran tanpa merusak enum penjualan.status
+        $pembayaran->update([
+            'catatan_verifikasi' => 'selesai',
+        ]);
+
+        // Pastikan penjualan berstatus 'lunas' agar selalu tampil di Riwayat Penjualan & Laporan
+        if ($penjualan->status !== 'lunas') {
+            $kasir = auth()->user();
+            $penjualan->update([
+                'status' => 'lunas',
+                'user_id' => $kasir?->id ?? $penjualan->user_id,
+                'nama_kasir' => $penjualan->nama_kasir ?: ($kasir?->nama ?? 'Kasir'),
+            ]);
+
+            // Potong stok jika belum terpotong
+            foreach ($penjualan->items as $item) {
+                $stok->ubah(
+                    $item->obat_id,
+                    -($item->qty * $item->faktor),
+                    'keluar',
+                    'penjualan',
+                    $penjualan->id,
+                    "Pesanan Online Selesai: {$penjualan->no_struk}"
+                );
+            }
+        }
+
+        return response()->json([
+            'message' => 'Pesanan berhasil ditandai selesai / sudah diserahkan ke pembeli.',
+            'penjualan' => $penjualan->fresh()->load('items'),
         ]);
     }
 

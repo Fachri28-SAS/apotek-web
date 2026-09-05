@@ -97,7 +97,7 @@ export default function Riwayat() {
               <thead>
                 <tr>
                   <th>No. Struk</th><th>Sumber</th><th>Tanggal</th><th>Waktu</th><th>Kasir</th>
-                  <th>Pembeli</th><th>Item</th><th>Total</th><th>Bayar</th><th>Aksi</th>
+                  <th>Pembeli</th><th>Item</th><th>Diskon</th><th>Total</th><th>Bayar</th><th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -114,6 +114,15 @@ export default function Riwayat() {
                     <td>{t.nama_kasir}</td>
                     <td>{t.nama_pembeli || "—"}</td>
                     <td>{t.items_count}</td>
+                    <td>
+                      {Number(t.diskon || 0) > 0 ? (
+                        <span style={{ color: "#DC2626", fontWeight: 700, fontSize: 12 }}>
+                          -{rupiah(t.diskon)}
+                        </span>
+                      ) : (
+                        <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>—</span>
+                      )}
+                    </td>
                     <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
                     <td><span className="metode-badge">{t.metode_bayar}</span></td>
                     <td>

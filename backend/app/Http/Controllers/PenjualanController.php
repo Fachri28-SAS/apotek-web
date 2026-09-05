@@ -47,6 +47,7 @@ class PenjualanController extends Controller
             'items.*.harga_asli' => 'required|numeric|min:0',
             'items.*.harga_jual' => 'required|numeric|min:0',
             'items.*.tuslah' => 'nullable|numeric|min:0',
+            'items.*.diskon' => 'nullable|numeric|min:0',
         ]);
 
         if ($data['metode_bayar'] === 'tunai' && !isset($data['uang_diterima'])) {
@@ -59,15 +60,20 @@ class PenjualanController extends Controller
         return DB::transaction(function () use ($data, $r, $stok) {
             $subtotalBarang = 0;
             $totalTuslah = 0;
+            $totalDiskonItem = 0;
             $itemsSiap = [];
 
             foreach ($data['items'] as $it) {
                 $satuan = ObatSatuan::with('obat')->findOrFail($it['obat_satuan_id']);
                 $obat = $satuan->obat;
                 $tuslah = $it['tuslah'] ?? 0;
+                $diskonItem = $it['diskon'] ?? 0;
 
                 $subtotalBarang += $it['qty'] * $it['harga_jual'];
                 $totalTuslah += $tuslah;
+                $totalDiskonItem += $diskonItem;
+
+                $itemSubtotal = max(($it['qty'] * $it['harga_jual'] + $tuslah) - $diskonItem, 0);
 
                 $itemsSiap[] = [
                     'obat_id' => $obat->id,
@@ -81,13 +87,14 @@ class PenjualanController extends Controller
                     'harga_asli' => $it['harga_asli'],
                     'harga_jual' => $it['harga_jual'],
                     'tuslah' => $tuslah,
-                    'subtotal' => $it['qty'] * $it['harga_jual'] + $tuslah,
+                    'diskon' => $diskonItem,
+                    'subtotal' => $itemSubtotal,
                 ];
             }
 
-            $subtotal = $subtotalBarang + $totalTuslah;
-            $diskon = $data['diskon'] ?? 0;
-            $total = max($subtotal - $diskon, 0);
+            $diskonTransaksi = $data['diskon'] ?? 0;
+            $totalDiskon = $totalDiskonItem + $diskonTransaksi;
+            $total = max(($subtotalBarang + $totalTuslah) - $totalDiskon, 0);
             $kembalian = $data['metode_bayar'] === 'tunai'
                 ? max(($data['uang_diterima'] ?? 0) - $total, 0)
                 : 0;
@@ -101,7 +108,7 @@ class PenjualanController extends Controller
                 'catatan' => $data['catatan'] ?? null,
                 'subtotal' => $subtotalBarang,
                 'total_tuslah' => $totalTuslah,
-                'diskon' => $diskon,
+                'diskon' => $totalDiskon,
                 'total' => $total,
                 'metode_bayar' => $data['metode_bayar'],
                 'uang_diterima' => $data['uang_diterima'] ?? null,
@@ -140,9 +147,9 @@ class PenjualanController extends Controller
     /** GET /api/penjualan — dipakai halaman Riwayat Penjualan nanti */
     public function index(Request $r)
     {
-        // Cuma yang sudah lunas — pesanan online yang masih 'pending'/'batal'
+        // Cuma yang sudah lunas atau selesai — pesanan online yang masih 'pending'/'batal'
         // tidak dianggap "riwayat penjualan", karena belum benar-benar terjual.
-        $q = Penjualan::where('status', 'lunas');
+        $q = Penjualan::whereIn('status', ['lunas', 'selesai']);
 
         if ($r->filled('sumber') && $r->sumber !== 'semua') {
             $q->where('sumber', $r->sumber); // 'kasir' atau 'online'
