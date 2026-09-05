@@ -45,11 +45,6 @@ function Hero() {
             <div><strong>Berizin</strong>Apoteker bersertifikat</div>
           </div>
         </div>
-
-        <div className="hero-visual">
-          <div className="halo"></div>
-          <svg className="cross-big"><use href="#cross-mark" /></svg>
-        </div>
       </div>
     </section>
   );
