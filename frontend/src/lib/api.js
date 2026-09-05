@@ -46,13 +46,15 @@ async function api(path, options = {}) {
     const data = isJson ? await res.json() : null;
 
     if (!res.ok) {
-      if (res.status === 401 && !path.includes("/login")) {
+      if (res.status === 401 && path === "/me") {
         setToken(null);
       }
       // Laravel validation error: {"message": "...", "errors": {"username": ["..."]}}
       const pesan =
         data?.errors ? Object.values(data.errors).flat()[0] : data?.message || "Terjadi kesalahan, coba lagi.";
-      throw new Error(pesan);
+      const err = new Error(pesan);
+      err.status = res.status;
+      throw err;
     }
 
     return data;

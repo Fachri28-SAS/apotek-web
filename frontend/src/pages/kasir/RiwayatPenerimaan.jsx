@@ -38,25 +38,28 @@ export default function RiwayatPenerimaan() {
     return () => clearTimeout(timer);
   }, [periode, search]);
 
-  async function bukaDetail(id) {
-    try {
-      setDetail(await api(`/penerimaan/${id}`));
-    } catch (e) {
-      setError(e.message);
-    }
+  const [konfirmasiBayar, setKonfirmasiBayar] = useState(null);
+  const [loadingToggle, setLoadingToggle] = useState(false);
+
+  function bukaDetail(faktur) {
+    setDetail(faktur);
   }
 
-  async function toggleBayar(id, e) {
-    if (e) e.stopPropagation();
+  async function prosesToggleBayar() {
+    if (!konfirmasiBayar) return;
+    setLoadingToggle(true);
     try {
-      const res = await api(`/penerimaan/${id}/toggle-bayar`, { method: "PUT" });
+      const res = await api(`/penerimaan/${konfirmasiBayar.id}/toggle-bayar`, { method: "PUT" });
       setDaftar((prev) =>
-        prev.map((it) => (it.id === id ? { ...it, status_bayar: res.penerimaan.status_bayar, tanggal_bayar: res.penerimaan.tanggal_bayar } : it))
+        prev.map((it) => (it.id === konfirmasiBayar.id ? { ...it, status_bayar: res.penerimaan.status_bayar, tanggal_bayar: res.penerimaan.tanggal_bayar } : it))
       );
       setNotif(res.message);
       setTimeout(() => setNotif(""), 4000);
+      setKonfirmasiBayar(null);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoadingToggle(false);
     }
   }
 
@@ -234,7 +237,10 @@ export default function RiwayatPenerimaan() {
                       <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
-                          onClick={(e) => toggleBayar(p.id, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setKonfirmasiBayar(p);
+                          }}
                           title="Klik untuk mengubah status pembayaran"
                           style={{
                             display: "inline-flex",
@@ -259,8 +265,11 @@ export default function RiwayatPenerimaan() {
                       <td style={{ textAlign: "center" }}>
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); bukaDetail(p.id); }}
-                          title="Lihat detail obat"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            bukaDetail(p);
+                          }}
+                          title="Lihat rincian obat pada faktur ini"
                           style={{
                             padding: "4px 10px",
                             borderRadius: 8,
@@ -283,6 +292,53 @@ export default function RiwayatPenerimaan() {
           </div>
         )}
       </div>
+
+      {/* Modal Konfirmasi Pembayaran Faktur */}
+      {konfirmasiBayar && (
+        <div className="struk-overlay" onClick={() => !loadingToggle && setKonfirmasiBayar(null)}>
+          <div className="struk-modal" style={{ maxWidth: 440, padding: 24, textAlign: "center" }}>
+            <div style={{ fontSize: 38, marginBottom: 10 }}>
+              {konfirmasiBayar.status_bayar === "lunas" ? "↩️" : "✅"}
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+              {konfirmasiBayar.status_bayar === "lunas"
+                ? "Ubah Status Jadi Belum Lunas?"
+                : "Tandai Faktur Sudah Lunas?"}
+            </h3>
+            <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 20 }}>
+              Faktur <strong>{konfirmasiBayar.no_faktur}</strong> dari <strong>{konfirmasiBayar.nama_supplier}</strong> senilai <strong>{rupiah(konfirmasiBayar.total)}</strong> akan diubah statusnya menjadi{" "}
+              <strong style={{ color: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D" }}>
+                {konfirmasiBayar.status_bayar === "lunas" ? "○ Belum Lunas (Tempo)" : "✓ Lunas (Sudah Dibayar)"}
+              </strong>.
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={loadingToggle}
+                onClick={() => setKonfirmasiBayar(null)}
+                style={{ padding: "8px 18px", fontSize: 13.5 }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={loadingToggle}
+                onClick={prosesToggleBayar}
+                style={{
+                  padding: "8px 18px",
+                  fontSize: 13.5,
+                  background: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D",
+                  borderColor: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D",
+                }}
+              >
+                {loadingToggle ? "Menyimpan…" : (konfirmasiBayar.status_bayar === "lunas" ? "Ya, Ubah Jadi Tempo" : "Ya, Tandai Sudah Lunas")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <DetailFakturModal data={detail} onClose={() => setDetail(null)} />
     </KasirShell>

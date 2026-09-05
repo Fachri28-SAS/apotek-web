@@ -3,6 +3,22 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
+// Fix for cPanel Apache / FastCGI / PHP-FPM dropping HTTP_AUTHORIZATION header
+if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['REDIRECT_REDIRECT_HTTP_AUTHORIZATION'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (isset($headers['Authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['Authorization'];
+        } elseif (isset($headers['authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['authorization'];
+        }
+    }
+}
+
 define('LARAVEL_START', microtime(true));
 
 // Determine if the application is in maintenance mode...

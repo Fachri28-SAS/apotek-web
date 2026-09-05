@@ -30,12 +30,17 @@ export function AuthProvider({ children }) {
         const storage = localStorage.getItem("bimafarma_token") ? localStorage : sessionStorage;
         storage.setItem("bimafarma_user", JSON.stringify(u));
       })
-      .catch(() => {
-        // Token tidak valid atau kadaluwarsa -> bersihkan sesi
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("bimafarma_user");
-        sessionStorage.removeItem("bimafarma_user");
+      .catch((err) => {
+        // HANYA hapus sesi jika server memberikan 401 eksplisit (token invalid/expired di database).
+        // Jangan hapus token jika error koneksi jaringan atau gangguan sementara.
+        if (err?.status === 401) {
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem("bimafarma_user");
+          sessionStorage.removeItem("bimafarma_user");
+        } else {
+          console.warn("Sinkronisasi profil ditunda:", err?.message);
+        }
       })
       .finally(() => setLoading(false));
   }, []);

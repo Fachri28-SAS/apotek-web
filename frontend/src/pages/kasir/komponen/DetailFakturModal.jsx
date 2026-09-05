@@ -26,15 +26,15 @@ export default function DetailFakturModal({ data, onClose }) {
               <tr><th>Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
             </thead>
             <tbody>
-              {data.items.map((it) => (
+              {(data.items || []).map((it) => (
                 <tr key={it.id}>
                   <td className="obat-nama-cell">{it.nama_obat}</td>
                   <td>{it.qty}</td>
                   <td>{it.nama_satuan}</td>
                   <td className="obat-harga-cell">{rupiah(it.harga_beli)}</td>
-                  <td className="obat-harga-cell">{it.diskon > 0 ? rupiah(it.diskon) : "—"}</td>
+                  <td className="obat-harga-cell">{Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}</td>
                   <td className="obat-batch-cell">{it.nomor_batch || "—"}</td>
-                  <td style={{ fontWeight: 700 }}>{rupiah(it.subtotal)}</td>
+                  <td style={{ fontWeight: 700 }}>{rupiah(it.subtotal ?? (Number(it.qty || 0) * Number(it.harga_beli || 0) - Number(it.diskon || 0)))}</td>
                 </tr>
               ))}
             </tbody>
@@ -42,8 +42,8 @@ export default function DetailFakturModal({ data, onClose }) {
 
           <div className="penerimaan-ringkasan" style={{ marginLeft: 0, maxWidth: "none" }}>
             <div className="payment-row"><span>Subtotal</span><span>{rupiah(data.subtotal)}</span></div>
-            <div className="payment-row"><span>Diskon Faktur</span><span>-{rupiah(data.subtotal - data.subtotal_setelah_diskon)}</span></div>
-            <div className="payment-row"><span>DPP</span><span>{rupiah(data.dpp)}</span></div>
+            <div className="payment-row"><span>Diskon Faktur</span><span>-{rupiah(Math.max(0, Number(data.subtotal || 0) - Number(data.subtotal_setelah_diskon ?? data.subtotal ?? 0)))}</span></div>
+            <div className="payment-row"><span>DPP</span><span>{rupiah(data.dpp ?? data.subtotal_setelah_diskon ?? data.subtotal)}</span></div>
             <div className="payment-row"><span>PPN</span><span>{rupiah(data.ppn)}</span></div>
             <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(data.total)}</strong></div>
           </div>

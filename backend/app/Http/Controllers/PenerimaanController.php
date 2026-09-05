@@ -195,7 +195,7 @@ class PenerimaanController extends Controller
             default => null,
         };
 
-        return $q->withCount('items')->with('items:id,penerimaan_id,nama_obat,qty,nama_satuan,harga_beli,nomor_batch')->orderByDesc('id')->limit(200)->get();
+        return $q->withCount('items')->with('items')->orderByDesc('id')->limit(200)->get();
     }
 
     /** GET /api/penerimaan/{id} — detail lengkap untuk modal Riwayat */

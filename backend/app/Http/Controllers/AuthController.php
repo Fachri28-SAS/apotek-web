@@ -37,9 +37,8 @@ class AuthController extends Controller
             ]);
         }
 
-        // Token lama dihapus dulu — supaya 1 user 1 sesi aktif saja (opsional,
-        // hapus baris ini kalau mau boleh login di beberapa device sekaligus)
-        $user->tokens()->delete();
+        // Pertahankan sesi aktif agar tidak saling memutus / logout saat buka multi-tab atau refresh
+        // $user->tokens()->delete();
 
         $token = $user->createToken('sistem-kasir')->plainTextToken;
 
