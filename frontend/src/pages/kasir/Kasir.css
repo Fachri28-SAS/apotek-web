@@ -455,22 +455,119 @@
 .btn-satuan:hover:not(:disabled) { border-color: var(--magenta); background: var(--magenta-tint); color: var(--magenta-dark); }
 .btn-satuan:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ---------- TAB BAR MULTI-KASIR ---------- */
-.kasir-tabs-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+/* ---------- TAB BAR MULTI-KASIR (ANTREAN TRANSAKSI) ---------- */
+.kasir-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+.kasir-tabs-bar::-webkit-scrollbar {
+  height: 4px;
+}
+.kasir-tabs-bar::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
 .kasir-tab {
-  display: flex; align-items: center; gap: 8px;
-  padding: 9px 16px; border-radius: 10px; background: var(--surface); border: 1.5px solid var(--line);
-  font-size: 13.5px; font-weight: 700; color: var(--ink-soft); cursor: pointer; font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.kasir-tab.active { background: var(--magenta); border-color: var(--magenta); color: #fff; }
-.kasir-tab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
-.kasir-tab-close { border: none; background: none; color: inherit; font-size: 16px; line-height: 1; opacity: 0.6; cursor: pointer; padding: 0 2px; }
-.kasir-tab-close:hover { opacity: 1; }
-.kasir-tab-add {
-  width: 36px; height: 36px; border-radius: 10px; border: 1.5px dashed var(--line);
-  background: transparent; color: var(--ink-soft); font-size: 18px; font-weight: 700; cursor: pointer;
+.kasir-tab:hover:not(.active) {
+  border-color: var(--magenta);
+  background: var(--magenta-tint);
+  color: var(--magenta-dark);
 }
-.kasir-tab-add:hover { border-color: var(--magenta); color: var(--magenta-dark); }
+.kasir-tab.active {
+  background: var(--magenta-dark);
+  border-color: var(--magenta-dark);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.25);
+}
+.kasir-tab-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.kasir-tab-label {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.kasir-tab-badge {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.07);
+  font-weight: 700;
+}
+.kasir-tab.active .kasir-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.kasir-tab-close {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 2px;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+.kasir-tab-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+.kasir-tab.active .kasir-tab-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.kasir-tab-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1.5px dashed var(--magenta);
+  background: #fff;
+  color: var(--magenta-dark);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.kasir-tab-add-btn:hover {
+  background: var(--magenta-tint);
+  border-style: solid;
+  transform: translateY(-1px);
+}
 
 /* ---------- LAYOUT HALAMAN KASIR ---------- */
 .kasir-jual-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }

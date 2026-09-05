@@ -165,35 +165,46 @@ export default function Kasir() {
       {error && <div className="login-error">{error}</div>}
 
       <div className="kasir-tabs-bar">
-        <div className="kasir-tabs-list">
-          {tabs.map((t) => (
-            <div
-              key={t.id}
-              className={`kasir-tab ${t.id === tabAktifId ? "active" : ""}`}
-              onClick={() => setTabAktifId(t.id)}
-            >
-              <span>
-                {t.namaPembeli ? t.namaPembeli : `Pelanggan ${t.id}`}
-                {t.items.length > 0 && ` (${t.items.length})`}
+        {tabs.map((t, idx) => (
+          <div
+            key={t.id}
+            className={`kasir-tab ${t.id === tabAktifId ? "active" : ""}`}
+            onClick={() => setTabAktifId(t.id)}
+          >
+            <span className="kasir-tab-icon">🧾</span>
+            <span className="kasir-tab-label">
+              {t.namaPembeli ? t.namaPembeli : `Pelanggan ${idx + 1}`}
+            </span>
+            {t.items.length > 0 && (
+              <span className="kasir-tab-badge">
+                {t.items.length} item
               </span>
-              {tabs.length > 1 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    tutupTab(t.id);
-                  }}
-                  aria-label="Tutup tab"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-          <button type="button" className="kasir-tab-tambah" onClick={tambahTab} title="Buka transaksi baru">
-            + Transaksi Baru
-          </button>
-        </div>
+            )}
+            {tabs.length > 1 && (
+              <button
+                type="button"
+                className="kasir-tab-close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  tutupTab(t.id);
+                }}
+                title="Tutup transaksi ini"
+                aria-label="Tutup tab"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          className="kasir-tab-add-btn"
+          onClick={tambahTab}
+          title="Buka transaksi baru (antrean pelanggan lain)"
+        >
+          <span style={{ fontSize: 16, fontWeight: 800 }}>+</span>
+          <span>Transaksi Baru</span>
+        </button>
       </div>
 
       <div className="kasir-jual-grid">
