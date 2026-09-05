@@ -91,24 +91,26 @@ export default function Dashboard() {
       <div className="panel">
         <div className="panel-head"><h3>Transaksi Terbaru</h3></div>
         {data?.transaksi_terbaru?.length ? (
-          <table className="obat-table">
-            <thead>
-              <tr><th>No. Struk</th><th>Waktu</th><th>Kasir</th><th>Pembeli</th><th>Item</th><th>Total</th><th>Bayar</th></tr>
-            </thead>
-            <tbody>
-              {data.transaksi_terbaru.map((t) => (
-                <tr key={t.id}>
-                  <td className="obat-batch-cell">{t.no_struk}</td>
-                  <td>{jam(t.created_at)}</td>
-                  <td>{t.nama_kasir}</td>
-                  <td>{t.nama_pembeli || "—"}</td>
-                  <td>{t.items_count}</td>
-                  <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
-                  <td><span className="metode-badge">{t.metode_bayar}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="obat-table-wrap">
+            <table className="obat-table">
+              <thead>
+                <tr><th>No. Struk</th><th>Waktu</th><th>Kasir</th><th>Pembeli</th><th>Item</th><th>Total</th><th>Bayar</th></tr>
+              </thead>
+              <tbody>
+                {data.transaksi_terbaru.map((t) => (
+                  <tr key={t.id}>
+                    <td className="obat-batch-cell">{t.no_struk}</td>
+                    <td>{jam(t.created_at)}</td>
+                    <td>{t.nama_kasir}</td>
+                    <td>{t.nama_pembeli || "—"}</td>
+                    <td>{t.items_count}</td>
+                    <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
+                    <td><span className="metode-badge">{t.metode_bayar}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="panel-kosong">Belum ada transaksi hari ini.</div>
         )}

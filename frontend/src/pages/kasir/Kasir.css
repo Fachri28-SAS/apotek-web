@@ -4,12 +4,26 @@
    ============================================================ */
 
 /* ---------- LAYOUT ---------- */
-.kasir-shell { display: flex; min-height: 100vh; }
+.kasir-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
+}
 
 /* ---------- SIDEBAR ---------- */
 .kasir-sidebar {
-  width: 236px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--line);
-  display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh;
+  width: 236px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 .kasir-sidebar .logo-area {
   display: flex; align-items: center; gap: 10px;
@@ -285,6 +299,30 @@
 .status-badge-inline.kurang_bayar { background: #FEE2E2; color: #DC2626; }
 .status-badge-inline.sukses { background: var(--green-tint); color: var(--green-dark); }
 
+
+@media (max-width: 768px) {
+  .pembayaran-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .pembayaran-bukti-thumb {
+    width: 100%;
+    height: 140px;
+  }
+  .pembayaran-aksi {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .pembayaran-aksi button {
+    flex: 1;
+    min-width: 110px;
+  }
+  .pembayaran-nominal-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
 
 @media (max-width: 900px) {
   .dashboard-2kolom { grid-template-columns: 1fr; }
@@ -657,18 +695,24 @@
 
 .sidebar-close-mobile-btn {
   display: none;
-  background: none;
-  border: none;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-}
-.sidebar-close-mobile-btn:hover {
-  background: #F1F5F9;
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border: 1.5px solid var(--line);
   color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 9px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.sidebar-close-mobile-btn:hover,
+.sidebar-close-mobile-btn:active {
+  background: var(--magenta-tint);
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
 }
 
 .kasir-sidebar-backdrop {
@@ -677,23 +721,25 @@
   inset: 0;
   background: rgba(18, 12, 28, 0.65);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 9998;
 }
 
 /* Tablet & Mobile (<= 960px) */
 @media (max-width: 960px) {
   .kasir-hamburger-btn { display: flex; }
-  .sidebar-close-mobile-btn { display: block; }
+  .sidebar-close-mobile-btn { display: flex !important; }
   .kasir-sidebar-backdrop { display: block; }
 
   .kasir-sidebar {
     position: fixed;
     top: 0;
-    left: -290px;
-    width: 270px;
+    left: -320px;
+    width: 280px;
+    max-width: 85vw;
     height: 100vh;
     z-index: 9999;
-    box-shadow: 0 0 50px rgba(0,0,0,0.3);
+    box-shadow: 0 0 50px rgba(0,0,0,0.35);
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -714,6 +760,14 @@
 
   .kasir-content {
     padding: 16px 14px 40px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-2kolom {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .halaman-header {
@@ -745,10 +799,12 @@
     gap: 12px;
   }
 
-  .obat-table-wrap {
+  .obat-table-wrap,
+  .table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     width: 100%;
+    max-width: 100%;
   }
 
   .obat-table {
@@ -772,8 +828,48 @@
     display: none;
   }
 
+  .kasir-topbar {
+    padding: 0 12px;
+    height: 58px;
+  }
+  .topbar-title {
+    font-size: 15.5px;
+  }
+  .topbar-status {
+    font-size: 11px;
+  }
+
+  .kasir-content {
+    padding: 12px 10px 48px;
+  }
+
+  .panel {
+    padding: 14px 12px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+
+  .panel-head {
+    margin-bottom: 12px;
+  }
+  .panel-head h3 {
+    font-size: 14.5px;
+  }
+
   .kpi-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 14px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+  .kpi-angka {
+    font-size: 24px;
+  }
+  .kpi-label {
+    font-size: 13px;
   }
 
   .obat-form-grid,
@@ -784,7 +880,7 @@
   .periode-chips {
     width: 100%;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     display: flex;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
@@ -808,6 +904,27 @@
 
   .struk-actions {
     flex-direction: column;
+  }
+
+  .kasir-tabs-bar {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .modal-box {
+    width: 95vw;
+    max-width: 95vw;
+    max-height: 90vh;
+    border-radius: 16px;
+  }
+  .modal-header {
+    padding: 14px 16px;
+  }
+  .modal-header h2 {
+    font-size: 16px;
   }
 }
 

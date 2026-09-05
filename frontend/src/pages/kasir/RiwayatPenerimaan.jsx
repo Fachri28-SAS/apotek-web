@@ -98,43 +98,45 @@ export default function RiwayatPenerimaan() {
             {search ? `Tidak ditemukan faktur penerimaan untuk pencarian "${search}".` : "Belum ada faktur penerimaan pada periode ini."}
           </div>
         ) : (
-          <table className="obat-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th>
-                <th>Supplier</th>
-                <th>No. Faktur</th>
-                <th>Obat / Item Masuk</th>
-                <th style={{ textAlign: "right" }}>Total Tagihan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {daftar.map((p) => (
-                <tr key={p.id} className="baris-klik" onClick={() => bukaDetail(p.id)}>
-                  <td>{new Date(p.tanggal_terima).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                  <td className="obat-nama-cell">
-                    <div style={{ fontWeight: 700 }}>{p.nama_supplier}</div>
-                    <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>Klik untuk lihat faktur lengkap ➔</div>
-                  </td>
-                  <td className="obat-batch-cell">{p.no_faktur}</td>
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                      <span style={{ fontWeight: 700, fontSize: 12.5, color: "var(--magenta-dark)" }}>
-                        {p.items_count} item obat masuk
-                      </span>
-                      {p.items && p.items.length > 0 && (
-                        <div style={{ fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.3 }}>
-                          {p.items.slice(0, 3).map((it) => it.nama_obat).join(", ")}
-                          {p.items.length > 3 ? ` +${p.items.length - 3} lainnya` : ""}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td style={{ fontWeight: 800, textAlign: "right", color: "var(--ink)" }}>{rupiah(p.total)}</td>
+          <div className="obat-table-wrap">
+            <table className="obat-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>Supplier</th>
+                  <th>No. Faktur</th>
+                  <th>Obat / Item Masuk</th>
+                  <th style={{ textAlign: "right" }}>Total Tagihan</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {daftar.map((p) => (
+                  <tr key={p.id} className="baris-klik" onClick={() => bukaDetail(p.id)}>
+                    <td>{new Date(p.tanggal_terima).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    <td className="obat-nama-cell">
+                      <div style={{ fontWeight: 700 }}>{p.nama_supplier}</div>
+                      <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>Klik untuk lihat faktur lengkap ➔</div>
+                    </td>
+                    <td className="obat-batch-cell">{p.no_faktur}</td>
+                    <td>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                        <span style={{ fontWeight: 700, fontSize: 12.5, color: "var(--magenta-dark)" }}>
+                          {p.items_count} item obat masuk
+                        </span>
+                        {p.items && p.items.length > 0 && (
+                          <div style={{ fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.3 }}>
+                            {p.items.slice(0, 3).map((it) => it.nama_obat).join(", ")}
+                            {p.items.length > 3 ? ` +${p.items.length - 3} lainnya` : ""}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ fontWeight: 800, textAlign: "right", color: "var(--ink)" }}>{rupiah(p.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

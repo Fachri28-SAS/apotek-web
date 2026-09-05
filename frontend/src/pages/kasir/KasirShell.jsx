@@ -88,6 +88,18 @@ export default function KasirShell({ children }) {
     setSidebarMobileOpen(false);
   }, [location.pathname]);
 
+  // Kunci scroll background saat sidebar drawer mobile terbuka
+  useEffect(() => {
+    if (sidebarMobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [sidebarMobileOpen]);
+
   // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir secara realtime (setiap 3.5 detik)
   useEffect(() => {
     let lastCount = -1;
@@ -145,7 +157,9 @@ export default function KasirShell({ children }) {
             onClick={() => setSidebarMobileOpen(false)}
             aria-label="Tutup Menu"
           >
-            ✕
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 18, height: 18 }}>
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -154,6 +168,7 @@ export default function KasirShell({ children }) {
             <Link
               key={m.path}
               to={m.path}
+              onClick={() => setSidebarMobileOpen(false)}
               className={`kasir-menu-item ${location.pathname === m.path ? "active" : ""}`}
             >
               <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{m.icon}</svg>
@@ -169,7 +184,10 @@ export default function KasirShell({ children }) {
 
         <div
           className="kasir-sidebar-footer"
-          onClick={() => setGantiPasswordOpen(true)}
+          onClick={() => {
+            setSidebarMobileOpen(false);
+            setGantiPasswordOpen(true);
+          }}
           style={{ cursor: "pointer", transition: "background 0.2s" }}
           title="Klik untuk Ganti Kata Sandi Akun"
         >

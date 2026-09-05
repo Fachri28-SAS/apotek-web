@@ -312,48 +312,50 @@ export default function Laporan() {
           </button>
         </div>
         {!loading && data && data.transaksi && data.transaksi.length ? (
-          <table className="obat-table">
-            <thead>
-              <tr>
-                <th>No. Struk</th>
-                <th>Sumber</th>
-                <th>Waktu</th>
-                <th>Kasir</th>
-                <th>Pembeli</th>
-                <th>Item</th>
-                <th>Total Jual</th>
-                <th>Modal (HPP)</th>
-                <th>Pendapatan (Laba)</th>
-                <th>Margin</th>
-                <th>Bayar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.transaksi.map(function(t) {
-                return (
-                  <tr key={t.id}>
-                    <td className="obat-batch-cell">{t.no_struk}</td>
-                    <td><span className={"sumber-badge " + t.sumber}>{t.sumber === "online" ? "Toko Online" : "Kasir"}</span></td>
-                    <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
-                    <td>{t.nama_kasir}</td>
-                    <td>{t.nama_pembeli || "\u2014"}</td>
-                    <td>{t.items_count}</td>
-                    <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
-                    <td style={{ color: "var(--ink-soft)" }}>{rupiah(t.total_modal || 0)}</td>
-                    <td style={{ color: "var(--green-dark)", fontWeight: 700 }}>
-                      +{rupiah(t.total_pendapatan || 0)}
-                    </td>
-                    <td>
-                      <span className={"kpi-margin-badge " + ((t.margin_persen || 0) >= 15 ? "" : "warning")}>
-                        {t.margin_persen || 0}%
-                      </span>
-                    </td>
-                    <td><span className="metode-badge">{t.metode_bayar}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="obat-table-wrap">
+            <table className="obat-table">
+              <thead>
+                <tr>
+                  <th>No. Struk</th>
+                  <th>Sumber</th>
+                  <th>Waktu</th>
+                  <th>Kasir</th>
+                  <th>Pembeli</th>
+                  <th>Item</th>
+                  <th>Total Jual</th>
+                  <th>Modal (HPP)</th>
+                  <th>Pendapatan (Laba)</th>
+                  <th>Margin</th>
+                  <th>Bayar</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.transaksi.map(function(t) {
+                  return (
+                    <tr key={t.id}>
+                      <td className="obat-batch-cell">{t.no_struk}</td>
+                      <td><span className={"sumber-badge " + t.sumber}>{t.sumber === "online" ? "Toko Online" : "Kasir"}</span></td>
+                      <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                      <td>{t.nama_kasir}</td>
+                      <td>{t.nama_pembeli || "\u2014"}</td>
+                      <td>{t.items_count}</td>
+                      <td style={{ fontWeight: 700 }}>{rupiah(t.total)}</td>
+                      <td style={{ color: "var(--ink-soft)" }}>{rupiah(t.total_modal || 0)}</td>
+                      <td style={{ color: "var(--green-dark)", fontWeight: 700 }}>
+                        +{rupiah(t.total_pendapatan || 0)}
+                      </td>
+                      <td>
+                        <span className={"kpi-margin-badge " + ((t.margin_persen || 0) >= 15 ? "" : "warning")}>
+                          {t.margin_persen || 0}%
+                        </span>
+                      </td>
+                      <td><span className="metode-badge">{t.metode_bayar}</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi pada periode ini."}</div>
         )}

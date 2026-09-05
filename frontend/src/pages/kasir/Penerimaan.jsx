@@ -280,54 +280,56 @@ export default function Penerimaan() {
           <div className="panel-kosong">Cari obat di atas untuk menambah item faktur.</div>
         ) : (
           <>
-            <table className="obat-table" style={{ marginTop: 8 }}>
-              <thead>
-                <tr>
-                  <th>Nama Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th>
-                  <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual</th>
-                  <th>Margin %</th><th>Subtotal</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it) => {
-                  const badge = badgeHarga(Number(it.harga_beli), it.harga_beli_sebelumnya);
-                  const margin = it.harga_jual_referensi > 0
-                    ? Math.round(((it.harga_jual_referensi - it.harga_beli) / it.harga_jual_referensi) * 100)
-                    : null;
-                  const subtotalItem = it.qty * it.harga_beli - Number(it.diskon || 0);
+            <div className="obat-table-wrap">
+              <table className="obat-table" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Nama Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th>
+                    <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual</th>
+                    <th>Margin %</th><th>Subtotal</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((it) => {
+                    const badge = badgeHarga(Number(it.harga_beli), it.harga_beli_sebelumnya);
+                    const margin = it.harga_jual_referensi > 0
+                      ? Math.round(((it.harga_jual_referensi - it.harga_beli) / it.harga_jual_referensi) * 100)
+                      : null;
+                    const subtotalItem = it.qty * it.harga_beli - Number(it.diskon || 0);
 
-                  return (
-                    <tr key={it.key}>
-                      <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
-                      <td><input type="number" min="1" className="cart-input-angka" style={{ width: 60 }} value={it.qty} onChange={(e) => ubahItem(it.key, "qty", e.target.value)} /></td>
-                      <td>
-                        <select className="cart-input-angka" value={it.obat_satuan_id} onChange={(e) => ubahItem(it.key, "obat_satuan_id", e.target.value)}>
-                          {it.satuanOptions.map((s) => <option key={s.id} value={s.id}>{s.nama_satuan}</option>)}
-                        </select>
-                      </td>
-                      <td>
-                        <input type="number" min="0" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
-                        {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
-                      </td>
-                      <td><input type="number" min="0" className="cart-input-angka" style={{ width: 70 }} value={it.diskon} onChange={(e) => ubahItem(it.key, "diskon", e.target.value)} /></td>
-                      <td><input type="text" className="cart-input-angka" style={{ width: 90 }} value={it.nomor_batch} onChange={(e) => ubahItem(it.key, "nomor_batch", e.target.value)} placeholder="wajib" /></td>
-                      <td>
-                        <input type="date" className="cart-input-angka" value={it.tanggal_exp} onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)} />
-                        <div className="exp-default-hint">Default 3 bln, bisa diubah</div>
-                      </td>
-                      <td className="obat-harga-cell">{rupiah(it.harga_jual_referensi)}</td>
-                      <td className="obat-margin-cell">{margin !== null ? `${margin}%` : "-"}</td>
-                      <td style={{ fontWeight: 700 }}>{rupiah(subtotalItem)}</td>
-                      <td>
-                        <button className="cart-hapus-btn" onClick={() => hapusItem(it.key)}>
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={it.key}>
+                        <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
+                        <td><input type="number" min="1" className="cart-input-angka" style={{ width: 60 }} value={it.qty} onChange={(e) => ubahItem(it.key, "qty", e.target.value)} /></td>
+                        <td>
+                          <select className="cart-input-angka" value={it.obat_satuan_id} onChange={(e) => ubahItem(it.key, "obat_satuan_id", e.target.value)}>
+                            {it.satuanOptions.map((s) => <option key={s.id} value={s.id}>{s.nama_satuan}</option>)}
+                          </select>
+                        </td>
+                        <td>
+                          <input type="number" min="0" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
+                          {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
+                        </td>
+                        <td><input type="number" min="0" className="cart-input-angka" style={{ width: 70 }} value={it.diskon} onChange={(e) => ubahItem(it.key, "diskon", e.target.value)} /></td>
+                        <td><input type="text" className="cart-input-angka" style={{ width: 90 }} value={it.nomor_batch} onChange={(e) => ubahItem(it.key, "nomor_batch", e.target.value)} placeholder="wajib" /></td>
+                        <td>
+                          <input type="date" className="cart-input-angka" value={it.tanggal_exp} onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)} />
+                          <div className="exp-default-hint">Default 3 bln, bisa diubah</div>
+                        </td>
+                        <td className="obat-harga-cell">{rupiah(it.harga_jual_referensi)}</td>
+                        <td className="obat-margin-cell">{margin !== null ? `${margin}%` : "-"}</td>
+                        <td style={{ fontWeight: 700 }}>{rupiah(subtotalItem)}</td>
+                        <td>
+                          <button className="cart-hapus-btn" onClick={() => hapusItem(it.key)}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></svg>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* ---------- RINGKASAN ---------- */}
             <div className="penerimaan-ringkasan">

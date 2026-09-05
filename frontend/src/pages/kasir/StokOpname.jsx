@@ -192,89 +192,91 @@ export default function StokOpname() {
           </div>
         ) : (
           <>
-            <table className="obat-table" style={{ marginTop: 8 }}>
-              <thead>
-                <tr>
-                  <th>Nama Obat</th>
-                  <th style={{ width: 140, textAlign: "center" }}>Rincian Batch</th>
-                  <th style={{ width: 110 }}>Stok Sistem</th>
-                  <th style={{ width: 120 }}>Stok Fisik</th>
-                  <th style={{ width: 100 }}>Selisih</th>
-                  <th>Keterangan</th>
-                  <th style={{ width: 44 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it) => {
-                  const terisi = it.stok_fisik !== "";
-                  const selisih = terisi ? Number(it.stok_fisik) - it.stok_sistem : null;
-                  const adaBatchConfig = it.batches && it.batches.length > 0;
-                  return (
-                    <tr key={it.obat_id}>
-                      <td><span className="obat-nama-cell">{it.nama}</span></td>
-                      <td style={{ textAlign: "center" }}>
-                        <button
-                          type="button"
-                          onClick={() => setModalBatchObat(it)}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            padding: "6px 12px",
-                            borderRadius: 8,
-                            border: adaBatchConfig ? "1.5px solid var(--magenta)" : "1px solid var(--line)",
-                            background: adaBatchConfig ? "#FAF5FF" : "#fff",
-                            color: adaBatchConfig ? "var(--magenta-dark)" : "var(--ink)",
-                            fontWeight: 700,
-                            fontSize: 12,
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          <span>📦</span>
-                          <span>{adaBatchConfig ? `${it.batches.length} Batch` : "Pilih Batch"}</span>
-                        </button>
-                      </td>
-                      <td>{it.stok_sistem} {it.satuan_dasar}</td>
-                      <td>
-                        <input
-                          type="number" min="0" className="cart-input-angka"
-                          value={it.stok_fisik}
-                          placeholder="—"
-                          onChange={(e) => ubahItem(it.obat_id, "stok_fisik", e.target.value)}
-                        />
-                      </td>
-                      <td>
-                        {!terisi ? (
-                          <span style={{ color: "var(--ink-soft)" }}>—</span>
-                        ) : selisih === 0 ? (
-                          <span className="selisih-badge cocok">Cocok</span>
-                        ) : (
-                          <span className={`selisih-badge ${selisih > 0 ? "lebih" : "kurang"}`}>
-                            {selisih > 0 ? `+${selisih}` : selisih}
-                          </span>
-                        )}
-                      </td>
-                      <td>
-                        <input
-                          type="text" className="cart-input-angka"
-                          value={it.keterangan}
-                          placeholder="mis. rusak, hilang"
-                          onChange={(e) => ubahItem(it.obat_id, "keterangan", e.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <button className="cart-hapus-btn" onClick={() => hapusItem(it.obat_id)} aria-label="Hapus baris">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="obat-table-wrap">
+              <table className="obat-table" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Nama Obat</th>
+                    <th style={{ width: 140, textAlign: "center" }}>Rincian Batch</th>
+                    <th style={{ width: 110 }}>Stok Sistem</th>
+                    <th style={{ width: 120 }}>Stok Fisik</th>
+                    <th style={{ width: 100 }}>Selisih</th>
+                    <th>Keterangan</th>
+                    <th style={{ width: 44 }}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((it) => {
+                    const terisi = it.stok_fisik !== "";
+                    const selisih = terisi ? Number(it.stok_fisik) - it.stok_sistem : null;
+                    const adaBatchConfig = it.batches && it.batches.length > 0;
+                    return (
+                      <tr key={it.obat_id}>
+                        <td><span className="obat-nama-cell">{it.nama}</span></td>
+                        <td style={{ textAlign: "center" }}>
+                          <button
+                            type="button"
+                            onClick={() => setModalBatchObat(it)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "5px 10px",
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              background: adaBatchConfig ? "#FAF5FF" : "#F8FAFC",
+                              color: adaBatchConfig ? "var(--magenta-dark)" : "#64748B",
+                              border: adaBatchConfig ? "1px solid #E9D5FF" : "1px solid #E2E8F0",
+                              cursor: "pointer",
+                            }}
+                            title="Klik untuk opname per nomor batch obat"
+                          >
+                            <span>📦</span>
+                            <span>{adaBatchConfig ? `${it.batches.length} Batch` : "Atur Batch"}</span>
+                          </button>
+                        </td>
+                        <td className="obat-stok-cell">{it.stok_sistem} {it.satuan_dasar}</td>
+                        <td>
+                          <input
+                            type="number" min="0" className="cart-input-angka"
+                            value={it.stok_fisik}
+                            placeholder="Stok riil"
+                            onChange={(e) => ubahItem(it.obat_id, "stok_fisik", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          {selisih === null ? (
+                            <span style={{ color: "var(--ink-soft)" }}>—</span>
+                          ) : selisih === 0 ? (
+                            <span className="selisih-badge sama">Pas</span>
+                          ) : (
+                            <span className={`selisih-badge ${selisih > 0 ? "lebih" : "kurang"}`}>
+                              {selisih > 0 ? `+${selisih}` : selisih}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <input
+                            type="text" className="cart-input-angka"
+                            value={it.keterangan}
+                            placeholder="mis. rusak, hilang"
+                            onChange={(e) => ubahItem(it.obat_id, "keterangan", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <button className="cart-hapus-btn" onClick={() => hapusItem(it.obat_id)} aria-label="Hapus baris">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             <div className="opname-ringkasan">
               <div className="opname-ringkasan-info">
@@ -321,31 +323,33 @@ export default function StokOpname() {
         {riwayat.length === 0 ? (
           <div className="panel-kosong">Belum ada penyesuaian pada periode ini.</div>
         ) : (
-          <table className="obat-table">
-            <thead>
-              <tr>
-                <th>Tanggal</th><th>Obat</th><th>Sebelum</th><th>Sesudah</th>
-                <th>Selisih</th><th>Petugas</th><th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {riwayat.map((m) => (
-                <tr key={m.id}>
-                  <td>{new Date(m.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</td>
-                  <td><span className="obat-nama-cell">{m.obat?.nama || "—"}</span></td>
-                  <td>{m.stok_sebelum}</td>
-                  <td>{m.stok_sesudah}</td>
-                  <td>
-                    <span className={`selisih-badge ${m.qty > 0 ? "lebih" : "kurang"}`}>
-                      {m.qty > 0 ? `+${m.qty}` : m.qty}
-                    </span>
-                  </td>
-                  <td>{m.user?.nama || "—"}</td>
-                  <td style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.keterangan || "—"}</td>
+          <div className="obat-table-wrap">
+            <table className="obat-table">
+              <thead>
+                <tr>
+                  <th>Tanggal</th><th>Obat</th><th>Sebelum</th><th>Sesudah</th>
+                  <th>Selisih</th><th>Petugas</th><th>Keterangan</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {riwayat.map((m) => (
+                  <tr key={m.id}>
+                    <td>{new Date(m.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}</td>
+                    <td><span className="obat-nama-cell">{m.obat?.nama || "—"}</span></td>
+                    <td>{m.stok_sebelum}</td>
+                    <td>{m.stok_sesudah}</td>
+                    <td>
+                      <span className={`selisih-badge ${m.qty > 0 ? "lebih" : "kurang"}`}>
+                        {m.qty > 0 ? `+${m.qty}` : m.qty}
+                      </span>
+                    </td>
+                    <td>{m.user?.nama || "—"}</td>
+                    <td style={{ fontSize: 12, color: "var(--ink-soft)" }}>{m.keterangan || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </KasirShell>

@@ -215,8 +215,8 @@ export default function KelolaUser() {
         </div>
 
         {/* Tabel Data User */}
-        <div className="kasir-table-wrap" style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--line)", overflow: "hidden" }}>
-          <table className="kasir-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="kasir-table-wrap" style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--line)", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table className="kasir-table" style={{ width: "100%", minWidth: 640, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg)", borderBottom: "1px solid var(--line)", textAlign: "left" }}>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Nama Lengkap</th>

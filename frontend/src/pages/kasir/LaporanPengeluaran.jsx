@@ -357,73 +357,75 @@ export default function LaporanPengeluaran() {
               }
 
               return (
-                <table className="obat-table">
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Kategori</th>
-                      <th>Nama Pengeluaran</th>
-                      <th>Nominal</th>
-                      <th>Metode</th>
-                      <th>Keterangan</th>
-                      <th>Kasir / Petugas</th>
-                      {user?.role === "admin" && <th style={{ textAlign: "center" }}>Aksi</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {listTampil.map((item) => {
-                      const katInfo = KATEGORI_OPTIONS.find((k) => k.key === item.kategori);
-                      return (
-                        <tr key={item.id}>
-                          <td>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                          <td>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                color: katInfo?.badgeColor || "#475569",
-                                background: katInfo?.bg || "#F1F5F9",
-                              }}
-                            >
-                              {katInfo?.label || item.kategori}
-                            </span>
-                          </td>
-                          <td style={{ fontWeight: 600 }}>{item.nama_pengeluaran}</td>
-                          <td style={{ fontWeight: 700, color: item.kategori === "gaji" ? "#15803D" : "#DC2626" }}>
-                            -{rupiah(item.nominal)}
-                          </td>
-                          <td><span className="metode-badge">{item.metode_bayar}</span></td>
-                          <td style={{ color: "var(--ink-soft)", fontSize: 12.5 }}>{item.keterangan || "—"}</td>
-                          <td>{item.nama_kasir || "—"}</td>
-                          {user?.role === "admin" && (
-                            <td style={{ textAlign: "center" }}>
-                              <button
-                                type="button"
-                                onClick={() => handleHapus(item.id, item.nama_pengeluaran)}
+                <div className="obat-table-wrap">
+                  <table className="obat-table">
+                    <thead>
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Kategori</th>
+                        <th>Nama Pengeluaran</th>
+                        <th>Nominal</th>
+                        <th>Metode</th>
+                        <th>Keterangan</th>
+                        <th>Kasir / Petugas</th>
+                        {user?.role === "admin" && <th style={{ textAlign: "center" }}>Aksi</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listTampil.map((item) => {
+                        const katInfo = KATEGORI_OPTIONS.find((k) => k.key === item.kategori);
+                        return (
+                          <tr key={item.id}>
+                            <td>{new Date(item.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                            <td>
+                              <span
                                 style={{
-                                  background: "#FEE2E2",
-                                  color: "#DC2626",
-                                  border: "none",
-                                  padding: "4px 8px",
+                                  display: "inline-block",
+                                  padding: "3px 8px",
                                   borderRadius: 6,
                                   fontSize: 11.5,
                                   fontWeight: 700,
-                                  cursor: "pointer",
+                                  color: katInfo?.badgeColor || "#475569",
+                                  background: katInfo?.bg || "#F1F5F9",
                                 }}
-                                title="Hapus Catatan"
                               >
-                                Hapus
-                              </button>
+                                {katInfo?.label || item.kategori}
+                              </span>
                             </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            <td style={{ fontWeight: 600 }}>{item.nama_pengeluaran}</td>
+                            <td style={{ fontWeight: 700, color: item.kategori === "gaji" ? "#15803D" : "#DC2626" }}>
+                              -{rupiah(item.nominal)}
+                            </td>
+                            <td><span className="metode-badge">{item.metode_bayar}</span></td>
+                            <td style={{ color: "var(--ink-soft)", fontSize: 12.5 }}>{item.keterangan || "—"}</td>
+                            <td>{item.nama_kasir || "—"}</td>
+                            {user?.role === "admin" && (
+                              <td style={{ textAlign: "center" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleHapus(item.id, item.nama_pengeluaran)}
+                                  style={{
+                                    background: "#FEE2E2",
+                                    color: "#DC2626",
+                                    border: "none",
+                                    padding: "4px 8px",
+                                    borderRadius: 6,
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                  }}
+                                  title="Hapus Catatan"
+                                >
+                                  Hapus
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               );
             })()}
           </>
@@ -433,44 +435,46 @@ export default function LaporanPengeluaran() {
         {tabAktif === "supplier" && (
           <>
             {!loading && data && data.penerimaan && data.penerimaan.length > 0 ? (
-              <table className="obat-table">
-                <thead>
-                  <tr>
-                    <th>Tanggal Terima</th>
-                    <th>No. Faktur</th>
-                    <th>Supplier</th>
-                    <th>Jatuh Tempo</th>
-                    <th>Status Bayar</th>
-                    <th>Total Tagihan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.penerimaan.map((f) => (
-                    <tr key={f.id}>
-                      <td>{new Date(f.tanggal_terima).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
-                      <td className="obat-batch-cell">{f.no_faktur}</td>
-                      <td style={{ fontWeight: 600 }}>{f.nama_supplier}</td>
-                      <td>{f.tanggal_jatuh_tempo ? new Date(f.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
-                      <td>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            color: f.status_bayar === "lunas" ? "#15803D" : "#B45309",
-                            background: f.status_bayar === "lunas" ? "#DCFCE7" : "#FEF3C7",
-                          }}
-                        >
-                          {f.status_bayar === "lunas" ? "Lunas" : "Belum Lunas"}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 700, color: "#1A56B8" }}>{rupiah(f.total)}</td>
+              <div className="obat-table-wrap">
+                <table className="obat-table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal Terima</th>
+                      <th>No. Faktur</th>
+                      <th>Supplier</th>
+                      <th>Jatuh Tempo</th>
+                      <th>Status Bayar</th>
+                      <th>Total Tagihan</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {data.penerimaan.map((f) => (
+                      <tr key={f.id}>
+                        <td>{new Date(f.tanggal_terima).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</td>
+                        <td className="obat-batch-cell">{f.no_faktur}</td>
+                        <td style={{ fontWeight: 600 }}>{f.nama_supplier}</td>
+                        <td>{f.tanggal_jatuh_tempo ? new Date(f.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—"}</td>
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              padding: "3px 8px",
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              color: f.status_bayar === "lunas" ? "#15803D" : "#B45309",
+                              background: f.status_bayar === "lunas" ? "#DCFCE7" : "#FEF3C7",
+                            }}
+                          >
+                            {f.status_bayar === "lunas" ? "Lunas" : "Belum Lunas"}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: 700, color: "#1A56B8" }}>{rupiah(f.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <div className="panel-kosong">{loading ? "Memuat…" : "Tidak ada transaksi pembelian obat supplier pada periode ini."}</div>
             )}
