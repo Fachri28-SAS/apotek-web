@@ -63,7 +63,51 @@ export default function Riwayat() {
 
       {error && <div className="login-error">{error}</div>}
 
-      <div className="panel">
+      {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 4) ---------- */}
+      <div className="mobile-only">
+        <div className="chips-mobile">
+          {PERIODE.map((p) => (
+            <button
+              key={p.key || "semua"}
+              type="button"
+              className={`chip-mobile ${periode === p.key ? "active" : ""}`}
+              onClick={() => setPeriode(p.key)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Memuat transaksi…</div>
+        ) : daftar.length === 0 ? (
+          <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Belum ada transaksi pada periode ini.</div>
+        ) : (
+          daftar.map((t) => (
+            <div
+              className="list-card"
+              key={t.id}
+              onClick={() => bukaStruk(t.id)}
+            >
+              <div className="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z" /><path d="M9 8h6M9 12h6" />
+                </svg>
+              </div>
+              <div className="body">
+                <div className="t1">#{t.no_struk} · {t.nama_pembeli || "Umum"}</div>
+                <div className="t2">
+                  {t.nama_kasir} · {t.metode_bayar?.toUpperCase()} · {new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                </div>
+              </div>
+              <div className="t3">{rupiah(t.total)}</div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ---------- TAMPILAN KHUSUS DESKTOP (PANEL & TABEL LENGKAP) ---------- */}
+      <div className="panel desktop-only">
         <div className="panel-head">
           <div className="periode-chips">
             {PERIODE.map((p) => (

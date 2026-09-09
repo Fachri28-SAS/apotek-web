@@ -223,8 +223,25 @@ export default function Login() {
         ) : (
           /* TAMPILAN JIKA PERANGKAT SUDAH DIBERI IZIN */
           <div className="login-form-wrap">
-            <h1>Selamat datang kembali</h1>
-            <p className="sub">Masuk untuk mulai bertugas di sistem kasir &amp; apotek.</p>
+            {/* Header Brand khusus tampilan Mobile sesuai mockup */}
+            <div className="login-mobile-brand">
+              <div className="login-mobile-logo-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                  <path d="M12 2v20M2 12h20" />
+                </svg>
+              </div>
+              <div className="login-mobile-sub">APOTEK</div>
+              <div className="login-mobile-name">BIMA FARMA</div>
+              <div className="login-mobile-tagline">Sistem Kasir &amp; Operasional Apotek</div>
+
+              <div className="login-role-tabs-preview">
+                <div className="role-tab-badge active">👤 Kasir</div>
+                <div className="role-tab-badge">🛡️ Admin</div>
+              </div>
+            </div>
+
+            <h1 className="login-title-desktop">Selamat datang kembali</h1>
+            <p className="sub login-title-desktop">Masuk untuk mulai bertugas di sistem kasir &amp; apotek.</p>
 
             {error && <div className="login-error">{error}</div>}
 

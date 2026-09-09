@@ -1109,3 +1109,390 @@
   }
 }
 
+/* ============================================================
+   MOBILE NATIVE UI STYLES (SESUAI PREVIEW DESAIN)
+   ============================================================ */
+.bottom-nav-mobile {
+  display: none;
+}
+.bell-btn-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Beri ruang scroll bawah agar konten tidak tertutup bottom nav bar */
+  .kasir-content {
+    padding-bottom: 95px !important;
+  }
+
+  /* ---------- TOPBAR MOBILE GREETING & NOTIF ---------- */
+  .topbar-greet-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .topbar-greet-sub {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+  .topbar-left .topbar-title {
+    font-size: 18px;
+  }
+
+  .bell-btn-mobile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(33, 27, 38, 0.05);
+    flex-shrink: 0;
+  }
+  .bell-dot {
+    position: absolute;
+    top: 8px;
+    right: 9px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red, #D64550);
+  }
+  .kasir-hamburger-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red, #D64550);
+  }
+
+  /* ---------- BOTTOM NAVIGATION MOBILE ---------- */
+  .bottom-nav-mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 999;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+  }
+  .nav-item-mobile {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 0;
+    transition: color 0.15s ease;
+  }
+  .nav-item-mobile svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+  }
+  .nav-item-mobile.active {
+    color: var(--magenta);
+  }
+
+  /* ---------- 2X2 KPI GRID (MOBILE PREVIEW) ---------- */
+  .kpi-grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .kpi-card2 {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    box-shadow: 0 3px 12px rgba(33, 27, 38, 0.04);
+  }
+  .kpi-card2 .ic {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--magenta-tint);
+    color: var(--magenta-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  .kpi-card2 .ic svg {
+    width: 17px;
+    height: 17px;
+  }
+  .kpi-card2.warn .ic {
+    background: #FEE2E2;
+    color: #DC2626;
+  }
+  .kpi-card2 .val {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .kpi-card2 .lbl {
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    margin-top: 3px;
+  }
+
+  /* ---------- SECTION HEADINGS & LIST CARDS ---------- */
+  .section-title-mobile {
+    font-size: 14px;
+    font-weight: 800;
+    margin: 18px 0 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--ink);
+  }
+  .section-title-mobile span.link {
+    font-size: 12px;
+    color: var(--magenta-dark);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .list-card {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(33, 27, 38, 0.03);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .list-card:active {
+    transform: scale(0.98);
+  }
+  .list-card .ic {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: var(--magenta-tint);
+    color: var(--magenta-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .list-card .ic svg {
+    width: 18px;
+    height: 18px;
+  }
+  .list-card .body {
+    flex: 1;
+    min-width: 0;
+  }
+  .list-card .t1 {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .list-card .t2 {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .list-card .t3 {
+    font-size: 13.5px;
+    font-weight: 800;
+    font-family: 'Fraunces', serif;
+    text-align: right;
+    color: var(--magenta-dark);
+    white-space: nowrap;
+  }
+  .badge-mini {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .badge-mini.low {
+    background: #FEE2E2;
+    color: #DC2626;
+  }
+  .badge-mini.ok {
+    background: #DCFCE7;
+    color: #15803D;
+  }
+
+  /* ---------- SEARCH INPUT MOBILE ---------- */
+  .search-mobile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border-radius: 13px;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 8px rgba(33, 27, 38, 0.04);
+    margin-bottom: 14px;
+  }
+  .search-mobile svg {
+    width: 18px;
+    height: 18px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+  .search-mobile input {
+    border: none;
+    outline: none;
+    font-size: 13.5px;
+    width: 100%;
+    background: transparent;
+    font-family: inherit;
+  }
+
+  /* ---------- HORIZONTAL CHIPS FILTER ---------- */
+  .chips-mobile {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chips-mobile::-webkit-scrollbar {
+    display: none;
+  }
+  .chip-mobile {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 100px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 6px rgba(33, 27, 38, 0.03);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip-mobile.active {
+    background: var(--magenta);
+    color: #ffffff;
+    border-color: var(--magenta);
+  }
+
+  /* ---------- STICKY CART BAR (KASIR POS MOBILE) ---------- */
+  .cart-sticky {
+    position: fixed;
+    bottom: 68px;
+    left: 12px;
+    right: 12px;
+    background: #1C1924;
+    border-radius: 16px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+    z-index: 950;
+    animation: slideUpCart 0.2s ease-out;
+  }
+  @keyframes slideUpCart {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .cart-sticky .l {
+    color: #fff;
+  }
+  .cart-sticky .l .n {
+    font-size: 11px;
+    color: #A9A2B2;
+    font-weight: 600;
+  }
+  .cart-sticky .l .v {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+  }
+  .cart-sticky .btn-pay {
+    background: var(--magenta);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(166, 75, 199, 0.4);
+  }
+
+  /* ---------- QUANTITY MINI CONTROLS ---------- */
+  .qty-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .qty-mini button {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .qty-mini span {
+    font-size: 13px;
+    font-weight: 800;
+    min-width: 16px;
+    text-align: center;
+    color: var(--ink);
+  }
+}
+
+/* ---------- RESPONSIVE VISIBILITY UTILITIES ---------- */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+

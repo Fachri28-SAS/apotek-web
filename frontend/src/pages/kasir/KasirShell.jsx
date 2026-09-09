@@ -233,30 +233,145 @@ export default function KasirShell({ children }) {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 22, height: 22 }}>
                 <path d="M3 12h18M3 6h18M3 18h18" />
               </svg>
+              {badgeCounter > 0 && <span className="kasir-hamburger-dot" />}
             </button>
             <div className="topbar-left">
-              <h2 className="topbar-title">{halamanAktif?.label || "Sistem Kasir"}</h2>
-              <div className="topbar-status">
-                <span className="topbar-dot-online" />
-                Online — {user?.nama}
-              </div>
+              {location.pathname === "/kasir" ? (
+                <div className="topbar-greet-wrap">
+                  <div className="topbar-greet-sub">
+                    {new Date().getHours() < 11
+                      ? "Selamat pagi"
+                      : new Date().getHours() < 15
+                      ? "Selamat siang"
+                      : new Date().getHours() < 18
+                      ? "Selamat sore"
+                      : "Selamat malam"}
+                  </div>
+                  <h2 className="topbar-title" style={{ fontSize: "clamp(17px, 3.5vw, 20px)" }}>
+                    {user?.nama || "Apotek Bima Farma"}
+                  </h2>
+                </div>
+              ) : (
+                <>
+                  <h2 className="topbar-title">{halamanAktif?.label || "Sistem Kasir"}</h2>
+                  <div className="topbar-status">
+                    <span className="topbar-dot-online" />
+                    Online — {user?.nama}
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <JamRealtime />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Tombol lonceng notifikasi pesanan online di mobile */}
+            <button
+              type="button"
+              className="bell-btn-mobile"
+              onClick={() => navigate("/kasir/pembayaran-online")}
+              title="Pesanan Online Menunggu Verifikasi"
+              aria-label="Pesanan Online"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 19, height: 19 }}>
+                <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.7 21a2 2 0 01-3.4 0" />
+              </svg>
+              {badgeCounter > 0 && <span className="bell-dot" />}
+            </button>
+            <JamRealtime />
+          </div>
         </div>
+
         <main className="kasir-content">{children}</main>
+
+        {/* ---------- BOTTOM NAVIGATION (KHUSUS MOBILE SCREEN) ---------- */}
+        <nav className="bottom-nav-mobile" aria-label="Navigasi Bawah">
+          <Link
+            to="/kasir"
+            className={`nav-item-mobile ${location.pathname === "/kasir" ? "active" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+            <span>Dashboard</span>
+          </Link>
+
+          <Link
+            to="/kasir/jual"
+            className={`nav-item-mobile ${location.pathname === "/kasir/jual" ? "active" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="6" width="20" height="13" rx="2" />
+              <circle cx="12" cy="12.5" r="3" />
+              <path d="M6 6v-1a2 2 0 012-2h8a2 2 0 012 2v1" />
+            </svg>
+            <span>Kasir</span>
+          </Link>
+
+          <Link
+            to="/kasir/riwayat"
+            className={`nav-item-mobile ${location.pathname === "/kasir/riwayat" ? "active" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z" />
+              <path d="M9 8h6M9 12h6" />
+            </svg>
+            <span>Riwayat</span>
+          </Link>
+
+          <Link
+            to="/kasir/obat"
+            className={`nav-item-mobile ${location.pathname === "/kasir/obat" ? "active" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="9" width="18" height="6" rx="3" />
+              <path d="M8 9v6M16 9v6" />
+            </svg>
+            <span>Stok</span>
+          </Link>
+
+          <button
+            type="button"
+            className={`nav-item-mobile ${sidebarMobileOpen ? "active" : ""}`}
+            onClick={() => setSidebarMobileOpen(true)}
+            style={{ background: "none", border: "none", cursor: "pointer", position: "relative" }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="1.5" />
+              <circle cx="19" cy="12" r="1.5" />
+              <circle cx="5" cy="12" r="1.5" />
+            </svg>
+            <span>Menu</span>
+            {badgeCounter > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  right: "22%",
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "var(--red, #D64550)",
+                }}
+              />
+            )}
+          </button>
+        </nav>
 
         {/* Floating Toast Notifikasi Pesanan Online Baru */}
         {showToast && (
           <div
             style={{
               position: "fixed",
-              bottom: 24,
-              right: 24,
+              bottom: 80,
+              right: 16,
               zIndex: 9999,
               background: "linear-gradient(135deg, #7C3AED, #A64BC7)",
               color: "#fff",
-              padding: "14px 20px",
+              padding: "12px 18px",
               borderRadius: 14,
               boxShadow: "0 10px 30px rgba(124, 58, 237, 0.4)",
               display: "flex",
@@ -265,10 +380,10 @@ export default function KasirShell({ children }) {
               animation: "slideInUp 0.3s ease-out",
             }}
           >
-            <span style={{ fontSize: 24 }}>🔔</span>
+            <span style={{ fontSize: 22 }}>🔔</span>
             <div>
-              <div style={{ fontWeight: 800, fontSize: 13.5 }}>Pesanan Online Baru Masuk!</div>
-              <div style={{ fontSize: 11.5, opacity: 0.9 }}>Segera verifikasi pembayaran & stok</div>
+              <div style={{ fontWeight: 800, fontSize: 13 }}>Pesanan Online Baru Masuk!</div>
+              <div style={{ fontSize: 11, opacity: 0.9 }}>Segera verifikasi pembayaran & stok</div>
             </div>
             <button
               type="button"

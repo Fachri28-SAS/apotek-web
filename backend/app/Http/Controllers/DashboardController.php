@@ -53,9 +53,20 @@ class DashboardController extends Controller
             ->limit(5)
             ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'total', 'metode_bayar', 'created_at']);
 
+        // --- KPI Penjualan Hari Ini & Jumlah Transaksi Hari Ini ---
+        $penjualanHariIni = (float) Penjualan::whereDate('tanggal', $hariIni)
+            ->whereIn('status', ['lunas', 'selesai'])
+            ->sum('total');
+
+        $transaksiHariIniCount = Penjualan::whereDate('tanggal', $hariIni)
+            ->whereIn('status', ['lunas', 'selesai'])
+            ->count();
+
         return [
             'kpi' => [
                 'produk_terjual' => $produkTerjual,
+                'penjualan_hari_ini' => $penjualanHariIni,
+                'transaksi_hari_ini' => $transaksiHariIniCount,
                 'stok_menipis' => $stokMenipis->count(),
                 'akan_kadaluwarsa' => $akanKadaluwarsa->count(),
             ],

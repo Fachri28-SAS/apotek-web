@@ -88,14 +88,64 @@ export default function DataObat() {
         </div>
       </div>
 
-      <div className="search-obat-input" style={{ maxWidth: 340, marginBottom: 20 }}>
+      {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 5) ---------- */}
+      <div className="mobile-only" style={{ marginBottom: 20 }}>
+        <div className="search-mobile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Cari obat…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {loading ? (
+          <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Memuat obat…</div>
+        ) : daftar.length === 0 ? (
+          <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Tidak ada obat yang cocok.</div>
+        ) : (
+          daftar.map((obat) => {
+            const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
+            const stokMenipis = obat.stok <= (obat.stok_minimum || 0);
+
+            return (
+              <div
+                className="list-card"
+                key={obat.id}
+                onClick={() => bukaEdit(obat)}
+              >
+                <div className="ic">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" />
+                  </svg>
+                </div>
+                <div className="body">
+                  <div className="t1">{obat.nama}</div>
+                  <div className="t2">
+                    {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""} {obat.nomor_batch ? `· Batch ${obat.nomor_batch}` : ""}
+                  </div>
+                </div>
+                <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
+                  {obat.stok} {obat.satuan_dasar}
+                </span>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ---------- TAMPILAN KHUSUS DESKTOP (SEARCH & TABEL LENGKAP) ---------- */}
+      <div className="search-obat-input desktop-only" style={{ maxWidth: 340, marginBottom: 20 }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
           <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
         </svg>
         <input type="text" placeholder="Cari nama obat…" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
-      <div className="obat-table-wrap">
+      <div className="obat-table-wrap desktop-only">
         <table className="obat-table">
           <thead>
             <tr>

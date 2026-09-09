@@ -132,6 +132,94 @@
 .login-help { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 22px; line-height: 1.6; }
 .login-help a { color: var(--magenta-dark); font-weight: 700; }
 
+/* Sembunyikan header brand mobile di desktop */
+.login-mobile-brand {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .login-brand { display: none; }
+  .login-title-desktop { display: none; }
+
+  .login-form-side {
+    padding: 24px 20px;
+    align-items: flex-start;
+  }
+
+  .login-mobile-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 24px;
+    width: 100%;
+  }
+
+  .login-mobile-logo-box {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--green), #0B6837);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(16, 128, 67, 0.28);
+    margin-bottom: 8px;
+  }
+  .login-mobile-logo-box svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .login-mobile-sub {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+
+  .login-mobile-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 23px;
+    color: var(--magenta);
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+
+  .login-mobile-tagline {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    margin-bottom: 16px;
+  }
+
+  .login-role-tabs-preview {
+    display: flex;
+    gap: 6px;
+    background: #F1F1F4;
+    border-radius: 100px;
+    padding: 4px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .role-tab-badge {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 100px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    transition: all 0.2s ease;
+  }
+  .role-tab-badge.active {
+    background: #fff;
+    color: var(--magenta-dark);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
 }
+

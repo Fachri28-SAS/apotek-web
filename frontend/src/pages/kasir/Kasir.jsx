@@ -231,6 +231,28 @@ export default function Kasir() {
         </div>
       </div>
 
+      {/* Floating Sticky Cart Bar di Mobile (Sesuai Preview Layar 3) */}
+      {tabAktif.items.length > 0 && (
+        <div className="cart-sticky mobile-only">
+          <div className="l">
+            <div className="n">Total ({tabAktif.items.length} item)</div>
+            <div className="v">{rupiah(total)}</div>
+          </div>
+          <button
+            type="button"
+            className="btn-pay"
+            onClick={() => {
+              const el = document.querySelector(".kasir-jual-kanan");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth" });
+              }
+            }}
+          >
+            Bayar →
+          </button>
+        </div>
+      )}
+
       <StrukModal data={struk} onClose={() => setStruk(null)} />
     </KasirShell>
   );
