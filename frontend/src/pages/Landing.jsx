@@ -15,7 +15,6 @@ export default function Landing() {
       <Hero />
       <TokoPreview />
       <Divider />
-      <TentangKami />
       <Lokasi />
       <Footer />
     </div>
@@ -126,60 +125,6 @@ function Divider() {
   );
 }
 
-/* ==================== TENTANG KAMI ==================== */
-const VALUES = [
-  { title: "Apoteker Berpengalaman", desc: "Siap konsultasi setiap kunjungan.",
-    icon: <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" /> },
-  { title: "Harga Terjangkau", desc: "Transparan, sesuai kebutuhan.",
-    icon: <path d="M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /> },
-  { title: "Pelayanan Ramah", desc: "Untuk semua kalangan usia.",
-    icon: <path d="M12 21c-4-3-8-6.5-8-11a5 5 0 019-3 5 5 0 019 3c0 4.5-4 8-10 11z" /> },
-  { title: "Lokasi Strategis", desc: "Mudah dijangkau dari Tanimulya.",
-    icon: <><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" /><circle cx="12" cy="9" r="2.4" /></> },
-];
-
-function TentangKami() {
-  return (
-    <section className="tentang" id="tentang">
-      <div className="wrap tentang-grid">
-        <div className="tentang-visual">
-          <svg className="cross-outline"><use href="#cross-outline" /></svg>
-        </div>
-        <div className="tentang-copy">
-          <span className="eyebrow magenta">Tentang Kami</span>
-          <h2 style={{ margin: "14px 0 16px", fontSize: "clamp(26px,3vw,34px)", fontWeight: 700 }}>
-            Apotek Bima Farma
-          </h2>
-          <p className="lead">
-            Bima Farma hadir sebagai apotek keluarga di Tanimulya, Ngamprah —
-            tempat warga sekitar percaya untuk urusan obat dan kesehatan
-            sehari-hari.
-          </p>
-          <p>
-            Kami berkomitmen menyediakan obat yang lengkap dan asli, dilayani
-            oleh apoteker yang siap membantu menjelaskan aturan pakai dengan
-            bahasa yang mudah dimengerti, tanpa buru-buru dan tanpa sungkan
-            bertanya.
-          </p>
-          <div className="values">
-            {VALUES.map((v) => (
-              <div className="value-item" key={v.title}>
-                <div className="value-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">{v.icon}</svg>
-                </div>
-                <div>
-                  <h4>{v.title}</h4>
-                  <p>{v.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ==================== LOKASI & KONTAK ==================== */
 function Lokasi() {
   return (
@@ -261,7 +206,6 @@ function Footer() {
             <ul>
               <li><a href="#beranda">Beranda</a></li>
               <li><Link to="/toko">Toko</Link></li>
-              <li><a href="#tentang">Tentang Kami</a></li>
               <li><a href="#lokasi">Lokasi</a></li>
             </ul>
           </div>

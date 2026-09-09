@@ -92,7 +92,6 @@ export default function Navbar({ cartCount, onOpenCart }) {
               <Link to="/toko" className={diToko ? "active" : ""}>Toko</Link>
               {!diToko && (
                 <>
-                  <a href="#tentang">Tentang Kami</a>
                   <a href="#lokasi">Lokasi</a>
                 </>
               )}
@@ -147,7 +146,6 @@ export default function Navbar({ cartCount, onOpenCart }) {
             <Link to="/toko" onClick={() => setMobileOpen(false)}>Toko</Link>
             {!diToko && (
               <>
-                <a href="#tentang" onClick={() => setMobileOpen(false)}>Tentang Kami</a>
                 <a href="#lokasi" onClick={() => setMobileOpen(false)}>Lokasi &amp; Kontak</a>
               </>
             )}
