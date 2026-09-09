@@ -48,7 +48,8 @@ Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']
 Route::get('/pesanan/{kode_tracking}/status', [TokoController::class, 'statusByTracking']);
 Route::post('/pesanan/{kode_tracking}/bukti', [TokoController::class, 'uploadBuktiByTracking']);
 
-Route::post('/login', [AuthController::class, 'login']);
+// Batasi percobaan login maksimal 5 kali per menit per IP (proteksi brute force)
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // =====================================================================
 // WAJIB LOGIN — kasir & admin

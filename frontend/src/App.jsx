@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import CrossDefs from "./components/CrossDefs";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
@@ -31,7 +31,13 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/toko" element={<Toko />} />
             <Route path="/pesanan/:kodeTracking" element={<TrackingPesanan />} />
-            <Route path="/login" element={<Login />} />
+
+            {/* ---- Keamanan: Orang luar yang coba tebak /login atau /admin langsung ditolak ke beranda ---- */}
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/admin" element={<Navigate to="/" replace />} />
+
+            {/* ---- Portal Rahasia Login Khusus Staf & Kasir ---- */}
+            <Route path="/portal-bima" element={<Login />} />
 
             {/* ---- Wajib login: kasir & admin ---- */}
             <Route path="/kasir" element={<RutePrivat><Dashboard /></RutePrivat>} />

@@ -128,7 +128,7 @@ export default function KasirShell({ children }) {
 
   async function handleLogout() {
     await logout();
-    navigate("/login", { replace: true });
+    navigate("/portal-bima", { replace: true });
   }
 
   const menuTerlihat = MENU.filter((m) => !m.hanyaAdmin || user?.role === "admin");

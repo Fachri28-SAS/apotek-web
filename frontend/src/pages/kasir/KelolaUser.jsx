@@ -9,6 +9,7 @@ export default function KelolaUser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [suksesPesan, setSuksesPesan] = useState("");
+  const [salinSukses, setSalinSukses] = useState(false);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -184,6 +185,80 @@ export default function KelolaUser() {
               <path d="M12 5v14M5 12h14" />
             </svg>
             Tambah Akun Baru
+          </button>
+        </div>
+
+        {/* Banner Keamanan Portal Staf & Kasir */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #FAF5FF, #F3E8FF)",
+            border: "1.5px solid #D8B4FE",
+            borderRadius: 14,
+            padding: "16px 20px",
+            marginBottom: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "var(--magenta)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 22, height: 22 }}>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
+                🛡️ Keamanan Portal Kasir &amp; Izin Akses Perangkat
+                <span style={{ fontSize: 11, background: "#16A34A", color: "#fff", padding: "2px 8px", borderRadius: 100, fontWeight: 700 }}>
+                  Aktif
+                </span>
+              </div>
+              <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2 }}>
+                Jalur rahasia: <code style={{ background: "#fff", padding: "2px 6px", borderRadius: 4, fontWeight: 700, color: "var(--magenta-dark)" }}>/portal-bima</code> • Kunci Izin: <code style={{ background: "#fff", padding: "2px 6px", borderRadius: 4, fontWeight: 700, color: "var(--magenta-dark)" }}>bima2026</code>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const urlIzin = `${window.location.origin}/portal-bima?kunci=bima2026`;
+              navigator.clipboard.writeText(urlIzin);
+              setSalinSukses(true);
+              setTimeout(() => setSalinSukses(false), 3000);
+            }}
+            style={{
+              background: salinSukses ? "#16A34A" : "var(--magenta)",
+              color: "#fff",
+              border: "none",
+              padding: "9px 16px",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 12.5,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.2s",
+            }}
+          >
+            {salinSukses ? "✓ Link Izin Disalin!" : "🔗 Salin Link Izin untuk Kasir"}
           </button>
         </div>
 

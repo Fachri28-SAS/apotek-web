@@ -55,12 +55,12 @@ export default class ErrorBoundary extends React.Component {
             {this.state.error?.message || "Halaman tidak dapat dimuat. Silakan muat ulang atau coba login kembali."}
           </p>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-            {window.location.pathname.startsWith("/kasir") || window.location.pathname === "/login" ? (
+            {window.location.pathname.startsWith("/kasir") || window.location.pathname === "/portal-bima" ? (
               <button
                 onClick={() => {
                   localStorage.clear();
                   sessionStorage.clear();
-                  window.location.href = "/login";
+                  window.location.href = "/portal-bima";
                 }}
                 style={{
                   padding: "10px 18px",

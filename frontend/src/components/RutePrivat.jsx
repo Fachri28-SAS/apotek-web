@@ -15,7 +15,7 @@ export default function RutePrivat({ children, rolesBoleh }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/portal-bima" replace />;
   }
 
   if (rolesBoleh && !rolesBoleh.includes(user.role)) {
