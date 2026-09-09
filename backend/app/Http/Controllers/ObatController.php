@@ -333,6 +333,19 @@ class ObatController extends Controller
      */
     public function opname(Request $r, StokService $stok)
     {
+        if (!$r->has('items') && $r->has('obat_id')) {
+            $r->merge([
+                'items' => [
+                    [
+                        'obat_id' => $r->input('obat_id'),
+                        'stok_fisik' => $r->input('stok_fisik'),
+                        'keterangan' => $r->input('keterangan'),
+                        'batches' => $r->input('batches'),
+                    ]
+                ]
+            ]);
+        }
+
         $data = $r->validate([
             'items' => 'required|array|min:1',
             'items.*.obat_id' => 'required|exists:obat,id',
