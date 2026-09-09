@@ -188,7 +188,10 @@ class ObatController extends Controller
 
             if ($satuanLama) {
                 // Satuan SUDAH ADA — cuma harga yang boleh berubah.
-                // Faktor sengaja tidak disentuh di sini (lihat catatan lama).
+                // Jika harga_beli tidak dikirim atau bernilai 0/kosong, pertahankan harga beli lama
+                if (empty($s['harga_beli']) || $s['harga_beli'] <= 0) {
+                    $updateData['harga_beli'] = $satuanLama->harga_beli;
+                }
                 $updateData['harga_beli_sebelumnya'] = $satuanLama->harga_beli;
                 if (array_key_exists('harga_beli_awal', $s)) {
                     $updateData['harga_beli_awal'] = $s['harga_beli_awal'];
