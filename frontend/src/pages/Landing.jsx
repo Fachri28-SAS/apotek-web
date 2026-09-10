@@ -178,7 +178,6 @@ function TokoPreview() {
                 <div className="produk-info">
                   <h3 className="produk-nama">{p.nama}</h3>
                   <div className="produk-kemasan-text">Kemasan: {kemasan}</div>
-                  <p className="produk-deskripsi">{deskripsi}</p>
 
                   <div className="produk-bawah">
                     <div className="produk-harga">{rupiah(harga)}</div>
