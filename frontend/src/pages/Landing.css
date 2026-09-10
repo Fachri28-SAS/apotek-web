@@ -353,3 +353,210 @@ header nav { display: flex; align-items: center; justify-content: space-between;
   .produk-harga { font-size: 12.5px !important; }
   .btn-beli-produk { font-size: 10.5px !important; padding: 6px 4px !important; }
 }
+
+/* ---------- MODAL CARA PEMBAYARAN ---------- */
+.cara-bayar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInModal 0.2s ease;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cara-bayar-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  animation: slideUpModal 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpModal {
+  from { transform: translateY(20px) scale(0.97); }
+  to { transform: translateY(0) scale(1); }
+}
+
+.cara-bayar-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+}
+
+.cara-bayar-icon-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--magenta-tint);
+  color: var(--magenta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cara-bayar-close-btn {
+  background: #F1F5F9;
+  border: none;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.15s ease;
+}
+.cara-bayar-close-btn:hover {
+  background: #E2E8F0;
+  color: var(--ink);
+}
+
+.cara-bayar-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cara-bayar-methods-box {
+  background: var(--magenta-tint);
+  border: 1px solid rgba(163, 22, 112, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.cara-bayar-pill-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.cb-pill {
+  background: #fff;
+  color: var(--magenta-dark);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(163, 22, 112, 0.15);
+}
+
+.cara-bayar-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cb-step-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cb-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--magenta);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cb-step-content h5 {
+  margin: 0 0 3px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.cb-step-content p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.cb-resep-notice {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.cb-support-box {
+  background: #F8FAFC;
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.cara-bayar-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  background: #FAFAFA;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.foot-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: #D9DED9;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+.foot-link-btn:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .cara-bayar-card {
+    border-radius: 20px 20px 0 0;
+    position: fixed;
+    bottom: 0;
+    max-height: 90vh;
+  }
+}
+

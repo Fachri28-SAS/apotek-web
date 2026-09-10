@@ -20,13 +20,22 @@ function getGambarObatUrl(itemOrObat) {
 }
 
 export default function Landing() {
+  const [modalCaraBayar, setModalCaraBayar] = useState(false);
+
+  useEffect(() => {
+    if (window.location.hash === "#cara-bayar" || window.location.hash === "#cara-pembayaran") {
+      setModalCaraBayar(true);
+    }
+  }, []);
+
   return (
     <div className="landing-page">
       <Navbar />
       <Hero />
       <TokoPreview />
       <Lokasi />
-      <Footer />
+      <Footer onOpenCaraBayar={() => setModalCaraBayar(true)} />
+      {modalCaraBayar && <ModalCaraBayar onClose={() => setModalCaraBayar(false)} />}
     </div>
   );
 }
@@ -286,7 +295,7 @@ function Lokasi() {
 }
 
 /* ==================== FOOTER ==================== */
-function Footer() {
+function Footer({ onOpenCaraBayar }) {
   return (
     <footer>
       <div className="wrap">
@@ -312,7 +321,15 @@ function Footer() {
               <li><a href="#beranda">Beranda</a></li>
               <li><Link to="/toko">Toko Online &amp; Katalog</Link></li>
               <li><a href="#lokasi">Kontak &amp; Lokasi</a></li>
-              <li><Link to="/toko">Cara Pembayaran</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={onOpenCaraBayar}
+                  className="foot-link-btn"
+                >
+                  Cara Pembayaran
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -329,7 +346,24 @@ function Footer() {
 
         <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
           <span>
-            💳 Pembayaran Online Aman &amp; Terverifikasi • QRIS Universal • Transfer Bank (VA) • E-Wallet
+            💳 Pembayaran Online Aman &amp; Terverifikasi • QRIS Universal • Transfer Bank (VA) • E-Wallet{" "}
+            <button
+              type="button"
+              onClick={onOpenCaraBayar}
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                padding: "2px 8px",
+                marginLeft: "8px",
+                fontSize: "11px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Lihat Panduan
+            </button>
           </span>
           <span>Resmi Berizin SIA &amp; SIPA Apoteker</span>
         </div>
@@ -339,5 +373,137 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/* ==================== MODAL PANDUAN CARA PEMBAYARAN ==================== */
+function ModalCaraBayar({ onClose }) {
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="cara-bayar-overlay" onClick={onClose}>
+      <div className="cara-bayar-card" onClick={(e) => e.stopPropagation()}>
+        {/* Header Modal */}
+        <div className="cara-bayar-header">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="cara-bayar-icon-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 10h20" />
+                <path d="M6 15h4" />
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 17.5, fontWeight: 800, color: "var(--ink)" }}>
+                Panduan &amp; Cara Pembayaran
+              </h3>
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>
+                Alur belanja obat resmi dan pembayaran otomatis di Apotek Bima Farma
+              </p>
+            </div>
+          </div>
+          <button type="button" className="cara-bayar-close-btn" onClick={onClose} title="Tutup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18 }}>
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Body Modal */}
+        <div className="cara-bayar-body">
+          {/* Highlight Metode Pembayaran */}
+          <div className="cara-bayar-methods-box">
+            <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "var(--magenta-dark)" }}>
+              💳 Metode Pembayaran Online Resmi Terverifikasi:
+            </h4>
+            <div className="cara-bayar-pill-grid">
+              <span className="cb-pill">📱 QRIS (Semua Bank &amp; E-Wallet)</span>
+              <span className="cb-pill">🏦 Virtual Account (BCA, BRI, BNI, Mandiri)</span>
+              <span className="cb-pill">💵 Bayar / Ambil di Apotek (COD)</span>
+            </div>
+          </div>
+
+          {/* Langkah 1 - 4 */}
+          <div className="cara-bayar-steps">
+            <div className="cb-step-item">
+              <div className="cb-step-num">1</div>
+              <div className="cb-step-content">
+                <h5>Pilih Obat di Katalog / Toko</h5>
+                <p>
+                  Buka menu <strong>Toko Online</strong>, cari obat yang Anda butuhkan, dan klik tombol <strong>"Beli Online"</strong> untuk memasukkan ke keranjang belanja.
+                </p>
+              </div>
+            </div>
+
+            <div className="cb-step-item">
+              <div className="cb-step-num">2</div>
+              <div className="cb-step-content">
+                <h5>Lengkapi Data Pembeli</h5>
+                <p>
+                  Buka keranjang, masukkan <strong>Nama Penerima</strong>, <strong>Nomor WhatsApp aktif</strong> (untuk menerima nota digital &amp; nomor resi pelacakan), dan <strong>Alamat</strong> pengantaran atau penjemputan.
+                </p>
+              </div>
+            </div>
+
+            <div className="cb-step-item">
+              <div className="cb-step-num">3</div>
+              <div className="cb-step-content">
+                <h5>Pilih Metode &amp; Selesaikan Pembayaran</h5>
+                <p>
+                  Pilih pembayaran otomatis via <strong>Duitku Payment Gateway</strong> (scan QRIS atau transfer Virtual Account). Pembayaran otomatis diverifikasi sistem dalam hitungan detik tanpa perlu konfirmasi manual.
+                </p>
+              </div>
+            </div>
+
+            <div className="cb-step-item">
+              <div className="cb-step-num">4</div>
+              <div className="cb-step-content">
+                <h5>Dapatkan Kode Tracking &amp; Ambil Obat</h5>
+                <p>
+                  Setelah lunas, Anda akan mendapatkan <strong>Kode Tracking</strong> (contoh: <code>TRK-XXXXXX</code>) untuk memantau obat yang disiapkan oleh Apoteker hingga siap diambil di apotek atau dikirim ke lokasi Anda.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Alert Khusus Obat Resep */}
+          <div className="cb-resep-notice">
+            <strong>⚠️ Khusus Obat Resep Dokter:</strong>
+            <p style={{ margin: "4px 0 0", fontSize: 11.5 }}>
+              Untuk obat golongan Keras / yang membutuhkan resep dokter, silakan kirimkan foto resep asli terlebih dahulu ke WhatsApp resmi apoteker kami untuk verifikasi dosis.
+            </p>
+          </div>
+
+          {/* Kontak Bantuan */}
+          <div className="cb-support-box">
+            <span>Butuh bantuan pemesanan atau pertanyaan pembayaran?</span>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
+              <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
+                💬 WhatsApp: 0812-2360-4900
+              </a>
+              <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "underline" }}>
+                ✉️ bimafarmaapotek2@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Modal */}
+        <div className="cara-bayar-footer">
+          <button type="button" className="btn btn-outline" onClick={onClose} style={{ padding: "9px 18px", fontSize: 13 }}>
+            Tutup
+          </button>
+          <Link to="/toko" className="btn btn-primary" onClick={onClose} style={{ padding: "9px 20px", fontSize: 13 }}>
+            Mulai Belanja di Toko →
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
