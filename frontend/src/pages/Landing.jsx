@@ -346,7 +346,7 @@ function Footer({ onOpenCaraBayar }) {
 
         <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
           <span>
-            💳 Pembayaran Online Aman &amp; Terverifikasi • QRIS Universal • Transfer Bank (VA) • E-Wallet{" "}
+            💳 Pembayaran Online Aman &amp; Terverifikasi via <strong>QRIS Universal</strong> (Semua Bank &amp; E-Wallet){" "}
             <button
               type="button"
               onClick={onOpenCaraBayar}
@@ -404,7 +404,7 @@ function ModalCaraBayar({ onClose }) {
                 Panduan &amp; Cara Pembayaran
               </h3>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>
-                Alur belanja obat resmi dan pembayaran otomatis di Apotek Bima Farma
+                Alur belanja obat resmi dan pembayaran otomatis via QRIS di Apotek Bima Farma
               </p>
             </div>
           </div>
@@ -420,12 +420,14 @@ function ModalCaraBayar({ onClose }) {
           {/* Highlight Metode Pembayaran */}
           <div className="cara-bayar-methods-box">
             <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "var(--magenta-dark)" }}>
-              💳 Metode Pembayaran Online Resmi Terverifikasi:
+              💳 Metode Pembayaran Online Resmi:
             </h4>
             <div className="cara-bayar-pill-grid">
-              <span className="cb-pill">📱 QRIS (Semua Bank &amp; E-Wallet)</span>
-              <span className="cb-pill">🏦 Virtual Account (BCA, BRI, BNI, Mandiri)</span>
+              <span className="cb-pill">📱 QRIS Universal (Scan dari M-Banking &amp; E-Wallet apa saja)</span>
             </div>
+            <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.4 }}>
+              Mendukung BCA Mobile, Livin' Mandiri, BRImo, BNI, CIMB, GoPay, OVO, DANA, ShopeePay, LinkAja, dll.
+            </p>
           </div>
 
           {/* Langkah 1 - 4 */}
@@ -453,9 +455,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">3</div>
               <div className="cb-step-content">
-                <h5>Pilih Metode &amp; Selesaikan Pembayaran</h5>
+                <h5>Scan QRIS &amp; Bayar Otomatis</h5>
                 <p>
-                  Pilih pembayaran otomatis via <strong>Duitku Payment Gateway</strong> (scan QRIS atau transfer Virtual Account). Pembayaran otomatis diverifikasi sistem dalam hitungan detik tanpa perlu konfirmasi manual.
+                  Klik bayar via <strong>Duitku</strong>, lalu scan barcode <strong>QRIS</strong> yang muncul di layar menggunakan aplikasi M-Banking (BCA, Mandiri, BRI, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay). Pembayaran terverifikasi otomatis dalam hitungan detik.
                 </p>
               </div>
             </div>
