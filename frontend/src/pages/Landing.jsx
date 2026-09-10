@@ -8,6 +8,17 @@ function rupiah(n) {
   return "Rp" + Number(n || 0).toLocaleString("id-ID");
 }
 
+function getGambarObatUrl(itemOrObat) {
+  if (!itemOrObat) return null;
+  const src = itemOrObat.gambar_url || itemOrObat.gambar;
+  if (!src) return null;
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) {
+    return src;
+  }
+  if (src.startsWith("/")) return src;
+  return `/storage/${src}`;
+}
+
 export default function Landing() {
   return (
     <div className="landing-page">
@@ -24,7 +35,7 @@ export default function Landing() {
 /* ==================== HERO ==================== */
 function Hero() {
   return (
-    <section className="hero" id="beranda" style={{ paddingTop: 70 }}>
+    <section className="hero" id="beranda" style={{ paddingTop: 50 }}>
       <div className="hero-pattern"></div>
       <div className="wrap hero-grid">
         <div>
@@ -32,16 +43,16 @@ function Hero() {
           <h1>Apotek Bima Farma <em>Tanimulya</em></h1>
           <p className="lead">
             Bima Farma melayani penebusan resep dokter, obat bebas, vitamin,
-            hingga alat kesehatan.
+            hingga alat kesehatan dengan sistem pembayaran online otomatis terverifikasi Duitku.
           </p>
           <div className="hero-cta">
             <Link to="/toko" className="btn btn-primary">Buka Toko Online</Link>
-            <a href="#lokasi" className="btn btn-outline">Hubungi Apotek</a>
+            <a href="#lokasi" className="btn btn-outline">Kontak &amp; Lokasi</a>
           </div>
           <div className="hero-meta">
-            <div><strong>Online</strong>Pesan &amp; bayar</div>
-            <div><strong>Setiap&nbsp;Hari</strong>Apotek buka</div>
-            <div><strong>Berizin</strong>Apoteker bersertifikat</div>
+            <div><strong>Online</strong>Pesan &amp; bayar via Duitku</div>
+            <div><strong>Setiap&nbsp;Hari</strong>Buka 07.00 - 22.00 WIB</div>
+            <div><strong>Berizin</strong>Apoteker bersertifikat SIA/SIPA</div>
           </div>
         </div>
       </div>
@@ -49,65 +60,164 @@ function Hero() {
   );
 }
 
-/* ==================== CUPLIKAN TOKO ==================== */
-const PRODUK_PREVIEW = [
+/* ==================== KATALOG PRODUK UNGGULAN & DUITKU ==================== */
+const PRODUK_FALLBACK = [
   {
+    id: 1,
     nama: "Paracetamol 500mg",
-    kemasan: "Strip isi 10 tablet",
-    icon: (
-      <><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" /></>
-    ),
+    kemasan: "Strip isi 10 Kaplet",
+    satuan_dasar: "Strip",
+    harga: 5000,
+    kategori: "Obat Bebas",
+    deskripsi: "Obat analgesik dan antipiretik untuk meredakan demam, sakit kepala, sakit gigi, dan nyeri ringan hingga sedang.",
   },
   {
-    nama: "Sanmol Sirup 60ml",
-    kemasan: "Botol sirup 60ml",
-    icon: (
-      <><path d="M9 3h6M10 3v3h4V3M7 7h10a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" /><path d="M12 11v6M9 14h6" /></>
-    ),
+    id: 2,
+    nama: "Sanmol Sirup Paracetamol 60ml",
+    kemasan: "Botol 60 ml",
+    satuan_dasar: "Botol",
+    harga: 22500,
+    kategori: "Obat Bebas",
+    deskripsi: "Sirup penurun panas dan pereda nyeri untuk anak dan balita dengan rasa buah yang disukai anak.",
   },
   {
-    nama: "Antasida Doen",
-    kemasan: "Strip isi 10 tablet",
-    icon: (
-      <><rect x="4" y="4" width="16" height="16" rx="3" /><circle cx="12" cy="12" r="4" /></>
-    ),
+    id: 3,
+    nama: "Antasida Doen Tablet Kunyah",
+    kemasan: "Strip isi 10 Tablet",
+    satuan_dasar: "Strip",
+    harga: 4000,
+    kategori: "Obat Bebas",
+    deskripsi: "Meringankan gejala kelebihan asam lambung, nyeri lambung, sakit maag, nyeri ulu hati, dan kembung.",
   },
   {
-    nama: "Vitamin C IPI",
-    kemasan: "Botol isi 45 tablet",
-    icon: (
-      <><circle cx="12" cy="12" r="9" /><path d="M12 7v10M7 12h10" /></>
-    ),
+    id: 4,
+    nama: "Vitamin C IPI 50mg",
+    kemasan: "Botol isi 45 Tablet",
+    satuan_dasar: "Botol",
+    harga: 7500,
+    kategori: "Suplemen & Vitamin",
+    deskripsi: "Suplemen vitamin harian untuk memelihara daya tahan tubuh, mencegah sariawan, dan mempercepat pemulihan fisik.",
+  },
+  {
+    id: 5,
+    nama: "Betadine Antiseptic Solution 15ml",
+    kemasan: "Botol 15 ml",
+    satuan_dasar: "Botol",
+    harga: 18000,
+    kategori: "Antiseptik & P3K",
+    deskripsi: "Antiseptik luka luar dengan Povidone Iodine 10% untuk membunuh kuman penyebab infeksi pada luka lecet dan gores.",
+  },
+  {
+    id: 6,
+    nama: "Mylanta Sirup 50ml",
+    kemasan: "Botol 50 ml",
+    satuan_dasar: "Botol",
+    harga: 21000,
+    kategori: "Obat Lambung & Maag",
+    deskripsi: "Antasida cair cepat meredakan rasa perih asam lambung, begah, tukak lambung, dan kembung.",
   },
 ];
 
 function TokoPreview() {
+  const [daftarProduk, setDaftarProduk] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api("/obat?untuk=toko")
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDaftarProduk(data.slice(0, 8));
+        } else {
+          setDaftarProduk(PRODUK_FALLBACK);
+        }
+      })
+      .catch(() => {
+        setDaftarProduk(PRODUK_FALLBACK);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const listTampil = daftarProduk.length > 0 ? daftarProduk : PRODUK_FALLBACK;
+
   return (
     <section className="toko" id="toko">
       <div className="wrap">
         <div className="section-head">
-          <span className="eyebrow">Toko Online</span>
-          <h2>Pesan obat langsung dari HP</h2>
-          <p>Pilih produk, bayar online, dan kasir kami langsung siapkan pesanan Anda — tinggal ambil.</p>
+          <span className="eyebrow">Katalog Produk Resmi</span>
+          <h2>Produk Obat &amp; Kesehatan Terdaftar</h2>
+          <p>
+            Semua produk berizin resmi BPOM dan disimpan sesuai standar kefarmasian. Pesan online dari HP Anda,
+            pilih metode pembayaran otomatis via Duitku, dan pesanan langsung disiapkan untuk diambil.
+          </p>
         </div>
 
         <div className="produk-grid">
-          {PRODUK_PREVIEW.map((p) => (
-            <div className="produk-card" key={p.nama}>
-              <div className="produk-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  {p.icon}
-                </svg>
+          {listTampil.map((p) => {
+            const fotoUrl = getGambarObatUrl(p);
+            const harga = p.harga || p.satuan?.[0]?.harga_jual || p.satuan?.[0]?.hargaJual || 5000;
+            const kemasan = p.kemasan || p.satuan_dasar || "1 Satuan";
+            const deskripsi = p.deskripsi || p.kategori || "Obat resmi terdaftar BPOM untuk menjaga kesehatan Anda dan keluarga.";
+
+            return (
+              <div className="produk-card" key={p.id || p.nama}>
+                {/* Header Foto / Visual Produk */}
+                <div className="produk-thumb-box">
+                  {fotoUrl ? (
+                    <img src={fotoUrl} alt={p.nama} className="produk-thumb-img" />
+                  ) : (
+                    <div className="produk-thumb-placeholder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="produk-thumb-icon">
+                        <path d="M10.5 20.5 3.5 13.5a5 5 0 1 1 7.07-7.07l7 7a5 5 0 0 1-7.07 7.07Z" />
+                        <path d="m8.5 8.5 7 7" />
+                      </svg>
+                      <span className="produk-thumb-tag">Apotek Bima Farma</span>
+                    </div>
+                  )}
+                  <span className="produk-badge-kategori">{p.kategori || "Obat Bebas"}</span>
+                </div>
+
+                <div className="produk-info">
+                  <h3 className="produk-nama">{p.nama}</h3>
+                  <div className="produk-kemasan-text">Kemasan: {kemasan}</div>
+                  <p className="produk-deskripsi">{deskripsi}</p>
+
+                  <div className="produk-bawah">
+                    <div className="produk-harga">{rupiah(harga)}</div>
+                    <Link to="/toko" className="btn-beli-produk">
+                      Beli Online →
+                    </Link>
+                  </div>
+                </div>
               </div>
-              <h3>{p.nama}</h3>
-              <p>{p.kemasan}</p>
+            );
+          })}
+        </div>
+
+        {/* BANNER VERIFIKASI INTEGRASI DUITKU SANDBOX */}
+        <div className="duitku-sandbox-banner">
+          <div className="duitku-banner-content">
+            <div className="duitku-badge">Sistem Pembayaran Terintegrasi</div>
+            <h3>Duitku Payment Gateway (Sandbox Mode Aktif)</h3>
+            <p>
+              Website terdaftar Apotek Bima Farma telah terintegrasi penuh dengan <strong>Duitku Sandbox</strong>.
+              Pengunjung dapat memesan produk obat dan melakukan transaksi pembayaran instan menggunakan:
+            </p>
+            <div className="duitku-methods">
+              <span className="method-pill">⚡ QRIS Universal (BCA, Mandiri, BRI, BNI, ShopeePay, GoPay, OVO, DANA)</span>
+              <span className="method-pill">🏦 Virtual Account Bank</span>
+              <span className="method-pill">🔒 Enkripsi Aman &amp; Verifikasi Otomatis</span>
             </div>
-          ))}
+          </div>
+          <div className="duitku-banner-action">
+            <Link to="/toko" className="btn btn-primary" style={{ padding: "13px 26px", fontSize: "14px" }}>
+              Uji Coba Bayar Duitku di Toko →
+            </Link>
+          </div>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 32 }}>
-          <Link to="/toko" className="btn btn-primary" style={{ padding: "12px 30px", fontSize: "15px" }}>
-            Lihat Semua Produk di Toko Online →
+          <Link to="/toko" className="btn btn-outline" style={{ padding: "12px 30px", fontSize: "15px" }}>
+            Lihat Semua Produk Lengkap di Toko Online →
           </Link>
         </div>
       </div>
@@ -125,19 +235,40 @@ function Divider() {
   );
 }
 
-/* ==================== LOKASI & KONTAK ==================== */
+/* ==================== LOKASI & KONTAK SUPPORT ==================== */
 function Lokasi() {
   return (
     <section className="lokasi" id="lokasi">
       <div className="wrap">
         <div className="section-head">
-          <span className="eyebrow">Lokasi &amp; Kontak</span>
-          <h2>Kunjungi apotek kami</h2>
-          <p>Ada di Jalan Tanimulya Raya No. 1 (Haji Gofur) — mudah dijangkau warga Ngamprah dan sekitarnya.</p>
+          <span className="eyebrow">Lokasi &amp; Kontak Support</span>
+          <h2>Kunjungi apotek kami &amp; Hubungi Support</h2>
+          <p>
+            Beralamat di Jalan Tanimulya Raya No. 1 (Haji Gofur), Ngamprah, Kabupaten Bandung Barat.
+            Untuk bantuan pemesanan atau pertanyaan verifikasi merchant, silakan hubungi kontak resmi kami di bawah ini.
+          </p>
         </div>
 
         <div className="lokasi-grid">
           <div className="lokasi-card">
+            {/* Email Support Resmi Sesuai Duitku */}
+            <div className="lokasi-row" style={{ background: "var(--magenta-tint, #FAF0F6)", borderRadius: 12, padding: "14px 12px", border: "1.5px solid var(--magenta)" }}>
+              <div className="ic" style={{ background: "var(--magenta)", color: "#fff" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+              </div>
+              <div>
+                <h4 style={{ color: "var(--magenta-dark)", fontWeight: 800 }}>Email Kontak Support Resmi</h4>
+                <p style={{ margin: "2px 0 0" }}>
+                  <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "var(--magenta-dark)", fontWeight: 800, fontSize: "15px", textDecoration: "underline" }}>
+                    bimafarmaapotek2@gmail.com
+                  </a>
+                </p>
+                <span style={{ fontSize: "11.5px", color: "var(--ink-soft)" }}>Email akun terdaftar merchant Duitku Payment Gateway</span>
+              </div>
+            </div>
+
             <div className="lokasi-row">
               <div className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -145,25 +276,30 @@ function Lokasi() {
                 </svg>
               </div>
               <div>
-                <h4>Alamat</h4>
-                <p>Jalan Tanimulya Raya No. 1, Haji Gofur, Ngamprah,<br />Kabupaten Bandung Barat</p>
+                <h4>Alamat Lokasi Usaha</h4>
+                <p>Jalan Tanimulya Raya No. 1, Haji Gofur, Ngamprah,<br />Kabupaten Bandung Barat, Jawa Barat 40552</p>
               </div>
             </div>
+
             <div className="lokasi-row">
               <div className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M12 7v5l3 3" /><circle cx="12" cy="12" r="9" />
                 </svg>
               </div>
-              <div><h4>Jam Operasional</h4><p>Setiap hari, 07.00 – 22.00 WIB</p></div>
+              <div><h4>Jam Operasional Apotek</h4><p>Buka setiap hari, 07.00 – 22.00 WIB</p></div>
             </div>
+
             <div className="lokasi-row">
               <div className="ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                   <path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z" />
                 </svg>
               </div>
-              <div><h4>Telepon / WhatsApp</h4><p>0812-2360-4900</p></div>
+              <div>
+                <h4>Telepon / WhatsApp</h4>
+                <p><a href="https://wa.me/6281223604900" target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: "var(--ink)" }}>0812-2360-4900</a></p>
+              </div>
             </div>
           </div>
 
@@ -199,27 +335,42 @@ function Footer() {
                 <span className="lokasi-sub" style={{ color: "#A9B2A9" }}>Tanimulya, Ngamprah</span>
               </span>
             </a>
-            <p>Apotek keluarga di Tanimulya, Ngamprah — melayani kebutuhan obat dan kesehatan warga Bandung Barat setiap hari.</p>
+            <p>
+              Apotek keluarga di Tanimulya, Ngamprah — melayani kebutuhan obat, resep dokter, dan kesehatan
+              warga Bandung Barat setiap hari dengan dukungan pembayaran resmi Duitku.
+            </p>
           </div>
+
           <div>
-            <h5>Menu</h5>
+            <h5>Menu Website</h5>
             <ul>
               <li><a href="#beranda">Beranda</a></li>
-              <li><Link to="/toko">Toko</Link></li>
-              <li><a href="#lokasi">Lokasi</a></li>
+              <li><Link to="/toko">Toko Online &amp; Katalog</Link></li>
+              <li><a href="#lokasi">Kontak &amp; Lokasi</a></li>
+              <li><Link to="/toko">Uji Coba Sandbox Duitku</Link></li>
             </ul>
           </div>
+
           <div>
-            <h5>Kontak</h5>
+            <h5>Kontak &amp; Dukungan Support</h5>
             <ul>
-              <li>Jl. Tanimulya Raya No. 1, Haji Gofur</li>
-              <li>Ngamprah, Kab. Bandung Barat</li>
-              <li>Setiap hari, 07.00–22.00 WIB</li>
+              <li><strong>Email Support:</strong> <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#F0A9D2", textDecoration: "underline" }}>bimafarmaapotek2@gmail.com</a></li>
+              <li><strong>Telepon / WA:</strong> 0812-2360-4900</li>
+              <li><strong>Alamat:</strong> Jl. Tanimulya Raya No. 1, Haji Gofur, Ngamprah, Kab. Bandung Barat</li>
+              <li><strong>Jam Buka:</strong> Setiap hari, 07.00–22.00 WIB</li>
             </ul>
           </div>
         </div>
-        <div className="foot-bottom">
-          <span>© 2026 Apotek Bima Farma. Seluruh hak cipta dilindungi.</span>
+
+        <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
+          <span>
+            💳 Pembayaran Online Terverifikasi oleh <strong>Duitku Payment Gateway</strong> (Mode Sandbox Aktif) • QRIS Universal • Transfer Bank VA • E-Wallet
+          </span>
+          <span>Resmi Berizin SIA &amp; SIPA Apoteker</span>
+        </div>
+
+        <div className="foot-bottom" style={{ marginTop: 16 }}>
+          <span>© 2026 Apotek Bima Farma (apotekbimafarma.com). Seluruh hak cipta dilindungi.</span>
         </div>
       </div>
     </footer>

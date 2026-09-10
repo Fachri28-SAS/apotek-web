@@ -142,32 +142,108 @@ header nav { display: flex; align-items: center; justify-content: space-between;
 .divider svg { width: 48px; height: 18px; }
 
 /* ---------- TOKO / PRODUK (CUPLIKAN) ---------- */
+/* ---------- TOKO / PRODUK (CUPLIKAN KATALOG) ---------- */
 .toko { background: var(--surface); }
 .produk-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 .produk-card {
-  background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 20px 18px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 0;
+  overflow: hidden; display: flex; flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.produk-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: transparent; }
-.produk-icon {
-  width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; background: var(--magenta-tint); color: var(--magenta-dark);
-}
-.produk-icon svg { width: 22px; height: 22px; }
-.produk-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
-.produk-card p { font-size: 13px; color: var(--ink-soft); margin-bottom: 10px; line-height: 1.4; }
+.produk-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(29, 36, 31, 0.08); border-color: var(--magenta); }
 
-.toko-cta {
-  margin-top: 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-  background: linear-gradient(120deg, var(--magenta-dark), var(--magenta)); border-radius: 20px; padding: 26px 28px; color: #fff;
+.produk-thumb-box {
+  width: 100%; height: 160px; background: #F8FAFC; position: relative;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  border-bottom: 1px solid var(--line);
 }
-.toko-cta h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-.toko-cta p { color: #F3E3F0; font-size: 13.5px; }
-.toko-cta .btn-primary { background: #fff; color: var(--magenta-dark); box-shadow: none; }
+.produk-thumb-img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.produk-thumb-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  color: var(--magenta);
+}
+.produk-thumb-icon { width: 38px; height: 38px; opacity: 0.8; }
+.produk-thumb-tag { font-size: 11px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.04em; }
+
+.produk-badge-kategori {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(4px);
+  color: var(--magenta-dark); font-size: 11px; font-weight: 800;
+  padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.produk-info {
+  padding: 16px 18px 20px; display: flex; flex-direction: column; flex: 1;
+}
+.produk-nama {
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15.5px; font-weight: 700;
+  color: var(--ink); margin: 0 0 4px; line-height: 1.35;
+}
+.produk-kemasan-text {
+  font-size: 12px; font-weight: 600; color: var(--magenta-dark); margin-bottom: 8px;
+}
+.produk-deskripsi {
+  font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; margin: 0 0 16px;
+  flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.produk-bawah {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--line);
+}
+.produk-harga {
+  font-size: 16px; font-weight: 800; color: var(--magenta-dark);
+}
+.btn-beli-produk {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--magenta); color: #fff; font-size: 12.5px; font-weight: 700;
+  padding: 8px 14px; border-radius: 8px; text-decoration: none;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.btn-beli-produk:hover {
+  background: var(--magenta-dark); transform: scale(1.03);
+}
+
+/* BANNER DUITKU SANDBOX */
+.duitku-sandbox-banner {
+  margin-top: 36px; padding: 24px 26px;
+  background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
+  border: 1.5px solid #C084FC; border-radius: 18px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.08);
+}
+.duitku-banner-content { max-width: 680px; }
+.duitku-badge {
+  display: inline-block; background: #7E22CE; color: #fff;
+  font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 100px;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+}
+.duitku-banner-content h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18.5px; font-weight: 800;
+  color: #581C87; margin: 0 0 6px;
+}
+.duitku-banner-content p {
+  font-size: 13.5px; color: #6B21A8; line-height: 1.55; margin: 0 0 12px;
+}
+.duitku-methods {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.method-pill {
+  background: rgba(255, 255, 255, 0.85); color: #6B21A8; border: 1px solid #D8B4FE;
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px;
+}
+.duitku-banner-action .btn-primary {
+  background: #7E22CE; box-shadow: 0 8px 20px rgba(126, 34, 206, 0.3);
+}
+.duitku-banner-action .btn-primary:hover {
+  background: #6B21A8;
+}
 
 /* ---------- TENTANG ---------- */
 .tentang { background: var(--magenta-tint); }

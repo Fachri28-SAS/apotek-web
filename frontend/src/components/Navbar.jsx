@@ -75,6 +75,28 @@ export default function Navbar({ cartCount, onOpenCart }) {
 
   return (
     <>
+      <div className="top-support-bar" style={{
+        background: "var(--magenta-dark, #7A1154)",
+        color: "#fff",
+        fontSize: "12px",
+        padding: "6px 0",
+        fontWeight: 500,
+        borderBottom: "1px solid rgba(255, 255, 255, 0.15)"
+      }}>
+        <div className="wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+            <span>📞 WA: <strong>0812-2360-4900</strong></span>
+            <span>✉️ Support: <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#FFE4F2", textDecoration: "underline" }}><strong>bimafarmaapotek2@gmail.com</strong></a></span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ background: "rgba(255,255,255,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: "11px", fontWeight: 700 }}>
+              💳 Duitku Sandbox Active
+            </span>
+            <span>📍 Tanimulya, Ngamprah</span>
+          </div>
+        </div>
+      </div>
+
       <header className={scrolled ? "scrolled" : ""}>
         <div className="wrap">
           <nav>
