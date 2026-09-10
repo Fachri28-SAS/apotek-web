@@ -310,9 +310,13 @@ export default function Toko() {
                       }}
                     />
                   ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" />
-                    </svg>
+                    <div className="produk-thumb-placeholder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="produk-thumb-icon">
+                        <path d="M10.5 20.5 3.5 13.5a5 5 0 1 1 7.07-7.07l7 7a5 5 0 0 1-7.07 7.07Z" />
+                        <path d="m8.5 8.5 7 7" />
+                      </svg>
+                      <span className="produk-thumb-tag">Apotek Bima Farma</span>
+                    </div>
                   )}
                 </div>
                 <div className="produk-body">

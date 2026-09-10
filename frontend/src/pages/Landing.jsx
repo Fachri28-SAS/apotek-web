@@ -173,7 +173,6 @@ function TokoPreview() {
                       <span className="produk-thumb-tag">Apotek Bima Farma</span>
                     </div>
                   )}
-                  <span className="produk-badge-kategori">{p.kategori || "Obat Bebas"}</span>
                 </div>
 
                 <div className="produk-info">
@@ -191,28 +190,6 @@ function TokoPreview() {
               </div>
             );
           })}
-        </div>
-
-        {/* BANNER VERIFIKASI INTEGRASI DUITKU SANDBOX */}
-        <div className="duitku-sandbox-banner">
-          <div className="duitku-banner-content">
-            <div className="duitku-badge">Sistem Pembayaran Terintegrasi</div>
-            <h3>Duitku Payment Gateway (Sandbox Mode Aktif)</h3>
-            <p>
-              Website terdaftar Apotek Bima Farma telah terintegrasi penuh dengan <strong>Duitku Sandbox</strong>.
-              Pengunjung dapat memesan produk obat dan melakukan transaksi pembayaran instan menggunakan:
-            </p>
-            <div className="duitku-methods">
-              <span className="method-pill">⚡ QRIS Universal (BCA, Mandiri, BRI, BNI, ShopeePay, GoPay, OVO, DANA)</span>
-              <span className="method-pill">🏦 Virtual Account Bank</span>
-              <span className="method-pill">🔒 Enkripsi Aman &amp; Verifikasi Otomatis</span>
-            </div>
-          </div>
-          <div className="duitku-banner-action">
-            <Link to="/toko" className="btn btn-primary" style={{ padding: "13px 26px", fontSize: "14px" }}>
-              Uji Coba Bayar Duitku di Toko →
-            </Link>
-          </div>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 32 }}>
