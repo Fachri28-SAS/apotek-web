@@ -425,7 +425,6 @@ function ModalCaraBayar({ onClose }) {
             <div className="cara-bayar-pill-grid">
               <span className="cb-pill">📱 QRIS (Semua Bank &amp; E-Wallet)</span>
               <span className="cb-pill">🏦 Virtual Account (BCA, BRI, BNI, Mandiri)</span>
-              <span className="cb-pill">💵 Bayar / Ambil di Apotek (COD)</span>
             </div>
           </div>
 
