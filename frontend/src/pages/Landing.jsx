@@ -312,7 +312,7 @@ function Footer() {
               <li><a href="#beranda">Beranda</a></li>
               <li><Link to="/toko">Toko Online &amp; Katalog</Link></li>
               <li><a href="#lokasi">Kontak &amp; Lokasi</a></li>
-              <li><Link to="/toko">Uji Coba Sandbox Duitku</Link></li>
+              <li><Link to="/toko">Cara Pembayaran</Link></li>
             </ul>
           </div>
 
@@ -329,7 +329,7 @@ function Footer() {
 
         <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
           <span>
-            💳 Pembayaran Online Terverifikasi oleh <strong>Duitku Payment Gateway</strong> (Mode Sandbox Aktif) • QRIS Universal • Transfer Bank VA • E-Wallet
+            💳 Pembayaran Online Aman &amp; Terverifikasi • QRIS Universal • Transfer Bank (VA) • E-Wallet
           </span>
           <span>Resmi Berizin SIA &amp; SIPA Apoteker</span>
         </div>
