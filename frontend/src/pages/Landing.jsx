@@ -25,7 +25,6 @@ export default function Landing() {
       <Navbar />
       <Hero />
       <TokoPreview />
-      <Divider />
       <Lokasi />
       <Footer />
     </div>
@@ -198,16 +197,6 @@ function TokoPreview() {
         </div>
       </div>
     </section>
-  );
-}
-
-function Divider() {
-  return (
-    <div className="divider">
-      <svg viewBox="0 0 52 20">
-        <path d="M2 10c8-14 16 14 24 0s16-14 24 0" fill="none" stroke="#A31670" strokeWidth="2" />
-      </svg>
-    </div>
   );
 }
 

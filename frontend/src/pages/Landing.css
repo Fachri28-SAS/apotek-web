@@ -138,10 +138,6 @@ header nav { display: flex; align-items: center; justify-content: space-between;
 .section-head h2 { font-size: clamp(22px, 3.2vw, 34px); font-weight: 700; margin: 10px 0 8px; }
 .section-head p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; }
 
-.divider { display: flex; align-items: center; justify-content: center; padding: 0; }
-.divider svg { width: 48px; height: 18px; }
-
-/* ---------- TOKO / PRODUK (CUPLIKAN) ---------- */
 /* ---------- TOKO / PRODUK (CUPLIKAN KATALOG) ---------- */
 .toko { background: var(--surface); }
 .produk-grid {
@@ -194,21 +190,38 @@ header nav { display: flex; align-items: center; justify-content: space-between;
 }
 
 .produk-bawah {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
 }
 .produk-harga {
-  font-size: 16px; font-weight: 800; color: var(--magenta-dark);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--magenta-dark);
 }
 .btn-beli-produk {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--magenta); color: #fff; font-size: 12.5px; font-weight: 700;
-  padding: 8px 14px; border-radius: 8px; text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--magenta);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  border-radius: 9px;
+  text-decoration: none;
   transition: background 0.18s ease, transform 0.18s ease;
   white-space: nowrap;
+  text-align: center;
 }
 .btn-beli-produk:hover {
-  background: var(--magenta-dark); transform: scale(1.03);
+  background: var(--magenta-dark);
+  transform: translateY(-1px);
 }
 
 /* BANNER DUITKU SANDBOX */
