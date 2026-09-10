@@ -205,6 +205,7 @@ header nav { display: flex; align-items: center; justify-content: space-between;
   background: var(--magenta); color: #fff; font-size: 12.5px; font-weight: 700;
   padding: 8px 14px; border-radius: 8px; text-decoration: none;
   transition: background 0.18s ease, transform 0.18s ease;
+  white-space: nowrap;
 }
 .btn-beli-produk:hover {
   background: var(--magenta-dark); transform: scale(1.03);
@@ -331,8 +332,25 @@ header nav { display: flex; align-items: center; justify-content: space-between;
   .trust-item .s { font-size: 11px; }
   
   .produk-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .produk-card { padding: 16px 14px; }
-  .produk-card h3 { font-size: 13.5px; }
+  .produk-card { padding: 0 !important; border-radius: 14px; overflow: hidden; }
+  .produk-thumb-box { height: 110px; }
+  .produk-thumb-icon { width: 28px; height: 28px; }
+  .produk-thumb-tag { font-size: 10px; }
+  .produk-info { padding: 10px 10px 12px; }
+  .produk-nama {
+    font-size: 12.5px; line-height: 1.3; min-height: 32px; margin: 0 0 2px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .produk-kemasan-text { font-size: 11px; margin-bottom: 6px; }
+  .produk-bawah {
+    flex-direction: column !important; align-items: stretch !important; gap: 6px !important;
+    padding-top: 8px !important; margin-top: auto;
+  }
+  .produk-harga { font-size: 13.5px !important; text-align: left; }
+  .btn-beli-produk {
+    width: 100% !important; font-size: 11.5px !important; padding: 7px 6px !important;
+    white-space: nowrap !important; text-align: center !important; justify-content: center !important;
+  }
   .values { grid-template-columns: 1fr; }
   .toko-cta { flex-direction: column; align-items: flex-start; padding: 20px 18px; }
   .toko-cta .btn-primary { width: 100%; text-align: center; }
@@ -347,9 +365,13 @@ header nav { display: flex; align-items: center; justify-content: space-between;
   .hero-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; }
   .hero-meta div { text-align: center; }
   .produk-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .produk-card { padding: 14px 10px; }
-  .produk-icon { width: 36px; height: 36px; margin-bottom: 10px; }
-  .produk-icon svg { width: 18px; height: 18px; }
-  .produk-card h3 { font-size: 12.5px; }
-  .produk-card p { font-size: 11px; }
+  .produk-card { padding: 0 !important; border-radius: 12px; }
+  .produk-thumb-box { height: 95px; }
+  .produk-thumb-icon { width: 24px; height: 24px; }
+  .produk-thumb-tag { font-size: 9px; }
+  .produk-info { padding: 8px 8px 10px; }
+  .produk-nama { font-size: 11.5px; min-height: 28px; }
+  .produk-kemasan-text { font-size: 10px; margin-bottom: 4px; }
+  .produk-harga { font-size: 12.5px !important; }
+  .btn-beli-produk { font-size: 10.5px !important; padding: 6px 4px !important; }
 }
