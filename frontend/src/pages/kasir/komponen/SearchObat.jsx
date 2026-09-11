@@ -73,18 +73,25 @@ export default function SearchObat({ onPilih }) {
               </div>
 
               <div className="search-obat-satuan-list">
-                {obat.satuan.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className="btn-satuan"
-                    disabled={obat.stok < s.faktor}
-                    onClick={() => pilihSatuan(obat, s)}
-                    title={obat.stok < s.faktor ? "Stok tidak cukup untuk 1 " + s.nama_satuan : ""}
-                  >
-                    {s.nama_satuan} · {rupiah(s.harga_jual)}
-                  </button>
-                ))}
+                {(() => {
+                  const list = obat.satuan || [];
+                  // Sembunyikan satuan Box / Dus jika obat punya satuan eceran lain (misal Strip, Pcs, Tablet, Botol)
+                  const nonBox = list.filter((s) => !/^(box|dus)$/i.test((s.nama_satuan || "").trim()));
+                  const tampil = nonBox.length > 0 ? nonBox : list;
+
+                  return tampil.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className="btn-satuan"
+                      disabled={obat.stok < s.faktor}
+                      onClick={() => pilihSatuan(obat, s)}
+                      title={obat.stok < s.faktor ? "Stok tidak cukup untuk 1 " + s.nama_satuan : ""}
+                    >
+                      {s.nama_satuan} · {rupiah(s.harga_jual)}
+                    </button>
+                  ));
+                })()}
               </div>
             </div>
           ))}

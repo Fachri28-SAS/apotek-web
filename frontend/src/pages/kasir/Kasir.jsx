@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../../lib/api";
+import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import SearchObat from "./komponen/SearchObat";
 import CartTable, { hitungDiskonItem } from "./komponen/CartTable";

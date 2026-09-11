@@ -43,11 +43,58 @@ export default function CartTable({ items, onUbah, onHapus }) {
                 <div className="t2">
                   {rupiah(it.harga_jual)} · {it.nama_satuan} {it.nomor_batch ? `· Batch ${it.nomor_batch}` : ""}
                 </div>
-                {diskonNominal > 0 && (
-                  <div style={{ fontSize: 11, color: "#DC2626", fontWeight: 700, marginTop: 2 }}>
-                    Diskon: -{rupiah(diskonNominal)}
+
+                {/* Input Diskon Item di Mobile */}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 700 }}>Diskon:</span>
+                  <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid var(--line)", borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      min="0"
+                      max={(it.diskon_tipe || "rp") === "%" ? 100 : undefined}
+                      value={it.diskon_nilai === 0 || it.diskon_nilai === undefined ? "" : it.diskon_nilai}
+                      onChange={(e) => {
+                        const val = Math.max(0, parseFloat(e.target.value) || 0);
+                        onUbah(it.key, "diskon_nilai", val);
+                      }}
+                      style={{
+                        width: 70,
+                        padding: "3px 6px",
+                        fontSize: 12,
+                        border: "none",
+                        outline: "none",
+                        textAlign: "right",
+                        fontWeight: 700,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onUbah(it.key, "diskon_tipe", (it.diskon_tipe || "rp") === "%" ? "rp" : "%")}
+                      style={{
+                        padding: "3px 7px",
+                        fontSize: 11,
+                        fontWeight: 800,
+                        border: "none",
+                        borderLeft: "1px solid var(--line)",
+                        background: (it.diskon_tipe || "rp") === "%" ? "var(--magenta)" : "#F3F4F6",
+                        color: (it.diskon_tipe || "rp") === "%" ? "#fff" : "var(--ink)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {(it.diskon_tipe || "rp") === "%" ? "%" : "Rp"}
+                    </button>
                   </div>
-                )}
+                  {diskonNominal > 0 && (
+                    <span style={{ fontSize: 11, color: "#DC2626", fontWeight: 700 }}>
+                      (-{rupiah(diskonNominal)})
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)", marginTop: 6 }}>
+                  Subtotal: <span style={{ color: "var(--magenta-dark)" }}>{rupiah(subtotal)}</span>
+                </div>
               </div>
               <div className="qty-mini">
                 <button type="button" onClick={() => onUbah(it.key, "qty", Math.max(1, it.qty - 1))}>−</button>
