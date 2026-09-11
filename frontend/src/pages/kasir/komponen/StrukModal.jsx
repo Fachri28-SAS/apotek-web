@@ -2,13 +2,91 @@ import { useEffect } from "react";
 import { rupiah } from "../../../utils/format";
 
 /**
- * Ganti judul tab sesaat sebelum print, lalu kembalikan lagi.
+ * Cetak struk kasir secara bersih menggunakan iframe terisolasi
+ * agar kompatibel dengan printer thermal maupun printer biasa (Epson, dsb)
+ * dan TIDAK menampilkan halaman kosong.
  */
 function cetakStruk(noStruk) {
-  const judulAsli = document.title;
-  document.title = `Struk-${noStruk}`;
-  window.print();
-  setTimeout(() => { document.title = judulAsli; }, 500);
+  const el = document.querySelector(".struk-cetak");
+  if (!el) {
+    window.print();
+    return;
+  }
+
+  let iframe = document.getElementById("print-struk-frame");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "print-struk-frame";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+  }
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Struk-${noStruk}</title>
+        <style>
+          @page {
+            margin: 0;
+            size: auto;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, monospace, sans-serif;
+            font-size: 11.5px;
+            color: #000;
+            background: #fff;
+            margin: 0 auto;
+            padding: 8px 12px;
+            width: 76mm;
+            max-width: 100%;
+          }
+          .struk-center {
+            text-align: center;
+          }
+          .struk-garis-dash {
+            border: none;
+            border-top: 1px dashed #333;
+            margin: 6px 0;
+          }
+          .struk-baris {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+          }
+          .struk-items-list {
+            margin: 4px 0;
+          }
+          img {
+            max-height: 38px;
+            max-width: 80%;
+            object-fit: contain;
+            margin: 0 auto 4px auto;
+            display: block;
+          }
+        </style>
+      </head>
+      <body>
+        ${el.innerHTML}
+      </body>
+    </html>
+  `);
+  doc.close();
+
+  setTimeout(() => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  }, 250);
 }
 
 export default function StrukModal({ data, onClose, autoPrint = true }) {
@@ -149,7 +227,7 @@ export default function StrukModal({ data, onClose, autoPrint = true }) {
         </div>
       </div>
 
-      {/* CSS Cetak Thermal 58mm */}
+      {/* CSS Cetak Thermal & Printer Biasa */}
       <style>{`
         .struk-garis-dash {
           border: none;
@@ -159,22 +237,47 @@ export default function StrukModal({ data, onClose, autoPrint = true }) {
         @media print {
           @page {
             margin: 0;
-            size: 58mm auto;
+            size: auto;
           }
-          body * { visibility: hidden !important; }
-          .struk-cetak, .struk-cetak * { visibility: visible !important; }
+          body * {
+            visibility: hidden !important;
+          }
+          .struk-overlay {
+            position: static !important;
+            display: block !important;
+            visibility: visible !important;
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .struk-modal {
+            position: static !important;
+            display: block !important;
+            visibility: visible !important;
+            box-shadow: none !important;
+            border: none !important;
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+          }
+          .struk-modal-head, .struk-actions {
+            display: none !important;
+          }
+          .struk-cetak, .struk-cetak * {
+            visibility: visible !important;
+          }
           .struk-cetak {
             position: absolute !important;
-            top: 0 !important;
             left: 0 !important;
-            width: 54mm !important;
-            padding: 2mm !important;
-            font-size: 10.5px !important;
+            top: 0 !important;
+            width: 76mm !important;
+            max-width: 100% !important;
+            padding: 4mm 6mm !important;
+            font-size: 11px !important;
             color: #000 !important;
             background: #fff !important;
-          }
-          .struk-actions, .struk-modal-head, .struk-overlay {
-            display: none !important;
+            display: block !important;
           }
         }
       `}</style>
