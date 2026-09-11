@@ -206,112 +206,86 @@ export default function Penerimaan() {
   }
 
   return (
-    <KasirShell active="penerimaan">
-      <div className="kasir-page-header">
+    <KasirShell>
+      <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Penerimaan Barang</h1>
-          <p className="kasir-page-sub">
-            Input faktur pembelian dari supplier (PBF). Stok dan harga beli obat otomatis diperbarui.
-          </p>
+          <h1>Penerimaan Barang</h1>
+          <p className="halaman-sub">Catat faktur pembelian dari supplier</p>
         </div>
       </div>
 
-      {error && <div className="cart-error-alert" style={{ marginBottom: 16 }}>{error}</div>}
-      {sukses && <div className="struk-alert-sukses" style={{ marginBottom: 16 }}>{sukses}</div>}
+      {error && <div className="login-error">{error}</div>}
+      {sukses && <div className="pesan-sukses">{sukses}</div>}
 
-      {/* ---------- PANEL 1: INFORMASI FAKTUR ---------- */}
-      <div className="panel" style={{ marginBottom: 16 }}>
-        <div className="panel-head"><h3>Informasi Faktur Supplier</h3></div>
-
-        <div className="penerimaan-form-grid">
-          <div className="form-group">
-            <label className="form-label">Supplier *</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              <select
-                className="form-control"
-                value={supplierId}
-                onChange={(e) => pilihSupplier(e.target.value)}
-                style={{ flex: 1 }}
-              >
-                <option value="">-- Pilih Supplier --</option>
-                {supplierList.map((s) => (
-                  <option key={s.id} value={s.id}>{s.nama}</option>
-                ))}
-              </select>
+      {/* ---------- PANEL 1: FAKTUR PEMBELIAN ---------- */}
+      <div className="panel">
+        <div className="panel-head"><h3>Faktur Pembelian</h3></div>
+        <div className="obat-form-grid">
+          <div className="payment-field">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label style={{ margin: 0 }}>Supplier</label>
               <button
                 type="button"
-                className="btn-tambah-supplier"
                 onClick={() => setModalSupplierOpen(true)}
-                title="Kelola Daftar Supplier"
+                style={{
+                  background: "#FAF5FF",
+                  border: "1px solid var(--magenta)",
+                  borderRadius: 6,
+                  color: "var(--magenta-dark)",
+                  fontWeight: 700,
+                  fontSize: 11.5,
+                  cursor: "pointer",
+                  padding: "2px 8px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
               >
-                + Kelola
+                + Tambah Supplier
               </button>
             </div>
+            <select value={supplierId} onChange={(e) => pilihSupplier(e.target.value)}>
+              <option value="">— Pilih atau ketik manual —</option>
+              {supplierList.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}
+            </select>
+          </div>
+          <div className="payment-field">
+            <label>Nama Supplier</label>
+            <input value={namaSupplier} onChange={(e) => setNamaSupplier(e.target.value)} placeholder="Contoh: PT Kimia Farma Trading" />
+          </div>
+          <div className="payment-field">
+            <label>No. Faktur Supplier</label>
+            <input value={noFaktur} onChange={(e) => setNoFaktur(e.target.value)} placeholder="Contoh: KF-2026-0088" />
+          </div>
+          <div className="payment-field">
+            <label>Tanggal Terima</label>
+            <input type="date" value={tanggalTerima} onChange={(e) => {
+              setTanggalTerima(e.target.value);
+              const opsi = TEMPO_OPSI.find((o) => o.key === tempoLabel);
+              if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(e.target.value, opsi.bulan));
+            }} />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Nama Supplier di Faktur *</label>
-            <input
-              type="text"
-              className="form-control"
-              value={namaSupplier}
-              onChange={(e) => setNamaSupplier(e.target.value)}
-              placeholder="Contoh: PT Kimia Farma Trading"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">No. Faktur *</label>
-            <input
-              type="text"
-              className="form-control"
-              value={noFaktur}
-              onChange={(e) => setNoFaktur(e.target.value)}
-              placeholder="Contoh: INV-2026/04/001"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Tanggal Terima *</label>
-            <input
-              type="date"
-              className="form-control"
-              value={tanggalTerima}
-              onChange={(e) => setTanggalTerima(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
-            <label className="form-label">Jatuh Tempo Pembayaran</label>
+          <div className="payment-field" style={{ gridColumn: "1 / -1" }}>
+            <label>Tanggal Jatuh Tempo</label>
             <div className="tempo-row">
               {TEMPO_OPSI.map((o) => (
-                <button
-                  key={o.key}
-                  type="button"
-                  className={`btn-tempo ${tempoLabel === o.key ? "aktif" : ""}`}
-                  onClick={() => ubahTempo(o.key)}
-                >
+                <button key={o.key} type="button"
+                  className={`periode-chip ${tempoLabel === o.key ? "active" : ""}`}
+                  onClick={() => ubahTempo(o.key)}>
                   {o.label}
                 </button>
               ))}
-              <input
-                type="date"
-                value={tanggalJatuhTempo}
-                onChange={(e) => ubahTanggalTempoManual(e.target.value)}
-                placeholder="Tanggal Custom"
-              />
+              <input type="date" value={tanggalJatuhTempo} onChange={(e) => ubahTanggalTempoManual(e.target.value)} style={{ maxWidth: 170 }} />
             </div>
           </div>
 
-          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
-            <label className="kategori-checkbox" style={{ marginTop: 4 }}>
-              <input
-                type="checkbox"
-                checked={isPkp}
-                onChange={(e) => setIsPkp(e.target.checked)}
-              />
-              <span><strong>Supplier PKP (Kena PPN 11%)</strong> — centang jika faktur memiliki PPN</span>
-            </label>
+          <div className="payment-field">
+            <label>PKP Supplier</label>
+            <div className="metode-chips">
+              <button type="button" className={`metode-chip ${!isPkp ? "active" : ""}`} onClick={() => setIsPkp(false)}>Non PKP</button>
+              <button type="button" className={`metode-chip ${isPkp ? "active" : ""}`} onClick={() => setIsPkp(true)}>PKP (PPN 11%)</button>
+            </div>
           </div>
         </div>
       </div>
