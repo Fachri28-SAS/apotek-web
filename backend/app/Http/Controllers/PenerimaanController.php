@@ -134,7 +134,7 @@ class PenerimaanController extends Controller
                     ? (int) $item['kemasan']
                     : (int) ($item['qty'] * $item['faktor']);
 
-                // 1. Stok bertambah lewat StokService (tercatat di stok_mutasi)
+                // 1. Stok bertambah lewat StokService (tercatat di stok_mutasi & menambah stok di Data Obat)
                 $stok->ubah(
                     $item['obat_id'],
                     $stokMasuk,
@@ -143,25 +143,17 @@ class PenerimaanController extends Controller
                     $penerimaan->id
                 );
 
-                // 2. Harga beli & jual di obat_satuan ikut update ke nilai terbaru.
+                // 2. Harga beli satuan di Data Obat dihitung per unit stok yang masuk:
+                // Misal: Terima 6 Box @ Rp100.000 (total Rp600.000), Kemasan masuk 60 Strip.
+                // Maka harga beli di Data Obat otomatis Rp600.000 / 60 = Rp10.000 per Strip.
+                $hargaBeliPerUnitMasuk = ($stokMasuk > 0 && $item['qty'] > 0)
+                    ? round(($item['qty'] * $item['harga_beli']) / $stokMasuk)
+                    : $item['harga_beli'];
+
                 ObatSatuan::where('id', $item['obat_satuan_id'])->update([
-                    'harga_beli' => $item['harga_beli'],
+                    'harga_beli' => $hargaBeliPerUnitMasuk,
                     'harga_beli_sebelumnya' => $item['harga_beli_sebelumnya'],
                 ]);
-
-                // Jika satuan yang diterima adalah satuan besar (misal Box) dengan faktor/kemasan > 1,
-                // update juga harga_beli pada satuan dasar (faktor = 1) secara proporsional
-                if ($stokMasuk > 0 && $item['qty'] > 0) {
-                    $satuanDasar = ObatSatuan::where('obat_id', $item['obat_id'])
-                        ->where('faktor', 1)
-                        ->first();
-                    if ($satuanDasar && $satuanDasar->id !== $item['obat_satuan_id']) {
-                        $hargaBeliPerUnitDasar = round(($item['qty'] * $item['harga_beli']) / $stokMasuk);
-                        $satuanDasar->update([
-                            'harga_beli' => $hargaBeliPerUnitDasar,
-                        ]);
-                    }
-                }
 
                 // 3. Nomor batch & tanggal exp di Data Obat ikut update
                 if ($item['nomor_batch']) {

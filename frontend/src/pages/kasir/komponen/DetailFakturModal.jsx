@@ -29,8 +29,8 @@ export default function DetailFakturModal({ data, onClose }) {
               {(data.items || []).map((it) => (
                 <tr key={it.id}>
                   <td className="obat-nama-cell">{it.nama_obat}</td>
-                  <td>{it.qty} {it.nama_satuan}</td>
-                  <td>{it.kemasan ?? (Number(it.qty) * Number(it.faktor || 1))}</td>
+                  <td>{it.qty}</td>
+                  <td>{it.kemasan ?? it.qty}</td>
                   <td className="obat-harga-cell">{rupiah(it.harga_beli)}</td>
                   <td className="obat-harga-cell">{Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}</td>
                   <td className="obat-batch-cell">{it.nomor_batch || "—"}</td>

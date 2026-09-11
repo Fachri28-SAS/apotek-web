@@ -93,11 +93,9 @@ export default function Penerimaan() {
   }
 
   function tambahItem(obat) {
-    const satuanDasar = obat.satuan.find((s) => Number(s.faktor) === 1) || obat.satuan[0];
     const satuan = obat.satuan[0];
-    const faktor = Number(satuan.faktor || 1);
     const initialQty = 1;
-    const initialKemasan = initialQty * faktor;
+    const initialKemasan = 1;
 
     setItems((prev) => [...prev, {
       key: Date.now() + Math.random(),
@@ -105,7 +103,6 @@ export default function Penerimaan() {
       nama_obat: obat.nama,
       satuanOptions: obat.satuan,
       obat_satuan_id: satuan.id,
-      satuan_dasar_nama: satuanDasar.nama_satuan,
       qty: initialQty,
       kemasan: initialKemasan,
       harga_beli: satuan.harga_beli,
@@ -122,27 +119,6 @@ export default function Penerimaan() {
     setItems((prev) => prev.map((it) => {
       if (it.key !== key) return it;
       const updated = { ...it, [field]: value };
-
-      // Kalau Qty (Terima) diubah, kemasan otomatis dikalikan faktor: Terima x Isi
-      if (field === "qty") {
-        const s = it.satuanOptions.find((x) => x.id === Number(it.obat_satuan_id));
-        const faktor = Number(s?.faktor || 1);
-        const valQty = Number(value);
-        updated.kemasan = valQty > 0 ? valQty * faktor : "";
-      }
-
-      // Kalau satuan faktur diganti, ganti harga referensi & hitung ulang kemasan
-      if (field === "obat_satuan_id") {
-        const s = it.satuanOptions.find((s) => s.id === Number(value));
-        if (s) {
-          updated.harga_beli = s.harga_beli;
-          updated.harga_jual_referensi = s.harga_jual;
-          updated.harga_beli_sebelumnya = s.harga_beli;
-          const faktor = Number(s.faktor || 1);
-          const valQty = Number(it.qty || 1);
-          updated.kemasan = valQty > 0 ? valQty * faktor : "";
-        }
-      }
       return updated;
     }));
   }
@@ -321,43 +297,26 @@ export default function Penerimaan() {
                       <tr key={it.key}>
                         <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
                         <td>
-                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                            <input
-                              type="number"
-                              min="1"
-                              className="cart-input-angka"
-                              style={{ width: 52 }}
-                              value={it.qty}
-                              onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
-                              title="Jumlah unit faktur yang diterima (misal 6)"
-                            />
-                            <select
-                              className="cart-input-angka"
-                              style={{ minWidth: 70 }}
-                              value={it.obat_satuan_id}
-                              onChange={(e) => ubahItem(it.key, "obat_satuan_id", e.target.value)}
-                            >
-                              {it.satuanOptions.map((s) => (
-                                <option key={s.id} value={s.id}>{s.nama_satuan}</option>
-                              ))}
-                            </select>
-                          </div>
+                          <input
+                            type="number"
+                            min="1"
+                            className="cart-input-angka"
+                            style={{ width: 60 }}
+                            value={it.qty}
+                            onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
+                            title="Jumlah unit faktur yang diterima (misal 6)"
+                          />
                         </td>
                         <td>
-                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                            <input
-                              type="number"
-                              min="1"
-                              className="cart-input-angka"
-                              style={{ width: 62 }}
-                              value={it.kemasan}
-                              onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
-                              title="Total isi kemasan / stok unit masuk (misal 60)"
-                            />
-                            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>
-                              {it.satuan_dasar_nama || ""}
-                            </span>
-                          </div>
+                          <input
+                            type="number"
+                            min="1"
+                            className="cart-input-angka"
+                            style={{ width: 60 }}
+                            value={it.kemasan}
+                            onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
+                            title="Total isi kemasan yang masuk ke stok Data Obat (misal 60)"
+                          />
                         </td>
                         <td>
                           <input type="number" min="0" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
