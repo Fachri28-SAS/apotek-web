@@ -1,4 +1,5 @@
 import { rupiah } from "../../../utils/format";
+import { cetakLaporanPenerimaan } from "../../../utils/cetakLaporanPenerimaan";
 
 export default function DetailFakturModal({ data, onClose }) {
   if (!data) return null;
@@ -8,9 +9,35 @@ export default function DetailFakturModal({ data, onClose }) {
       <div className="struk-modal" style={{ maxWidth: 640 }}>
         <div className="struk-modal-head">
           <h3 style={{ fontSize: 16, fontWeight: 700 }}>Detail Faktur {data.no_faktur}</h3>
-          <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => cetakLaporanPenerimaan([data], { dariTanggal: data.tanggal_terima, sampaiTanggal: data.tanggal_terima })}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 8,
+                background: "var(--magenta)",
+                color: "#fff",
+                border: "none",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+              title="Cetak Laporan Penerimaan Barang untuk faktur ini"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                <path d="M6 14h12v8H6z" />
+              </svg>
+              Cetak
+            </button>
+            <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: "20px 22px" }}>

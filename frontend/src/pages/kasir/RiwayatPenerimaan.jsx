@@ -1,20 +1,25 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
+import { cetakLaporanPenerimaan } from "../../utils/cetakLaporanPenerimaan";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
 
-const PERIODE = [
-  { key: "", label: "Semua" },
-  { key: "hari-ini", label: "Hari Ini" },
-  { key: "minggu-ini", label: "Minggu Ini" },
-  { key: "bulan-ini", label: "Bulan Ini" },
-  { key: "bulan-lalu", label: "Bulan Lalu" },
-];
+function getTglYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const now = new Date();
+const awalBulanDefault = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+const hariIniDefault = getTglYmd(now);
 
 export default function RiwayatPenerimaan() {
   const [daftar, setDaftar] = useState([]);
-  const [periode, setPeriode] = useState("bulan-ini");
+  const [dariTanggal, setDariTanggal] = useState(awalBulanDefault);
+  const [sampaiTanggal, setSampaiTanggal] = useState(hariIniDefault);
   const [filterStatus, setFilterStatus] = useState("semua"); // "semua" | "belum" | "lunas"
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -25,7 +30,8 @@ export default function RiwayatPenerimaan() {
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (periode) params.set("periode", periode);
+    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (search.trim()) params.set("search", search.trim());
 
     const timer = setTimeout(() => {
@@ -36,7 +42,7 @@ export default function RiwayatPenerimaan() {
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [periode, search]);
+  }, [dariTanggal, sampaiTanggal, search]);
 
   const [konfirmasiBayar, setKonfirmasiBayar] = useState(null);
   const [loadingToggle, setLoadingToggle] = useState(false);
@@ -78,7 +84,7 @@ export default function RiwayatPenerimaan() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Buku Register Penerimaan Barang PBF</h1>
+          <h1 style={{ fontSize: 24 }}>Laporan Penerimaan Barang</h1>
           <p className="halaman-sub">
             {loading ? "Memuat…" : `${daftarTampil.length} faktur tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
           </p>
@@ -111,7 +117,7 @@ export default function RiwayatPenerimaan() {
       <div className="panel">
         <div className="panel-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
           {/* Kotak Pencarian */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 260, maxWidth: 380, background: "var(--surface)", border: "1.5px solid var(--line)", borderRadius: 12, padding: "8px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 240, maxWidth: 340, background: "var(--surface)", border: "1.5px solid var(--line)", borderRadius: 12, padding: "8px 14px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 17, height: 17, color: "var(--ink-soft)" }}>
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
             </svg>
@@ -129,19 +135,40 @@ export default function RiwayatPenerimaan() {
             )}
           </div>
 
-          {/* Filter Periode & Status Bayar */}
+          {/* Filter Rentang Tanggal, Status & Tombol Cetak */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <div className="periode-chips" style={{ margin: 0 }}>
-              {PERIODE.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                  onClick={() => setPeriode(p.key)}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Dari:</span>
+              <input
+                type="date"
+                value={dariTanggal}
+                onChange={(e) => setDariTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Sampai:</span>
+              <input
+                type="date"
+                value={sampaiTanggal}
+                onChange={(e) => setSampaiTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
             </div>
 
             <div className="periode-chips" style={{ margin: 0 }}>
@@ -149,14 +176,42 @@ export default function RiwayatPenerimaan() {
               <button type="button" className={`periode-chip ${filterStatus === "belum" ? "active" : ""}`} onClick={() => setFilterStatus("belum")}>○ Belum Lunas</button>
               <button type="button" className={`periode-chip ${filterStatus === "lunas" ? "active" : ""}`} onClick={() => setFilterStatus("lunas")}>✓ Lunas</button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => cetakLaporanPenerimaan(daftarTampil, { dariTanggal, sampaiTanggal })}
+              disabled={daftarTampil.length === 0}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 16px",
+                borderRadius: 8,
+                background: "var(--magenta)",
+                color: "#fff",
+                border: "none",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: daftarTampil.length === 0 ? "not-allowed" : "pointer",
+                opacity: daftarTampil.length === 0 ? 0.6 : 1,
+                boxShadow: "0 2px 6px rgba(162, 28, 175, 0.2)",
+              }}
+              title="Cetak Laporan Penerimaan Barang untuk seluruh faktur yang tampil"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                <path d="M6 14h12v8H6z" />
+              </svg>
+              Cetak Laporan
+            </button>
           </div>
         </div>
 
         {loading ? (
-          <div className="panel-kosong">Memuat buku register penerimaan…</div>
+          <div className="panel-kosong">Memuat laporan penerimaan…</div>
         ) : daftarTampil.length === 0 ? (
           <div className="panel-kosong">
-            {search ? `Tidak ditemukan faktur untuk pencarian "${search}".` : "Belum ada faktur penerimaan pada periode ini."}
+            {search ? `Tidak ditemukan faktur untuk pencarian "${search}".` : "Belum ada faktur penerimaan pada periode tanggal ini."}
           </div>
         ) : (
           <div className="obat-table-wrap">
@@ -170,7 +225,7 @@ export default function RiwayatPenerimaan() {
                   <th style={{ textAlign: "right", width: 140 }}>Besar Uang</th>
                   <th style={{ width: 120 }}>Tgl Bayar</th>
                   <th style={{ width: 150, textAlign: "center" }}>Status Bayar</th>
-                  <th style={{ width: 80, textAlign: "center" }}>Rincian</th>
+                  <th style={{ width: 130, textAlign: "center" }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,7 +245,7 @@ export default function RiwayatPenerimaan() {
                     : "—";
 
                   return (
-                    <tr key={p.id} className="baris-klik" onClick={() => bukaDetail(p.id)}>
+                    <tr key={p.id} className="baris-klik" onClick={() => bukaDetail(p)}>
                       {/* 1. No Urut */}
                       <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
                         {idx + 1}
@@ -261,28 +316,57 @@ export default function RiwayatPenerimaan() {
                         </button>
                       </td>
 
-                      {/* 8. Rincian Faktur */}
+                      {/* 8. Aksi: Lihat & Cetak */}
                       <td style={{ textAlign: "center" }}>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            bukaDetail(p);
-                          }}
-                          title="Lihat rincian obat pada faktur ini"
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 8,
-                            fontSize: 11.5,
-                            fontWeight: 600,
-                            border: "1px solid var(--line)",
-                            background: "#fff",
-                            color: "var(--magenta-dark)",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Lihat
-                        </button>
+                        <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              bukaDetail(p);
+                            }}
+                            title="Lihat rincian faktur"
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              fontWeight: 600,
+                              border: "1px solid var(--line)",
+                              background: "#fff",
+                              color: "var(--magenta-dark)",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Lihat
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cetakLaporanPenerimaan([p], { dariTanggal: p.tanggal_terima, sampaiTanggal: p.tanggal_terima });
+                            }}
+                            title="Cetak Laporan untuk faktur ini"
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: 6,
+                              fontSize: 11.5,
+                              fontWeight: 600,
+                              border: "1px solid var(--magenta)",
+                              background: "#FAF5FF",
+                              color: "var(--magenta-dark)",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                              <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                              <path d="M6 14h12v8H6z" />
+                            </svg>
+                            Cetak
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

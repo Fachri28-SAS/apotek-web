@@ -195,16 +195,24 @@ class PenerimaanController extends Controller
             });
         }
 
-        match ($r->periode) {
-            'hari-ini' => $q->whereDate('tanggal_terima', now()->toDateString()),
-            'minggu-ini' => $q->whereBetween('tanggal_terima', [now()->startOfWeek(), now()->endOfWeek()]),
-            'bulan-ini' => $q->whereMonth('tanggal_terima', now()->month)->whereYear('tanggal_terima', now()->year),
-            'bulan-lalu' => $q->whereMonth('tanggal_terima', now()->subMonth()->month)
-                              ->whereYear('tanggal_terima', now()->subMonth()->year),
-            default => null,
-        };
+        if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
+            $q->whereBetween('tanggal_terima', [$r->dari_tanggal, $r->sampai_tanggal]);
+        } elseif ($r->filled('dari_tanggal')) {
+            $q->whereDate('tanggal_terima', '>=', $r->dari_tanggal);
+        } elseif ($r->filled('sampai_tanggal')) {
+            $q->whereDate('tanggal_terima', '<=', $r->sampai_tanggal);
+        } elseif ($r->filled('periode')) {
+            match ($r->periode) {
+                'hari-ini' => $q->whereDate('tanggal_terima', now()->toDateString()),
+                'minggu-ini' => $q->whereBetween('tanggal_terima', [now()->startOfWeek(), now()->endOfWeek()]),
+                'bulan-ini' => $q->whereMonth('tanggal_terima', now()->month)->whereYear('tanggal_terima', now()->year),
+                'bulan-lalu' => $q->whereMonth('tanggal_terima', now()->subMonth()->month)
+                                  ->whereYear('tanggal_terima', now()->subMonth()->year),
+                default => null,
+            };
+        }
 
-        return $q->withCount('items')->with('items')->orderByDesc('id')->limit(200)->get();
+        return $q->withCount('items')->with('items')->orderByDesc('tanggal_terima')->orderByDesc('id')->limit(1000)->get();
     }
 
     /** GET /api/penerimaan/{id} — detail lengkap untuk modal Riwayat */
