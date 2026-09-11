@@ -48,7 +48,8 @@ class PenerimaanController extends Controller
             'items' => 'required|array|min:1',
             'items.*.obat_id' => 'required|exists:obat,id',
             'items.*.obat_satuan_id' => 'required|exists:obat_satuan,id',
-            'items.*.qty' => 'required|integer|min:1',
+            'items.*.qty' => 'required|numeric|min:0.01',
+            'items.*.kemasan' => 'nullable|numeric|min:0.01',
             'items.*.harga_beli' => 'required|numeric|min:0',
             'items.*.diskon' => 'nullable|numeric|min:0',
             'items.*.nomor_batch' => 'nullable|string|max:50',
@@ -66,14 +67,15 @@ class PenerimaanController extends Controller
                 $subtotalItem = $it['qty'] * $it['harga_beli'] - $diskonItem;
                 $subtotal += $subtotalItem;
 
-                // Harga sebelumnya = harga yang TERSIMPAN SEKARANG di obat_satuan,
-                // sebelum ditimpa dengan harga baru dari faktur ini. Ini yang
-                // jadi dasar badge "Naik/Turun/Tetap" di frontend.
                 $hargaBeliSebelumnya = $satuan->harga_beli;
                 $hargaJualSaatIni = $satuan->harga_jual;
                 $marginPersen = $hargaJualSaatIni > 0
                     ? round((($hargaJualSaatIni - $it['harga_beli']) / $hargaJualSaatIni) * 100, 2)
                     : null;
+
+                $kemasan = isset($it['kemasan']) && $it['kemasan'] > 0
+                    ? (float) $it['kemasan']
+                    : ($it['qty'] * $satuan->faktor);
 
                 $itemsSiap[] = [
                     'obat_id' => $obat->id,
@@ -82,6 +84,7 @@ class PenerimaanController extends Controller
                     'nama_satuan' => $satuan->nama_satuan,
                     'faktor' => $satuan->faktor,
                     'qty' => $it['qty'],
+                    'kemasan' => $kemasan,
                     'harga_beli' => $it['harga_beli'],
                     'diskon' => $diskonItem,
                     'subtotal' => $subtotalItem,
@@ -126,39 +129,53 @@ class PenerimaanController extends Controller
             foreach ($itemsSiap as $item) {
                 $penerimaan->items()->create($item);
 
+                // Stok masuk dihitung dari kemasan (total unit dasar), fallback ke qty * faktor
+                $stokMasuk = isset($item['kemasan']) && $item['kemasan'] > 0
+                    ? (int) $item['kemasan']
+                    : (int) ($item['qty'] * $item['faktor']);
+
                 // 1. Stok bertambah lewat StokService (tercatat di stok_mutasi)
                 $stok->ubah(
                     $item['obat_id'],
-                    $item['qty'] * $item['faktor'],
+                    $stokMasuk,
                     'masuk',
                     'penerimaan',
                     $penerimaan->id
                 );
 
                 // 2. Harga beli & jual di obat_satuan ikut update ke nilai terbaru.
-                //    harga_beli_sebelumnya (variabel $item['harga_beli_sebelumnya']
-                //    sudah dihitung di atas) ikut disimpan — ini sumber badge
-                //    naik/turun di Data Obat.
                 ObatSatuan::where('id', $item['obat_satuan_id'])->update([
                     'harga_beli' => $item['harga_beli'],
                     'harga_beli_sebelumnya' => $item['harga_beli_sebelumnya'],
                 ]);
 
-                // 3. Nomor batch & tanggal exp di Data Obat ikut update (skema kita
-                //    simplifikasi cuma simpan batch AKTIF/TERBARU di tabel obat)
+                // Jika satuan yang diterima adalah satuan besar (misal Box) dengan faktor/kemasan > 1,
+                // update juga harga_beli pada satuan dasar (faktor = 1) secara proporsional
+                if ($stokMasuk > 0 && $item['qty'] > 0) {
+                    $satuanDasar = ObatSatuan::where('obat_id', $item['obat_id'])
+                        ->where('faktor', 1)
+                        ->first();
+                    if ($satuanDasar && $satuanDasar->id !== $item['obat_satuan_id']) {
+                        $hargaBeliPerUnitDasar = round(($item['qty'] * $item['harga_beli']) / $stokMasuk);
+                        $satuanDasar->update([
+                            'harga_beli' => $hargaBeliPerUnitDasar,
+                        ]);
+                    }
+                }
+
+                // 3. Nomor batch & tanggal exp di Data Obat ikut update
                 if ($item['nomor_batch']) {
                     \App\Models\Obat::where('id', $item['obat_id'])->update([
                         'nomor_batch' => $item['nomor_batch'],
                         'tanggal_exp' => $item['tanggal_exp'],
                     ]);
 
-                    // 4. Catat juga di obat_batch — supaya jadi pilihan dropdown
-                    //    "Batch" di penerimaan berikutnya (histori batch obat ini)
+                    // 4. Catat juga di obat_batch
                     ObatBatch::updateOrCreate(
                         ['obat_id' => $item['obat_id'], 'nomor_batch' => $item['nomor_batch']],
                         [
                             'tanggal_exp' => $item['tanggal_exp'],
-                            'qty_masuk' => $item['qty'] * $item['faktor'],
+                            'qty_masuk' => $stokMasuk,
                             'tanggal_masuk' => $data['tanggal_terima'],
                         ]
                     );

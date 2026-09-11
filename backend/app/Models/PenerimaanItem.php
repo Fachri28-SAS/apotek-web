@@ -13,7 +13,7 @@ class PenerimaanItem extends Model
 
     protected $fillable = [
         'penerimaan_id', 'obat_id', 'obat_satuan_id', 'nama_obat', 'nama_satuan', 'faktor',
-        'qty', 'harga_beli', 'diskon', 'subtotal', 'nomor_batch', 'tanggal_exp',
+        'qty', 'kemasan', 'harga_beli', 'diskon', 'subtotal', 'nomor_batch', 'tanggal_exp',
         'harga_beli_sebelumnya', 'harga_jual_saat_itu', 'margin_persen',
     ];
 

@@ -23,14 +23,14 @@ export default function DetailFakturModal({ data, onClose }) {
 
           <table className="obat-table" style={{ marginTop: 16 }}>
             <thead>
-              <tr><th>Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
+              <tr><th>Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Beli</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
             </thead>
             <tbody>
               {(data.items || []).map((it) => (
                 <tr key={it.id}>
                   <td className="obat-nama-cell">{it.nama_obat}</td>
-                  <td>{it.qty}</td>
-                  <td>{it.nama_satuan}</td>
+                  <td>{it.qty} {it.nama_satuan}</td>
+                  <td>{it.kemasan ?? (Number(it.qty) * Number(it.faktor || 1))}</td>
                   <td className="obat-harga-cell">{rupiah(it.harga_beli)}</td>
                   <td className="obat-harga-cell">{Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}</td>
                   <td className="obat-batch-cell">{it.nomor_batch || "—"}</td>

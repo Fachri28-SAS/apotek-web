@@ -93,14 +93,21 @@ export default function Penerimaan() {
   }
 
   function tambahItem(obat) {
+    const satuanDasar = obat.satuan.find((s) => Number(s.faktor) === 1) || obat.satuan[0];
     const satuan = obat.satuan[0];
+    const faktor = Number(satuan.faktor || 1);
+    const initialQty = 1;
+    const initialKemasan = initialQty * faktor;
+
     setItems((prev) => [...prev, {
       key: Date.now() + Math.random(),
       obat_id: obat.id,
       nama_obat: obat.nama,
       satuanOptions: obat.satuan,
       obat_satuan_id: satuan.id,
-      qty: 1,
+      satuan_dasar_nama: satuanDasar.nama_satuan,
+      qty: initialQty,
+      kemasan: initialKemasan,
       harga_beli: satuan.harga_beli,
       diskon: 0,
       nomor_batch: "",
@@ -115,13 +122,25 @@ export default function Penerimaan() {
     setItems((prev) => prev.map((it) => {
       if (it.key !== key) return it;
       const updated = { ...it, [field]: value };
-      // Kalau satuan diganti, ikut ganti harga referensi & harga_beli_sebelumnya
+
+      // Kalau Qty (Terima) diubah, kemasan otomatis dikalikan faktor: Terima x Isi
+      if (field === "qty") {
+        const s = it.satuanOptions.find((x) => x.id === Number(it.obat_satuan_id));
+        const faktor = Number(s?.faktor || 1);
+        const valQty = Number(value);
+        updated.kemasan = valQty > 0 ? valQty * faktor : "";
+      }
+
+      // Kalau satuan faktur diganti, ganti harga referensi & hitung ulang kemasan
       if (field === "obat_satuan_id") {
         const s = it.satuanOptions.find((s) => s.id === Number(value));
         if (s) {
           updated.harga_beli = s.harga_beli;
           updated.harga_jual_referensi = s.harga_jual;
           updated.harga_beli_sebelumnya = s.harga_beli;
+          const faktor = Number(s.faktor || 1);
+          const valQty = Number(it.qty || 1);
+          updated.kemasan = valQty > 0 ? valQty * faktor : "";
         }
       }
       return updated;
@@ -165,6 +184,7 @@ export default function Penerimaan() {
             obat_id: it.obat_id,
             obat_satuan_id: it.obat_satuan_id,
             qty: Number(it.qty),
+            kemasan: Number(it.kemasan || it.qty),
             harga_beli: Number(it.harga_beli),
             diskon: Number(it.diskon || 0),
             nomor_batch: it.nomor_batch,
@@ -178,94 +198,120 @@ export default function Penerimaan() {
       setNoFaktur("");
       setDiskonFakturRp(0);
       setDiskonFakturPersen(0);
-    } catch (err) {
-      setError(err.message);
+    } catch (e) {
+      setError(e.message || "Gagal menyimpan penerimaan.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <KasirShell>
-      <div className="halaman-header">
+    <KasirShell active="penerimaan">
+      <div className="kasir-page-header">
         <div>
           <h1 style={{ fontSize: 24 }}>Penerimaan Barang</h1>
-          <p className="halaman-sub">Catat faktur pembelian dari supplier</p>
+          <p className="kasir-page-sub">
+            Input faktur pembelian dari supplier (PBF). Stok dan harga beli obat otomatis diperbarui.
+          </p>
         </div>
       </div>
 
-      {error && <div className="login-error">{error}</div>}
-      {sukses && <div className="pesan-sukses">{sukses}</div>}
+      {error && <div className="cart-error-alert" style={{ marginBottom: 16 }}>{error}</div>}
+      {sukses && <div className="struk-alert-sukses" style={{ marginBottom: 16 }}>{sukses}</div>}
 
-      {/* ---------- PANEL 1: FAKTUR PEMBELIAN ---------- */}
-      <div className="panel">
-        <div className="panel-head"><h3>Faktur Pembelian</h3></div>
-        <div className="obat-form-grid">
-          <div className="payment-field">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <label style={{ margin: 0 }}>Supplier</label>
+      {/* ---------- PANEL 1: INFORMASI FAKTUR ---------- */}
+      <div className="panel" style={{ marginBottom: 16 }}>
+        <div className="panel-head"><h3>Informasi Faktur Supplier</h3></div>
+
+        <div className="penerimaan-form-grid">
+          <div className="form-group">
+            <label className="form-label">Supplier *</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <select
+                className="form-control"
+                value={supplierId}
+                onChange={(e) => pilihSupplier(e.target.value)}
+                style={{ flex: 1 }}
+              >
+                <option value="">-- Pilih Supplier --</option>
+                {supplierList.map((s) => (
+                  <option key={s.id} value={s.id}>{s.nama}</option>
+                ))}
+              </select>
               <button
                 type="button"
+                className="btn-tambah-supplier"
                 onClick={() => setModalSupplierOpen(true)}
-                style={{
-                  background: "#FAF5FF",
-                  border: "1px solid var(--magenta)",
-                  borderRadius: 6,
-                  color: "var(--magenta-dark)",
-                  fontWeight: 700,
-                  fontSize: 11.5,
-                  cursor: "pointer",
-                  padding: "2px 8px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
+                title="Kelola Daftar Supplier"
               >
-                + Tambah Supplier
+                + Kelola
               </button>
             </div>
-            <select value={supplierId} onChange={(e) => pilihSupplier(e.target.value)}>
-              <option value="">— Pilih atau ketik manual —</option>
-              {supplierList.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}
-            </select>
-          </div>
-          <div className="payment-field">
-            <label>Nama Supplier</label>
-            <input value={namaSupplier} onChange={(e) => setNamaSupplier(e.target.value)} placeholder="Contoh: PT Kimia Farma Trading" />
-          </div>
-          <div className="payment-field">
-            <label>No. Faktur Supplier</label>
-            <input value={noFaktur} onChange={(e) => setNoFaktur(e.target.value)} placeholder="Contoh: KF-2026-0088" />
-          </div>
-          <div className="payment-field">
-            <label>Tanggal Terima</label>
-            <input type="date" value={tanggalTerima} onChange={(e) => {
-              setTanggalTerima(e.target.value);
-              const opsi = TEMPO_OPSI.find((o) => o.key === tempoLabel);
-              if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(e.target.value, opsi.bulan));
-            }} />
           </div>
 
-          <div className="payment-field" style={{ gridColumn: "1 / -1" }}>
-            <label>Tanggal Jatuh Tempo</label>
+          <div className="form-group">
+            <label className="form-label">Nama Supplier di Faktur *</label>
+            <input
+              type="text"
+              className="form-control"
+              value={namaSupplier}
+              onChange={(e) => setNamaSupplier(e.target.value)}
+              placeholder="Contoh: PT Kimia Farma Trading"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">No. Faktur *</label>
+            <input
+              type="text"
+              className="form-control"
+              value={noFaktur}
+              onChange={(e) => setNoFaktur(e.target.value)}
+              placeholder="Contoh: INV-2026/04/001"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Tanggal Terima *</label>
+            <input
+              type="date"
+              className="form-control"
+              value={tanggalTerima}
+              onChange={(e) => setTanggalTerima(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+            <label className="form-label">Jatuh Tempo Pembayaran</label>
             <div className="tempo-row">
               {TEMPO_OPSI.map((o) => (
-                <button key={o.key} type="button"
-                  className={`periode-chip ${tempoLabel === o.key ? "active" : ""}`}
-                  onClick={() => ubahTempo(o.key)}>
+                <button
+                  key={o.key}
+                  type="button"
+                  className={`btn-tempo ${tempoLabel === o.key ? "aktif" : ""}`}
+                  onClick={() => ubahTempo(o.key)}
+                >
                   {o.label}
                 </button>
               ))}
-              <input type="date" value={tanggalJatuhTempo} onChange={(e) => ubahTanggalTempoManual(e.target.value)} style={{ maxWidth: 170 }} />
+              <input
+                type="date"
+                value={tanggalJatuhTempo}
+                onChange={(e) => ubahTanggalTempoManual(e.target.value)}
+                placeholder="Tanggal Custom"
+              />
             </div>
           </div>
 
-          <div className="payment-field">
-            <label>PKP Supplier</label>
-            <div className="metode-chips">
-              <button type="button" className={`metode-chip ${!isPkp ? "active" : ""}`} onClick={() => setIsPkp(false)}>Non PKP</button>
-              <button type="button" className={`metode-chip ${isPkp ? "active" : ""}`} onClick={() => setIsPkp(true)}>PKP (PPN 11%)</button>
-            </div>
+          <div className="form-group" style={{ gridColumn: "1 / -1" }}>
+            <label className="kategori-checkbox" style={{ marginTop: 4 }}>
+              <input
+                type="checkbox"
+                checked={isPkp}
+                onChange={(e) => setIsPkp(e.target.checked)}
+              />
+              <span><strong>Supplier PKP (Kena PPN 11%)</strong> — centang jika faktur memiliki PPN</span>
+            </label>
           </div>
         </div>
       </div>
@@ -284,7 +330,7 @@ export default function Penerimaan() {
               <table className="obat-table" style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
-                    <th>Nama Obat</th><th>Qty</th><th>Satuan</th><th>Harga Beli</th>
+                    <th>Nama Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Beli</th>
                     <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
@@ -300,11 +346,44 @@ export default function Penerimaan() {
                     return (
                       <tr key={it.key}>
                         <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
-                        <td><input type="number" min="1" className="cart-input-angka" style={{ width: 60 }} value={it.qty} onChange={(e) => ubahItem(it.key, "qty", e.target.value)} /></td>
                         <td>
-                          <select className="cart-input-angka" value={it.obat_satuan_id} onChange={(e) => ubahItem(it.key, "obat_satuan_id", e.target.value)}>
-                            {it.satuanOptions.map((s) => <option key={s.id} value={s.id}>{s.nama_satuan}</option>)}
-                          </select>
+                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                            <input
+                              type="number"
+                              min="1"
+                              className="cart-input-angka"
+                              style={{ width: 52 }}
+                              value={it.qty}
+                              onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
+                              title="Jumlah unit faktur yang diterima (misal 6)"
+                            />
+                            <select
+                              className="cart-input-angka"
+                              style={{ minWidth: 70 }}
+                              value={it.obat_satuan_id}
+                              onChange={(e) => ubahItem(it.key, "obat_satuan_id", e.target.value)}
+                            >
+                              {it.satuanOptions.map((s) => (
+                                <option key={s.id} value={s.id}>{s.nama_satuan}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                            <input
+                              type="number"
+                              min="1"
+                              className="cart-input-angka"
+                              style={{ width: 62 }}
+                              value={it.kemasan}
+                              onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
+                              title="Total isi kemasan / stok unit masuk (misal 60)"
+                            />
+                            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>
+                              {it.satuan_dasar_nama || ""}
+                            </span>
+                          </div>
                         </td>
                         <td>
                           <input type="number" min="0" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
