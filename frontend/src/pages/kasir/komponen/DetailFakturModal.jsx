@@ -50,7 +50,7 @@ export default function DetailFakturModal({ data, onClose }) {
 
           <table className="obat-table" style={{ marginTop: 16 }}>
             <thead>
-              <tr><th>Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Beli</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
+              <tr><th>Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Satuan</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
             </thead>
             <tbody>
               {(data.items || []).map((it) => (

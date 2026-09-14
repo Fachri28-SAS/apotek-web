@@ -280,7 +280,7 @@ export default function Penerimaan() {
               <table className="obat-table" style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
-                    <th>Nama Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Beli</th>
+                    <th>Nama Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Satuan</th>
                     <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
