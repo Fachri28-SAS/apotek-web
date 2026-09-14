@@ -16,7 +16,7 @@ function getGambarObatUrl(itemOrObat) {
     return src;
   }
   const clean = src.replace(/^\/?(api\/)?storage\//, "");
-  return `https://api.apotekbimafarma.com/storage/${clean}`;
+  return `/storage/${clean}`;
 }
 
 export default function Landing() {
