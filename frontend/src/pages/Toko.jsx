@@ -67,7 +67,17 @@ export default function Toko() {
     const params = new URLSearchParams({ untuk: "toko" });
     if (search) params.set("search", search);
     api(`/obat?${params}`)
-      .then(setProduk)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProduk(data);
+        } else {
+          setProduk([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Gagal muat obat toko:", err);
+        setProduk([]);
+      })
       .finally(() => {
         if (!silent) setLoading(false);
       });
@@ -299,7 +309,7 @@ export default function Toko() {
       <section className="produk-section wrap" id="katalog-produk">
         <div className="result-meta">
           <span>
-            {loading ? "Memuat…" : `${produk.length} produk tersedia • Halaman ${halaman} dari ${totalHalaman}`}
+            {loading ? "Memuat…" : `${(produk || []).length} produk tersedia • Halaman ${halaman} dari ${totalHalaman}`}
           </span>
         </div>
         <div className="produk-grid">
@@ -519,7 +529,7 @@ export default function Toko() {
 
           {/* ---- TAHAP 1: KERANJANG ---- */}
           {tahap === "keranjang" && (
-            cart.length === 0 ? (
+            (cart || []).length === 0 ? (
               <div className="cart-empty">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" /></svg>
                 Keranjang masih kosong.
@@ -712,7 +722,7 @@ export default function Toko() {
         </div>
 
         <div className="drawer-foot">
-          {tahap === "keranjang" && cart.length > 0 && (
+          {tahap === "keranjang" && (cart || []).length > 0 && (
             <>
               <div className="sum-row total"><span>Total</span><span>{rupiah(totalKeranjang)}</span></div>
               <button className="btn-full" onClick={() => setTahap("checkout")}>Checkout</button>
