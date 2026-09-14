@@ -1,6 +1,8 @@
-﻿User-agent: *
+User-agent: *
 Allow: /
 Disallow: /kasir/
 Disallow: /login
+User-agent: Googlebot-Favicon
+Allow: /
 
 Sitemap: https://apotekbimafarma.com/sitemap.xml
