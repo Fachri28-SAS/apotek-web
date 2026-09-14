@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
@@ -58,6 +58,10 @@ export default function Toko() {
   const [teleponPembeli, setTeleponPembeli] = useState("");
   const [alamatKirim, setAlamatKirim] = useState("");
 
+  // Pagination Toko: 15 produk per halaman (3 baris x 5 kolom di desktop)
+  const [halaman, setHalaman] = useState(1);
+  const ITEM_PER_HALAMAN = 15;
+
   function muatProduk(silent = false) {
     if (!silent) setLoading(true);
     const params = new URLSearchParams({ untuk: "toko" });
@@ -69,21 +73,38 @@ export default function Toko() {
       });
   }
 
-  // Muat produk saat user mengetik di pencarian
+  // Muat produk saat user mengetik di pencarian & reset ke halaman 1
   useEffect(() => {
+    setHalaman(1);
     const timer = setTimeout(() => muatProduk(false), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Realtime Polling: Perbarui daftar obat & foto terbaru secara otomatis di background setiap 5 detik
+  // Background Polling: Perbarui daftar obat di background setiap 45 detik (hanya saat tab aktif)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
         muatProduk(true);
       }
-    }, 5000);
+    }, 45000);
     return () => clearInterval(interval);
   }, [search]);
+
+  // Hitung produk terpaginasi
+  const totalHalaman = Math.max(1, Math.ceil((produk || []).length / ITEM_PER_HALAMAN));
+  const paginatedProduk = useMemo(() => {
+    const mulai = (halaman - 1) * ITEM_PER_HALAMAN;
+    return (produk || []).slice(mulai, mulai + ITEM_PER_HALAMAN);
+  }, [produk, halaman]);
+
+  function gantiHalaman(nomor) {
+    if (nomor < 1 || nomor > totalHalaman || nomor === halaman) return;
+    setHalaman(nomor);
+    const el = document.getElementById("katalog-produk");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
 
   function tambahKeKeranjang(obat) {
     if (obat.perlu_resep) return; // dijaga juga, tombol sudah disabled di UI
@@ -275,10 +296,14 @@ export default function Toko() {
         </button>
       </div>
 
-      <section className="produk-section wrap">
-        <div className="result-meta"><span>{loading ? "Memuat…" : `${produk.length} produk tersedia`}</span></div>
+      <section className="produk-section wrap" id="katalog-produk">
+        <div className="result-meta">
+          <span>
+            {loading ? "Memuat…" : `${produk.length} produk tersedia • Halaman ${halaman} dari ${totalHalaman}`}
+          </span>
+        </div>
         <div className="produk-grid">
-          {produk.map((obat) => {
+          {paginatedProduk.map((obat) => {
             const satuan = obat.satuan?.[0];
             const stokTersedia = satuan?.faktor ? Math.floor(obat.stok / satuan.faktor) : Number(obat.stok || 0);
             const namaSatuan = satuan?.nama_satuan || obat.kemasan || obat.satuan_dasar || "Pcs";
@@ -296,6 +321,8 @@ export default function Toko() {
                     <img
                       src={imgUrl}
                       alt={obat.nama}
+                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       onError={(e) => {
                         if (!e.target.dataset.triedApi) {
@@ -412,6 +439,64 @@ export default function Toko() {
             );
           })}
         </div>
+
+        {/* Controls Navigasi Pagination */}
+        {totalHalaman > 1 && (
+          <div className="pagination-wrap">
+            <button
+              type="button"
+              className="pagination-btn pagination-nav"
+              disabled={halaman <= 1}
+              onClick={() => gantiHalaman(halaman - 1)}
+              title="Halaman Sebelumnya"
+            >
+              ← Sebelumnya
+            </button>
+
+            <div className="pagination-pages">
+              {Array.from({ length: totalHalaman }, (_, i) => i + 1)
+                .filter((p) => {
+                  return p === 1 || p === totalHalaman || Math.abs(p - halaman) <= 1;
+                })
+                .reduce((acc, p, idx, arr) => {
+                  if (idx > 0 && p - arr[idx - 1] > 1) {
+                    acc.push("dots-" + p);
+                  }
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item) => {
+                  if (typeof item === "string") {
+                    return (
+                      <span key={item} className="pagination-dots">
+                        …
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`pagination-btn ${item === halaman ? "active" : ""}`}
+                      onClick={() => gantiHalaman(item)}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+            </div>
+
+            <button
+              type="button"
+              className="pagination-btn pagination-nav"
+              disabled={halaman >= totalHalaman}
+              onClick={() => gantiHalaman(halaman + 1)}
+              title="Halaman Selanjutnya"
+            >
+              Selanjutnya →
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ---------- OVERLAY + DRAWER ---------- */}

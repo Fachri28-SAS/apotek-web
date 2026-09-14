@@ -131,10 +131,10 @@ function TokoPreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api("/obat?untuk=toko")
+    api("/obat?untuk=toko&limit=8")
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          setDaftarProduk(data.slice(0, 8));
+          setDaftarProduk(data);
         } else {
           setDaftarProduk(PRODUK_FALLBACK);
         }
@@ -171,7 +171,13 @@ function TokoPreview() {
                 {/* Header Foto / Visual Produk */}
                 <div className="produk-thumb-box">
                   {fotoUrl ? (
-                    <img src={fotoUrl} alt={p.nama} className="produk-thumb-img" />
+                    <img
+                      src={fotoUrl}
+                      alt={p.nama}
+                      className="produk-thumb-img"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className="produk-thumb-placeholder">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="produk-thumb-icon">

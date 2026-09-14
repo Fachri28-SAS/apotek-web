@@ -140,6 +140,8 @@
   background: var(--surface); border: 1.5px solid var(--line); border-radius: 18px; overflow: hidden;
   display: flex; flex-direction: column; position: relative; transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  content-visibility: auto;
+  contain-intrinsic-size: 280px;
 }
 .toko-page .produk-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: transparent; }
 
@@ -197,6 +199,89 @@
 .toko-page .mini-btn svg { width: 16px; height: 16px; }
 .toko-page .mini-btn:hover:not(:disabled) { background: var(--magenta); color: #fff; }
 .toko-page .mini-btn.added { background: var(--green); color: #fff; }
+
+/* ---------- PAGINATION TOKO ---------- */
+.pagination-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pagination-btn {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
+  background: var(--magenta-tint);
+  transform: translateY(-1px);
+}
+
+.pagination-btn.active {
+  background: var(--magenta);
+  color: #ffffff;
+  border-color: var(--magenta);
+  box-shadow: 0 4px 12px rgba(163, 22, 112, 0.28);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination-nav {
+  padding: 0 16px;
+  font-size: 12.5px;
+}
+
+.pagination-dots {
+  padding: 0 6px;
+  color: var(--ink-soft);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 640px) {
+  .pagination-wrap {
+    gap: 6px;
+    margin-top: 28px;
+  }
+  .pagination-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  .pagination-nav {
+    padding: 0 10px;
+  }
+}
 
 /* ---------- DRAWER KERANJANG (LEGA & TOUCH-FRIENDLY) ---------- */
 .toko-page .overlay {
