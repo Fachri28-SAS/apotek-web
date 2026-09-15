@@ -65,11 +65,7 @@ export default function Toko() {
   function muatProduk(silent = false) {
     if (!silent) setLoading(true);
     const params = new URLSearchParams({ untuk: "toko" });
-    if (search) {
-      params.set("search", search);
-    } else {
-      params.set("limit", "80");
-    }
+    if (search) params.set("search", search);
     api(`/obat?${params}`)
       .then((data) => {
         if (Array.isArray(data)) {
