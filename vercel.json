@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "http://api.apotekbimafarma.com/api/:match*"
+    },
+    {
+      "source": "/storage/:match*",
+      "destination": "http://api.apotekbimafarma.com/storage/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
