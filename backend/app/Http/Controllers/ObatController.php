@@ -101,8 +101,18 @@ class ObatController extends Controller
             $gambarPath = null;
             if (!empty($data['gambar_base64'])) {
                 if (preg_match('/^data:image\/(\w+);base64,/', $data['gambar_base64'], $tipe)) {
-                    $ekstensi = $tipe[1] === 'jpeg' ? 'jpg' : $tipe[1];
+                    // Validasi: hanya izinkan ekstensi gambar yang aman
+                    $ekstensiDiizinkan = ['jpeg', 'jpg', 'png', 'webp'];
+                    $ekstensiRaw = strtolower($tipe[1]);
+                    if (!in_array($ekstensiRaw, $ekstensiDiizinkan)) {
+                        abort(422, 'Tipe file gambar tidak didukung. Gunakan JPEG, PNG, atau WebP.');
+                    }
+                    $ekstensi = $ekstensiRaw === 'jpeg' ? 'jpg' : $ekstensiRaw;
                     $isiFile = base64_decode(substr($data['gambar_base64'], strpos($data['gambar_base64'], ',') + 1));
+                    // Batasi ukuran: maksimal 2MB
+                    if (strlen($isiFile) > 2 * 1024 * 1024) {
+                        abort(422, 'Ukuran gambar maksimal 2MB.');
+                    }
                     $namaFile = 'obat-' . uniqid() . '-' . time() . '.' . $ekstensi;
                     Storage::disk('public')->put('obat/' . $namaFile, $isiFile);
                     $gambarPath = 'obat/' . $namaFile;
@@ -155,8 +165,18 @@ class ObatController extends Controller
 
         if (!empty($data['gambar_base64'])) {
             if (preg_match('/^data:image\/(\w+);base64,/', $data['gambar_base64'], $tipe)) {
-                $ekstensi = $tipe[1] === 'jpeg' ? 'jpg' : $tipe[1];
+                // Validasi: hanya izinkan ekstensi gambar yang aman
+                $ekstensiDiizinkan = ['jpeg', 'jpg', 'png', 'webp'];
+                $ekstensiRaw = strtolower($tipe[1]);
+                if (!in_array($ekstensiRaw, $ekstensiDiizinkan)) {
+                    abort(422, 'Tipe file gambar tidak didukung. Gunakan JPEG, PNG, atau WebP.');
+                }
+                $ekstensi = $ekstensiRaw === 'jpeg' ? 'jpg' : $ekstensiRaw;
                 $isiFile = base64_decode(substr($data['gambar_base64'], strpos($data['gambar_base64'], ',') + 1));
+                // Batasi ukuran: maksimal 2MB
+                if (strlen($isiFile) > 2 * 1024 * 1024) {
+                    abort(422, 'Ukuran gambar maksimal 2MB.');
+                }
                 $namaFile = 'obat-' . $obat->id . '-' . time() . '.' . $ekstensi;
                 Storage::disk('public')->put('obat/' . $namaFile, $isiFile);
                 $data['gambar'] = 'obat/' . $namaFile;
