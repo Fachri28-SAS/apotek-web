@@ -1,4 +1,28 @@
 {
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/workbox-(.*).js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:match*",
@@ -9,7 +33,7 @@
       "destination": "http://api.apotekbimafarma.com/storage/:match*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!sw\\.js$|workbox-.*\\.js$|manifest\\.webmanifest$|registerSW\\.js$).*)",
       "destination": "/index.html"
     }
   ]
