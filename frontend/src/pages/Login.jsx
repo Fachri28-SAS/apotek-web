@@ -177,7 +177,7 @@ export default function Login() {
                   <input
                     id="kunciAkses"
                     type={showKunci ? "text" : "password"}
-                    placeholder="Masukkan kunci izin (contoh: bima2026)"
+                    placeholder="Masukkan kunci izin..."
                     value={inputKunci}
                     onChange={(e) => setInputKunci(e.target.value)}
                     autoFocus
