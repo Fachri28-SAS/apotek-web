@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
+import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
+import TombolExportGroup from "./komponen/TombolExportGroup";
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -124,6 +126,113 @@ export default function Laporan() {
   }, [periode]);
 
   var labelPeriode = PERIODE.find(function(p){ return p.key === periode; }).label;
+
+  function siapkanDataExportLaporan() {
+    var transaksi = data && data.transaksi ? data.transaksi : [];
+    var headers = [
+      { label: "No.", align: "center", width: "30px" },
+      { label: "No. Struk", align: "left" },
+      { label: "Sumber", align: "center" },
+      { label: "Waktu", align: "center" },
+      { label: "Kasir", align: "left" },
+      { label: "Pembeli", align: "left" },
+      { label: "Item", align: "center" },
+      { label: "Total Jual", align: "right" },
+      { label: "Modal (HPP)", align: "right" },
+      { label: "Pendapatan (Laba)", align: "right" },
+      { label: "Margin", align: "center" },
+      { label: "Metode", align: "center" },
+    ];
+
+    var totalJual = 0;
+    var totalModal = 0;
+    var totalLaba = 0;
+
+    var rows = transaksi.map(function(t, idx) {
+      totalJual += Number(t.total || 0);
+      totalModal += Number(t.total_modal || 0);
+      totalLaba += Number(t.total_pendapatan || 0);
+
+      return [
+        idx + 1,
+        t.no_struk,
+        t.sumber === "online" ? "Toko Online" : "Kasir",
+        new Date(t.created_at).toLocaleString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        t.nama_kasir || "-",
+        t.nama_pembeli || "-",
+        t.items_count || 0,
+        rupiah(t.total),
+        rupiah(t.total_modal || 0),
+        rupiah(t.total_pendapatan || 0),
+        (t.margin_persen || 0) + "%",
+        t.metode_bayar || "-",
+      ];
+    });
+
+    var footers = [
+      [
+        { label: "Grand Total (" + rows.length + " Transaksi) :", colspan: 7, align: "right" },
+        { label: rupiah(totalJual), align: "right" },
+        { label: rupiah(totalModal), align: "right" },
+        { label: rupiah(totalLaba), align: "right" },
+        {
+          label: totalJual > 0 ? Math.round((totalLaba / totalJual) * 100) + "%" : "0%",
+          align: "center",
+        },
+        { label: "-", align: "center" },
+      ],
+    ];
+
+    return { headers, rows, footers };
+  }
+
+  function handleCetakLaporan() {
+    var exp = siapkanDataExportLaporan();
+    cetakDokumenA4({
+      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      periode: labelPeriode,
+      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
+      headers: exp.headers,
+      rows: exp.rows,
+      footers: exp.footers,
+      orientation: "landscape",
+      namaUser: "Kasir Apotek",
+    });
+  }
+
+  function handleExcelLaporan() {
+    var exp = siapkanDataExportLaporan();
+    exportExcel({
+      filename: "laporan-penjualan-" + periode,
+      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      periode: labelPeriode,
+      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
+      headers: exp.headers,
+      rows: exp.rows,
+      footers: exp.footers,
+    });
+  }
+
+  function handleWordLaporan() {
+    var exp = siapkanDataExportLaporan();
+    exportWord({
+      filename: "laporan-penjualan-" + periode,
+      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      periode: labelPeriode,
+      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
+      headers: exp.headers,
+      rows: exp.rows,
+      footers: exp.footers,
+      orientation: "landscape",
+      namaUser: "Kasir Apotek",
+    });
+  }
 
   if (!loading && !data) {
     return (
@@ -300,16 +409,14 @@ export default function Laporan() {
       </div>
 
       <div className="panel">
-        <div className="panel-head">
+        <div className="panel-head" style={{ flexWrap: "wrap", gap: 10 }}>
           <h3>Transaksi ({labelPeriode})</h3>
-          <button
-            className="btn-tambah"
-            onClick={function(){ exportCSV(data && data.transaksi ? data.transaksi : []); }}
+          <TombolExportGroup
+            onCetakPdf={handleCetakLaporan}
+            onExportExcel={handleExcelLaporan}
+            onExportWord={handleWordLaporan}
             disabled={!data || !data.transaksi || !data.transaksi.length}
-            style={{ fontSize: 12.5 }}
-          >
-            Export CSV
-          </button>
+          />
         </div>
         {!loading && data && data.transaksi && data.transaksi.length ? (
           <div className="obat-table-wrap">

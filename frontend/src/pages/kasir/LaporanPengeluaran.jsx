@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { useAuth } from "../../context/useAuth";
+import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
+import TombolExportGroup from "./komponen/TombolExportGroup";
 
 const PERIODE = [
   { key: "hari-ini", label: "Hari Ini" },
@@ -153,6 +155,141 @@ export default function LaporanPengeluaran() {
     a.download = `laporan-pengeluaran-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function siapkanDataExportPengeluaran() {
+    if (!data) return { headers: [], rows: [], footers: [], keterangan: "", judul: "LAPORAN PENGELUARAN" };
+
+    let headers = [];
+    let rows = [];
+    let footers = [];
+    let keterangan = "";
+    let judul = "LAPORAN PENGELUARAN";
+
+    if (tabAktif === "supplier") {
+      judul = "LAPORAN PEMBELIAN / FAKTUR SUPPLIER";
+      keterangan = `Rekap Faktur Pembelian Obat (${labelPeriode})`;
+      headers = [
+        { label: "No.", align: "center", width: "35px" },
+        { label: "Tanggal Terima", align: "center" },
+        { label: "Nama Supplier", align: "left" },
+        { label: "No. Faktur", align: "left" },
+        { label: "Total Faktur", align: "right" },
+        { label: "Status Bayar", align: "center" },
+        { label: "Jatuh Tempo", align: "center" },
+      ];
+
+      let totalFaktur = 0;
+      rows = (data.penerimaan || []).map((p, idx) => {
+        totalFaktur += Number(p.total || 0);
+        return [
+          idx + 1,
+          p.tanggal_terima ? new Date(p.tanggal_terima).toLocaleDateString("id-ID") : "-",
+          p.nama_supplier || "-",
+          p.no_faktur || "-",
+          rupiah(p.total),
+          p.status_bayar === "lunas" ? "LUNAS" : "BELUM LUNAS",
+          p.tanggal_jatuh_tempo ? new Date(p.tanggal_jatuh_tempo).toLocaleDateString("id-ID") : "-",
+        ];
+      });
+
+      footers = [
+        [
+          { label: `Total (${rows.length} Faktur) :`, colspan: 4, align: "right" },
+          { label: rupiah(totalFaktur), align: "right" },
+          { label: "-", align: "center", colspan: 2 },
+        ],
+      ];
+    } else {
+      const isGaji = tabAktif === "gaji";
+      judul = isGaji ? "LAPORAN PENGELUARAN GAJI KARYAWAN" : "LAPORAN KAS PENGELUARAN OPERASIONAL";
+      keterangan = isGaji
+        ? `Rekapitulasi Penggajian Karyawan (${labelPeriode})`
+        : `Rekapitulasi Seluruh Beban Operasional Apotek (${labelPeriode})`;
+
+      headers = [
+        { label: "No.", align: "center", width: "35px" },
+        { label: "Tanggal", align: "center" },
+        { label: "Kategori", align: "left" },
+        { label: "Nama Pengeluaran", align: "left" },
+        { label: "Nominal", align: "right" },
+        { label: "Metode", align: "center" },
+        { label: "Keterangan", align: "left" },
+        { label: "Pencatat", align: "left" },
+      ];
+
+      const listOperasional = isGaji
+        ? (data.operasional || []).filter((o) => o.kategori === "gaji")
+        : (data.operasional || []);
+
+      let totalNominal = 0;
+      rows = listOperasional.map((o, idx) => {
+        const katLabel = KATEGORI_OPTIONS.find((k) => k.key === o.kategori)?.label || o.kategori;
+        totalNominal += Number(o.nominal || 0);
+        return [
+          idx + 1,
+          o.tanggal ? new Date(o.tanggal).toLocaleDateString("id-ID") : "-",
+          katLabel,
+          o.nama_pengeluaran,
+          rupiah(o.nominal),
+          o.metode_bayar ? o.metode_bayar.toUpperCase() : "-",
+          o.keterangan || "-",
+          o.nama_kasir || "-",
+        ];
+      });
+
+      footers = [
+        [
+          { label: `Total (${rows.length} Catatan) :`, colspan: 4, align: "right" },
+          { label: rupiah(totalNominal), align: "right" },
+          { label: "-", align: "center", colspan: 3 },
+        ],
+      ];
+    }
+
+    return { judul, headers, rows, footers, keterangan };
+  }
+
+  function handleCetakPengeluaran() {
+    const { judul, headers, rows, footers, keterangan } = siapkanDataExportPengeluaran();
+    cetakDokumenA4({
+      judul,
+      periode: labelPeriode,
+      keterangan,
+      headers,
+      rows,
+      footers,
+      orientation: "portrait",
+      namaUser: user?.nama || "Admin / Kasir",
+    });
+  }
+
+  function handleExcelPengeluaran() {
+    const { judul, headers, rows, footers, keterangan } = siapkanDataExportPengeluaran();
+    exportExcel({
+      filename: `pengeluaran-${tabAktif}-${periode}`,
+      judul,
+      periode: labelPeriode,
+      keterangan,
+      headers,
+      rows,
+      footers,
+    });
+  }
+
+  function handleWordPengeluaran() {
+    const { judul, headers, rows, footers, keterangan } = siapkanDataExportPengeluaran();
+    exportWord({
+      filename: `pengeluaran-${tabAktif}-${periode}`,
+      judul,
+      periode: labelPeriode,
+      keterangan,
+      headers,
+      rows,
+      footers,
+      orientation: "portrait",
+      namaUser: user?.nama || "Admin / Kasir",
+    });
   }
 
   return (
@@ -327,14 +464,12 @@ export default function LaporanPengeluaran() {
               Faktur Supplier / Kulakan ({data?.penerimaan?.length || 0})
             </button>
           </div>
-          <button
-            className="btn-tambah"
-            onClick={exportCSV}
+          <TombolExportGroup
+            onCetakPdf={handleCetakPengeluaran}
+            onExportExcel={handleExcelPengeluaran}
+            onExportWord={handleWordPengeluaran}
             disabled={!data || (!data.operasional?.length && !data.penerimaan?.length)}
-            style={{ fontSize: 12.5 }}
-          >
-            Export CSV
-          </button>
+          />
         </div>
 
         {/* TAB 1: KAS OPERASIONAL & TAB KHUSUS GAJI */}

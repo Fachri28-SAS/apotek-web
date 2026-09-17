@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { cetakLaporanPenerimaan } from "../../utils/cetakLaporanPenerimaan";
+import { exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
+import TombolExportGroup from "./komponen/TombolExportGroup";
 
 function getTglYmd(d) {
   const yyyy = d.getFullYear();
@@ -79,6 +81,74 @@ export default function RiwayatPenerimaan() {
   const totalTagihan = daftarTampil.reduce((s, p) => s + Number(p.total || 0), 0);
   const totalLunas = daftarTampil.filter((p) => p.status_bayar === "lunas").reduce((s, p) => s + Number(p.total || 0), 0);
   const totalBelumLunas = daftarTampil.filter((p) => p.status_bayar === "belum").reduce((s, p) => s + Number(p.total || 0), 0);
+
+  function siapkanDataExportPenerimaan() {
+    const headers = [
+      { label: "No.", align: "center", width: "35px" },
+      { label: "Tgl Terima", align: "center" },
+      { label: "Nama Supplier", align: "left" },
+      { label: "No. Faktur", align: "left" },
+      { label: "Jatuh Tempo", align: "center" },
+      { label: "Total Faktur", align: "right" },
+      { label: "Status Bayar", align: "center" },
+      { label: "Jumlah Item", align: "center" },
+    ];
+
+    let grandTotal = 0;
+    const rows = daftarTampil.map((p, idx) => {
+      grandTotal += Number(p.total || 0);
+      return [
+        idx + 1,
+        p.tanggal_terima ? new Date(p.tanggal_terima).toLocaleDateString("id-ID") : "-",
+        p.nama_supplier || "-",
+        p.no_faktur || "-",
+        p.tanggal_jatuh_tempo ? new Date(p.tanggal_jatuh_tempo).toLocaleDateString("id-ID") : "-",
+        rupiah(p.total),
+        p.status_bayar === "lunas" ? "LUNAS" : "BELUM LUNAS",
+        p.items?.length || 0,
+      ];
+    });
+
+    const footers = [
+      [
+        { label: `Total (${rows.length} Faktur) :`, colspan: 5, align: "right" },
+        { label: rupiah(grandTotal), align: "right" },
+        { label: "-", align: "center", colspan: 2 },
+      ],
+    ];
+
+    const periodeTeks = dariTanggal && sampaiTanggal ? `${dariTanggal} s/d ${sampaiTanggal}` : "Semua Periode";
+
+    return { headers, rows, footers, periodeTeks };
+  }
+
+  function handleExcelPenerimaan() {
+    const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
+    exportExcel({
+      filename: `laporan-penerimaan-faktur`,
+      judul: "LAPORAN PENERIMAAN BARANG",
+      periode: periodeTeks,
+      keterangan: `Rekapitulasi Faktur Penerimaan Barang / Kulakan`,
+      headers,
+      rows,
+      footers,
+    });
+  }
+
+  function handleWordPenerimaan() {
+    const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
+    exportWord({
+      filename: `laporan-penerimaan-faktur`,
+      judul: "LAPORAN PENERIMAAN BARANG",
+      periode: periodeTeks,
+      keterangan: `Rekapitulasi Faktur Penerimaan Barang / Kulakan`,
+      headers,
+      rows,
+      footers,
+      orientation: "landscape",
+      namaUser: "Apoteker / Kasir",
+    });
+  }
 
   return (
     <KasirShell>
@@ -177,33 +247,12 @@ export default function RiwayatPenerimaan() {
               <button type="button" className={`periode-chip ${filterStatus === "lunas" ? "active" : ""}`} onClick={() => setFilterStatus("lunas")}>✓ Lunas</button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => cetakLaporanPenerimaan(daftarTampil, { dariTanggal, sampaiTanggal })}
+            <TombolExportGroup
+              onCetakPdf={() => cetakLaporanPenerimaan(daftarTampil, { dariTanggal, sampaiTanggal })}
+              onExportExcel={handleExcelPenerimaan}
+              onExportWord={handleWordPenerimaan}
               disabled={daftarTampil.length === 0}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
-                background: "var(--magenta)",
-                color: "#fff",
-                border: "none",
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: daftarTampil.length === 0 ? "not-allowed" : "pointer",
-                opacity: daftarTampil.length === 0 ? 0.6 : 1,
-                boxShadow: "0 2px 6px rgba(162, 28, 175, 0.2)",
-              }}
-              title="Cetak Laporan Penerimaan Barang untuk seluruh faktur yang tampil"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
-                <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-                <path d="M6 14h12v8H6z" />
-              </svg>
-              Cetak Laporan
-            </button>
+            />
           </div>
         </div>
 

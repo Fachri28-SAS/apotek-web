@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
+import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
 import SampahModal from "./komponen/SampahModal";
 import RiwayatPengadaanModal from "./komponen/RiwayatPengadaanModal";
+import TombolExportGroup from "./komponen/TombolExportGroup";
 
 function daysUntil(dateStr) {
   if (!dateStr) return null;
@@ -182,6 +184,118 @@ export default function DataObat() {
     }
   }
 
+  function siapkanDataExport() {
+    const headers = [
+      { label: "No.", align: "center", width: "35px" },
+      { label: "Nama Obat", align: "left" },
+      { label: "Kemasan", align: "left" },
+      { label: "Satuan", align: "left" },
+      { label: "No. Batch", align: "center" },
+      { label: "Harga Beli", align: "right" },
+      { label: "Harga Jual", align: "right" },
+      { label: "Margin", align: "center" },
+      { label: "Stok", align: "right" },
+      { label: "Expired", align: "center" },
+    ];
+
+    let totalAsetStok = 0;
+    let totalFisikStok = 0;
+
+    const rows = daftarTampil.map((obat, idx) => {
+      const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
+      const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ") || obat.satuan_dasar || "-";
+      const hargaBeli = obat.satuan?.length > 1
+        ? obat.satuan.map((s) => rupiah(s.harga_beli)).join(" / ")
+        : rupiah(def?.harga_beli);
+      const hargaJual = obat.satuan?.length > 1
+        ? obat.satuan.map((s) => rupiah(s.harga_jual)).join(" / ")
+        : rupiah(def?.harga_jual);
+      const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
+      const mStat = getStatusMargin(mNum);
+      const expStr = obat.tanggal_exp
+        ? new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+        : "-";
+
+      const stokNum = Number(obat.stok || 0);
+      const beliNum = Number(def?.harga_beli || 0);
+      totalAsetStok += stokNum * beliNum;
+      totalFisikStok += stokNum;
+
+      return [
+        idx + 1,
+        obat.nama,
+        obat.kemasan || "-",
+        satuanNames,
+        obat.nomor_batch || "-",
+        hargaBeli,
+        hargaJual,
+        mStat.label,
+        `${stokNum} ${obat.satuan_dasar || ""}`,
+        expStr,
+      ];
+    });
+
+    const footers = [
+      [
+        {
+          label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Estimasi Nilai Stok: ${rupiah(totalAsetStok)}`,
+          colspan: 10,
+          align: "right",
+        },
+      ],
+    ];
+
+    const keterangan = filterMarginTipis
+      ? "Filter Khusus Obat Margin Bermasalah (< 20%)"
+      : search
+      ? `Hasil Pencarian: "${search}"`
+      : "Seluruh Inventori Data Obat";
+
+    return { headers, rows, footers, keterangan };
+  }
+
+  function handleCetakDataObat() {
+    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    cetakDokumenA4({
+      judul: "LAPORAN DATA OBAT",
+      periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
+      keterangan,
+      headers,
+      rows,
+      footers,
+      orientation: "landscape",
+      namaUser: "Apoteker / Petugas Kasir",
+    });
+  }
+
+  function handleExcelDataObat() {
+    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    exportExcel({
+      filename: "data-obat-apotek-bima-farma",
+      judul: "LAPORAN DATA OBAT",
+      periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
+      keterangan,
+      headers,
+      rows,
+      footers,
+    });
+  }
+
+  function handleWordDataObat() {
+    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    exportWord({
+      filename: "data-obat-apotek-bima-farma",
+      judul: "LAPORAN DATA OBAT",
+      periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
+      keterangan,
+      headers,
+      rows,
+      footers,
+      orientation: "landscape",
+      namaUser: "Apoteker / Petugas Kasir",
+    });
+  }
+
   return (
     <KasirShell>
       <div className="halaman-header">
@@ -193,7 +307,13 @@ export default function DataObat() {
               : `${daftar.length} obat terdaftar`}
           </p>
         </div>
-        <div className="halaman-header-aksi">
+        <div className="halaman-header-aksi" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <TombolExportGroup
+            onCetakPdf={handleCetakDataObat}
+            onExportExcel={handleExcelDataObat}
+            onExportWord={handleWordDataObat}
+            disabled={daftarTampil.length === 0}
+          />
           <button className="btn-sampah" onClick={() => setSampahOpen(true)}>🗑 Sampah</button>
           <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
         </div>
