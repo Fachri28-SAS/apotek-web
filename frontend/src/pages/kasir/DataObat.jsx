@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
@@ -35,6 +36,7 @@ function badgeHargaBeli(satuan) {
 }
 
 export default function DataObat() {
+  const { user } = useAuth();
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -246,10 +248,10 @@ export default function DataObat() {
     ];
 
     const keterangan = filterMarginTipis
-      ? "Filter Khusus Obat Margin Bermasalah (< 20%)"
+      ? "Obat Margin < 20%"
       : search
-      ? `Hasil Pencarian: "${search}"`
-      : "Seluruh Inventori Data Obat";
+      ? `Pencarian: "${search}"`
+      : "";
 
     return { headers, rows, footers, keterangan };
   }
@@ -264,7 +266,7 @@ export default function DataObat() {
       rows,
       footers,
       orientation: "landscape",
-      namaUser: "Apoteker / Petugas Kasir",
+      namaUser: user?.nama || "Petugas",
     });
   }
 
@@ -292,7 +294,7 @@ export default function DataObat() {
       rows,
       footers,
       orientation: "landscape",
-      namaUser: "Apoteker / Petugas Kasir",
+      namaUser: user?.nama || "Petugas",
     });
   }
 

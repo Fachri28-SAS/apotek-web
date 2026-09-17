@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
@@ -157,6 +158,7 @@ function exportCSV(transaksi) {
 }
 
 export default function Laporan() {
+  var { user } = useAuth();
   var initRange = getPresetRange("hari-ini");
   var [periode, setPeriode] = useState("hari-ini");
   var [dariTanggal, setDariTanggal] = useState(initRange.dari);
@@ -257,14 +259,13 @@ export default function Laporan() {
   function handleCetakLaporan() {
     var exp = siapkanDataExportLaporan();
     cetakDokumenA4({
-      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      judul: "LAPORAN PENJUALAN",
       periode: labelPeriode,
-      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
       headers: exp.headers,
       rows: exp.rows,
       footers: exp.footers,
       orientation: "landscape",
-      namaUser: "Kasir Apotek",
+      namaUser: user?.nama || "Kasir",
     });
   }
 
@@ -272,9 +273,8 @@ export default function Laporan() {
     var exp = siapkanDataExportLaporan();
     exportExcel({
       filename: "laporan-penjualan-" + periode,
-      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      judul: "LAPORAN PENJUALAN",
       periode: labelPeriode,
-      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
       headers: exp.headers,
       rows: exp.rows,
       footers: exp.footers,
@@ -285,14 +285,13 @@ export default function Laporan() {
     var exp = siapkanDataExportLaporan();
     exportWord({
       filename: "laporan-penjualan-" + periode,
-      judul: "LAPORAN PENJUALAN TRANSAKSI",
+      judul: "LAPORAN PENJUALAN",
       periode: labelPeriode,
-      keterangan: "Rekapitulasi Omzet & Laba Bersih (" + exp.rows.length + " Transaksi)",
       headers: exp.headers,
       rows: exp.rows,
       footers: exp.footers,
       orientation: "landscape",
-      namaUser: "Kasir Apotek",
+      namaUser: user?.nama || "Kasir",
     });
   }
 

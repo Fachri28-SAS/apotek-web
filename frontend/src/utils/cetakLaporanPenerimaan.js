@@ -215,8 +215,8 @@ export function cetakLaporanPenerimaan(fakturs = [], { dariTanggal, sampaiTangga
         </div>
 
         <div class="meta-row">
-          <div>Keterangan : —</div>
-          <div>Periode : ${periodeTeks}</div>
+          <div>Periode: <strong>${periodeTeks}</strong></div>
+          <div>Dicetak: ${tanggalCetak}</div>
         </div>
 
         <table>
@@ -228,7 +228,7 @@ export function cetakLaporanPenerimaan(fakturs = [], { dariTanggal, sampaiTangga
               <th style="width: 65px; text-align: right;">Jumlah</th>
               <th style="width: 80px; text-align: right;">Jumlah Retur</th>
               <th style="width: 85px; text-align: right;">Total Barang</th>
-              <th style="width: 95px; text-align: right;">HargaSatuan</th>
+              <th style="width: 95px; text-align: right;">Harga Satuan</th>
               <th style="width: 110px; text-align: right;">Total Harga</th>
             </tr>
           </thead>
@@ -244,16 +244,8 @@ export function cetakLaporanPenerimaan(fakturs = [], { dariTanggal, sampaiTangga
         </table>
 
         <div class="footer-row">
-          <div>
-            <div>Nama User : ${namaUser}</div>
-            <div>Database : BIMAFARMA</div>
-          </div>
-          <div style="text-align: center;">
-            <div>Nama Ruangan : APOTEK</div>
-          </div>
-          <div style="text-align: right;">
-            <div>Dicetak: ${tanggalCetak}</div>
-          </div>
+          <div>Petugas: ${namaUser}</div>
+          <div style="text-align: right;">Halaman 1</div>
         </div>
       </body>
     </html>

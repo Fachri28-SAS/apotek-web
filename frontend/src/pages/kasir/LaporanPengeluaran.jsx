@@ -229,8 +229,8 @@ export default function LaporanPengeluaran() {
     let judul = "LAPORAN PENGELUARAN";
 
     if (tabAktif === "supplier") {
-      judul = "LAPORAN PEMBELIAN / FAKTUR SUPPLIER";
-      keterangan = `Rekap Faktur Pembelian Obat (${labelPeriode})`;
+      judul = "LAPORAN PEMBELIAN SUPPLIER";
+      keterangan = "";
       headers = [
         { label: "No.", align: "center", width: "35px" },
         { label: "Tanggal Terima", align: "center" },
@@ -264,10 +264,8 @@ export default function LaporanPengeluaran() {
       ];
     } else {
       const isGaji = tabAktif === "gaji";
-      judul = isGaji ? "LAPORAN PENGELUARAN GAJI KARYAWAN" : "LAPORAN KAS PENGELUARAN OPERASIONAL";
-      keterangan = isGaji
-        ? `Rekapitulasi Penggajian Karyawan (${labelPeriode})`
-        : `Rekapitulasi Seluruh Beban Operasional Apotek (${labelPeriode})`;
+      judul = isGaji ? "LAPORAN GAJI KARYAWAN" : "LAPORAN BIAYA OPERASIONAL";
+      keterangan = "";
 
       headers = [
         { label: "No.", align: "center", width: "35px" },
