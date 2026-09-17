@@ -43,11 +43,14 @@ export default function DataObat() {
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
-  // Deteksi obat dengan margin di bawah batas aman (< 20%) atau jual rugi (< 0)
+  // Deteksi obat dengan margin bermasalah (< 20%) ATAU harga jual belum genap kelipatan 500
   const obatBermasalahMargin = daftar.filter((o) => {
-    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
-    const m = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
-    return m !== null && m < 20;
+    return o.satuan?.some((s) => {
+      const m = hitungMarginPersen(s.harga_beli, s.harga_jual);
+      const j = Number(s.harga_jual || 0);
+      const tidakBulat = j > 0 && j % 500 !== 0;
+      return (m !== null && m < 20) || tidakBulat;
+    });
   });
   const jumlahRugi = obatBermasalahMargin.filter((o) => {
     const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
@@ -90,10 +93,10 @@ export default function DataObat() {
     if (obatBermasalahMargin.length === 0) return;
     if (
       !window.confirm(
-        `Sesuaikan ${obatBermasalahMargin.length} obat yang marginnya bermasalah / tipis?\n\n` +
+        `Sesuaikan ${obatBermasalahMargin.length} obat yang harganya belum genap / margin tipis?\n\n` +
         `• Harga jual otomatis dihitung dengan Margin 25% (Harga Beli / 0.75)\n` +
-        `• Dibulatkan ke atas ke kelipatan Rp 500 terdekat (bebas koma / angka ganjil)\n` +
-        `• Desimal pada harga beli juga akan dibersihkan ke rupiah bulat utuh.`
+        `• Dibulatkan ke atas ke kelipatan Rp 500 / Rp 1.000 (tidak ada angka ganjil)\n` +
+        `• Desimal pada harga beli juga akan dibersihkan ke rupiah utuh.`
       )
     ) {
       return;
@@ -107,27 +110,33 @@ export default function DataObat() {
           body: JSON.stringify({ hanya_bermasalah: true }),
         });
       } catch (e) {
-        // Fallback langsung lewat PUT per obat
-        for (const o of obatBermasalahMargin) {
-          if (!o.satuan || o.satuan.length === 0) continue;
-          const satuanBaru = o.satuan.map((s) => {
-            const beliBulat = Math.round(Number(s.harga_beli || 0));
-            const autoJual = hitungHargaJualOtomatis(beliBulat, 25);
-            return {
-              id: s.id,
-              nama_satuan: s.nama_satuan,
-              faktor: s.faktor || 1,
-              harga_beli: beliBulat,
-              harga_jual: autoJual,
-            };
-          });
-          await api(`/obat/${o.id}`, {
-            method: "PUT",
-            body: JSON.stringify({ nama: o.nama, satuan: satuanBaru }),
-          });
+        // Fallback langsung lewat PUT per obat secara paralel (chunk 5)
+        const chunkSize = 5;
+        for (let i = 0; i < obatBermasalahMargin.length; i += chunkSize) {
+          const chunk = obatBermasalahMargin.slice(i, i + chunkSize);
+          await Promise.all(
+            chunk.map(async (o) => {
+              if (!o.satuan || o.satuan.length === 0) return;
+              const satuanBaru = o.satuan.map((s) => {
+                const beliBulat = Math.round(Number(s.harga_beli || 0));
+                const autoJual = hitungHargaJualOtomatis(beliBulat, 25);
+                return {
+                  id: s.id,
+                  nama_satuan: s.nama_satuan,
+                  faktor: s.faktor || 1,
+                  harga_beli: beliBulat,
+                  harga_jual: autoJual,
+                };
+              });
+              return api(`/obat/${o.id}`, {
+                method: "PUT",
+                body: JSON.stringify({ nama: o.nama, satuan: satuanBaru }),
+              });
+            })
+          );
         }
       }
-      alert(`Sukses! ${obatBermasalahMargin.length} obat telah diperbaiki menjadi margin 25% dan bulat kelipatan 500.`);
+      alert(`Sukses! ${obatBermasalahMargin.length} obat telah diperbarui menjadi margin 25% dan kelipatan 500/1.000.`);
       muatUlang();
     } catch (err) {
       alert("Gagal memperbaiki margin: " + (err.message || "Terjadi kesalahan"));
