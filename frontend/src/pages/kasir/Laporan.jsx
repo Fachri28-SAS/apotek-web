@@ -20,6 +20,51 @@ var PERIODE = [
   { key: "bulan-lalu", label: "Bulan Lalu" },
 ];
 
+function getTglYmd(d) {
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, "0");
+  var dd = String(d.getDate()).padStart(2, "0");
+  return yyyy + "-" + mm + "-" + dd;
+}
+
+function formatTglIndo(tglStr) {
+  if (!tglStr) return "";
+  var d = new Date(tglStr);
+  if (isNaN(d.getTime())) return tglStr;
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function getPresetRange(key) {
+  var now = new Date();
+  if (key === "hari-ini") {
+    var tgl = getTglYmd(now);
+    return { dari: tgl, sampai: tgl };
+  }
+  if (key === "minggu-ini") {
+    var day = now.getDay();
+    var diffToMon = (day === 0 ? -6 : 1) - day;
+    var mon = new Date(now);
+    mon.setDate(now.getDate() + diffToMon);
+    var sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { dari: getTglYmd(mon), sampai: getTglYmd(sun) };
+  }
+  if (key === "bulan-ini") {
+    var start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { dari: getTglYmd(start), sampai: getTglYmd(now) };
+  }
+  if (key === "bulan-lalu") {
+    var startM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    var endM = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { dari: getTglYmd(startM), sampai: getTglYmd(endM) };
+  }
+  return { dari: getTglYmd(now), sampai: getTglYmd(now) };
+}
+
 var LABEL_METODE = { tunai: "Tunai", qris: "QRIS", transfer: "Transfer" };
 var WARNA_METODE = { tunai: "#39A048", qris: "#A64BC7", transfer: "#1A56B8" };
 
@@ -112,20 +157,37 @@ function exportCSV(transaksi) {
 }
 
 export default function Laporan() {
+  var initRange = getPresetRange("hari-ini");
   var [periode, setPeriode] = useState("hari-ini");
+  var [dariTanggal, setDariTanggal] = useState(initRange.dari);
+  var [sampaiTanggal, setSampaiTanggal] = useState(initRange.sampai);
   var [data, setData] = useState(null);
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState("");
 
   useEffect(function() {
     setLoading(true);
-    api("/laporan?periode=" + periode)
+    var params = new URLSearchParams();
+    params.set("periode", periode);
+    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
+
+    api("/laporan?" + params.toString())
       .then(function(d) { setData(d); setError(""); })
       .catch(function(e) { setError(e.message); })
       .finally(function() { setLoading(false); });
-  }, [periode]);
+  }, [periode, dariTanggal, sampaiTanggal]);
 
-  var labelPeriode = PERIODE.find(function(p){ return p.key === periode; }).label;
+  function pilihPreset(pKey) {
+    var range = getPresetRange(pKey);
+    setPeriode(pKey);
+    setDariTanggal(range.dari);
+    setSampaiTanggal(range.sampai);
+  }
+
+  var labelPeriode = periode === "custom"
+    ? (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : (formatTglIndo(dariTanggal) + " s/d " + formatTglIndo(sampaiTanggal)))
+    : ((PERIODE.find(function(p){ return p.key === periode; })?.label || "Periode") + (dariTanggal ? " (" + (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : formatTglIndo(dariTanggal) + " - " + formatTglIndo(sampaiTanggal)) + ")" : ""));
 
   function siapkanDataExportLaporan() {
     var transaksi = data && data.transaksi ? data.transaksi : [];
@@ -244,21 +306,70 @@ export default function Laporan() {
 
   return (
     <KasirShell>
-      <div className="halaman-header">
+      <div className="halaman-header" style={{ flexWrap: "wrap", gap: 14 }}>
         <div>
           <h1 style={{ fontSize: 24 }}>Laporan Penjualan</h1>
-          <p className="halaman-sub">Ringkasan omzet, laba kotor, dan perputaran obat</p>
+          <p className="halaman-sub">{labelPeriode} &middot; Ringkasan omzet, laba kotor, dan perputaran obat</p>
         </div>
-        <div className="periode-chips">
-          {PERIODE.map(function(p) {
-            return (
-              <button key={p.key} type="button"
-                className={"periode-chip " + (periode === p.key ? "active" : "")}
-                onClick={function(){ setPeriode(p.key); }}>
-                {p.label}
-              </button>
-            );
-          })}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {/* Kalender Filter Tanggal */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+            <span>Dari:</span>
+            <input
+              type="date"
+              value={dariTanggal}
+              onChange={function(e) {
+                setDariTanggal(e.target.value);
+                setPeriode("custom");
+              }}
+              style={{
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "inherit",
+                background: "#fff",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+            <span>Sampai:</span>
+            <input
+              type="date"
+              value={sampaiTanggal}
+              onChange={function(e) {
+                setSampaiTanggal(e.target.value);
+                setPeriode("custom");
+              }}
+              style={{
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "inherit",
+                background: "#fff",
+              }}
+            />
+          </div>
+
+          {/* Preset Chips */}
+          <div className="periode-chips" style={{ margin: 0 }}>
+            {PERIODE.map(function(p) {
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  className={"periode-chip " + (periode === p.key ? "active" : "")}
+                  onClick={function(){ pilihPreset(p.key); }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

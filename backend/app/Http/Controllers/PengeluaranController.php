@@ -15,8 +15,16 @@ class PengeluaranController extends Controller
      */
     public function index(Request $r)
     {
-        $periode = $r->periode ?: 'hari-ini';
-        [$mulai, $selesai] = $this->rentangTanggal($periode, $r->dari, $r->sampai);
+        $dari = $r->dari ?: $r->dari_tanggal;
+        $sampai = $r->sampai ?: $r->sampai_tanggal;
+        $periode = $r->periode ?: 'bulan-ini';
+
+        if ($dari && $sampai) {
+            $mulai = $dari;
+            $selesai = $sampai;
+        } else {
+            [$mulai, $selesai] = $this->rentangTanggal($periode, $dari, $sampai);
+        }
 
         // 1. Query Pengeluaran Operasional
         $queryOperasional = Pengeluaran::whereBetween('tanggal', [$mulai, $selesai]);

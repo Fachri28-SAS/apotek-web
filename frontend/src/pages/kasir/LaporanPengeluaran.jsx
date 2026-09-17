@@ -23,9 +23,57 @@ const KATEGORI_OPTIONS = [
   { key: "lainnya", label: "Lain-lain", badgeColor: "#475569", bg: "#F1F5F9" },
 ];
 
+function getTglYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatTglIndo(tglStr) {
+  if (!tglStr) return "";
+  const d = new Date(tglStr);
+  if (isNaN(d.getTime())) return tglStr;
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function getPresetRange(key) {
+  const now = new Date();
+  if (key === "hari-ini") {
+    const tgl = getTglYmd(now);
+    return { dari: tgl, sampai: tgl };
+  }
+  if (key === "minggu-ini") {
+    const day = now.getDay();
+    const diffToMon = (day === 0 ? -6 : 1) - day;
+    const mon = new Date(now);
+    mon.setDate(now.getDate() + diffToMon);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return { dari: getTglYmd(mon), sampai: getTglYmd(sun) };
+  }
+  if (key === "bulan-ini") {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { dari: getTglYmd(start), sampai: getTglYmd(now) };
+  }
+  if (key === "bulan-lalu") {
+    const startM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endM = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { dari: getTglYmd(startM), sampai: getTglYmd(endM) };
+  }
+  return { dari: getTglYmd(now), sampai: getTglYmd(now) };
+}
+
 export default function LaporanPengeluaran() {
   const { user } = useAuth();
+  const initRange = getPresetRange("bulan-ini");
   const [periode, setPeriode] = useState("bulan-ini");
+  const [dariTanggal, setDariTanggal] = useState(initRange.dari);
+  const [sampaiTanggal, setSampaiTanggal] = useState(initRange.sampai);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -53,7 +101,12 @@ export default function LaporanPengeluaran() {
 
   function muatData() {
     setLoading(true);
-    api("/pengeluaran?periode=" + periode)
+    const params = new URLSearchParams();
+    params.set("periode", periode);
+    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
+
+    api(`/pengeluaran?${params}`)
       .then((d) => {
         setData(d);
         setError("");
@@ -64,9 +117,18 @@ export default function LaporanPengeluaran() {
 
   useEffect(() => {
     muatData();
-  }, [periode]);
+  }, [periode, dariTanggal, sampaiTanggal]);
 
-  const labelPeriode = PERIODE.find((p) => p.key === periode)?.label || "";
+  function pilihPreset(pKey) {
+    const range = getPresetRange(pKey);
+    setPeriode(pKey);
+    setDariTanggal(range.dari);
+    setSampaiTanggal(range.sampai);
+  }
+
+  const labelPeriode = periode === "custom"
+    ? (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`)
+    : ((PERIODE.find((p) => p.key === periode)?.label || "Periode") + (dariTanggal ? ` (${dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : `${formatTglIndo(dariTanggal)} - ${formatTglIndo(sampaiTanggal)}`})` : ""));
 
   async function handleSimpan(e) {
     e.preventDefault();
@@ -294,24 +356,69 @@ export default function LaporanPengeluaran() {
 
   return (
     <KasirShell>
-      <div className="halaman-header">
+      <div className="halaman-header" style={{ flexWrap: "wrap", gap: 14 }}>
         <div>
           <h1 style={{ fontSize: 24 }}>Laporan Pengeluaran</h1>
-          <p className="halaman-sub">Pencatatan kas keluar operasional dan rekap faktur pembelian obat</p>
+          <p className="halaman-sub">{labelPeriode} &middot; Pencatatan kas keluar operasional dan rekap faktur pembelian obat</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <div className="periode-chips">
+          {/* Kalender Filter Tanggal */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+            <span>Dari:</span>
+            <input
+              type="date"
+              value={dariTanggal}
+              onChange={(e) => {
+                setDariTanggal(e.target.value);
+                setPeriode("custom");
+              }}
+              style={{
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "inherit",
+                background: "#fff",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+            <span>Sampai:</span>
+            <input
+              type="date"
+              value={sampaiTanggal}
+              onChange={(e) => {
+                setSampaiTanggal(e.target.value);
+                setPeriode("custom");
+              }}
+              style={{
+                padding: "7px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "inherit",
+                background: "#fff",
+              }}
+            />
+          </div>
+
+          {/* Preset Chips */}
+          <div className="periode-chips" style={{ margin: 0 }}>
             {PERIODE.map((p) => (
               <button
                 key={p.key}
                 type="button"
                 className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                onClick={() => setPeriode(p.key)}
+                onClick={() => pilihPreset(p.key)}
               >
                 {p.label}
               </button>
             ))}
           </div>
+
           <button
             type="button"
             className="btn-tambah"

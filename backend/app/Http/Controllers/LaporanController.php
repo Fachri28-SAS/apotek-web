@@ -15,8 +15,18 @@ class LaporanController extends Controller
      */
     public function index(Request $r)
     {
-        $periode = $r->periode ?: 'hari-ini';
-        [$mulai, $selesai] = $this->rentangTanggal($periode);
+        if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
+            $mulai = $r->dari_tanggal;
+            $selesai = $r->sampai_tanggal;
+            $periode = 'custom';
+        } elseif ($r->filled('dari') && $r->filled('sampai')) {
+            $mulai = $r->dari;
+            $selesai = $r->sampai;
+            $periode = 'custom';
+        } else {
+            $periode = $r->periode ?: 'hari-ini';
+            [$mulai, $selesai] = $this->rentangTanggal($periode);
+        }
 
         $hariIni = now()->toDateString();
         $tujuhHariLalu = now()->subDays(6)->toDateString();
@@ -85,7 +95,7 @@ class LaporanController extends Controller
                 $q->select('id', 'penjualan_id', 'obat_satuan_id', 'qty', 'harga_beli', 'subtotal');
             }])
             ->orderByDesc('id')
-            ->limit(200)
+            ->limit(2000)
             ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'subtotal',
                     'diskon', 'total', 'metode_bayar', 'sumber', 'created_at'])
             ->map(function ($t) {
