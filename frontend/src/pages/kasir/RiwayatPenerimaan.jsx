@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { cetakLaporanPenerimaan } from "../../utils/cetakLaporanPenerimaan";
-import { exportExcel, exportWord } from "../../utils/exportDokumen";
+import { exportExcel, exportWord, cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
 import TombolExportGroup from "./komponen/TombolExportGroup";
@@ -26,6 +26,7 @@ export default function RiwayatPenerimaan() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
+  const [modalCetakFaktur, setModalCetakFaktur] = useState(null);
   const [error, setError] = useState("");
   const [notif, setNotif] = useState("");
 
@@ -392,9 +393,9 @@ export default function RiwayatPenerimaan() {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              cetakLaporanPenerimaan([p], { dariTanggal: p.tanggal_terima, sampaiTanggal: p.tanggal_terima });
+                              setModalCetakFaktur(p);
                             }}
-                            title="Cetak Laporan untuk faktur ini"
+                            title="Pilih format cetak atau unduh faktur ini"
                             style={{
                               padding: "4px 8px",
                               borderRadius: 6,
@@ -473,7 +474,160 @@ export default function RiwayatPenerimaan() {
         </div>
       )}
 
-      <DetailFakturModal data={detail} onClose={() => setDetail(null)} />
+      {/* Modal Detail Rincian Faktur */}
+      {detail && <DetailFakturModal data={detail} onClose={() => setDetail(null)} />}
+
+      {/* Modal Opsi Cetak & Unduh 1 Faktur */}
+      {modalCetakFaktur && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 16,
+          }}
+          onClick={() => setModalCetakFaktur(null)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 420,
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+              padding: 24,
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 36, marginBottom: 6 }}>📄</div>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#1E293B", margin: "0 0 6px" }}>
+              Cetak / Ekspor Faktur
+            </h3>
+            <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 18px", lineHeight: 1.5 }}>
+              Faktur <strong>{modalCetakFaktur.no_faktur}</strong> &middot; {modalCetakFaktur.nama_supplier}
+              <br />
+              Total Tagihan: <strong style={{ color: "#0F172A" }}>{rupiah(modalCetakFaktur.total)}</strong>
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
+              {/* Opsi 1: Cetak A4 / PDF */}
+              <button
+                type="button"
+                onClick={() => {
+                  cetakSatuFakturA4(modalCetakFaktur);
+                  setModalCetakFaktur(null);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "11px 16px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "#FAF5FF",
+                  color: "#6B21A8",
+                  border: "1.5px solid #D8B4FE",
+                  cursor: "pointer",
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
+                  <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                  <path d="M6 14h12v8H6z" />
+                </svg>
+                🖨️ Cetak / Simpan PDF (Format A4 Resmi)
+              </button>
+
+              {/* Opsi 2: Unduh Excel */}
+              <button
+                type="button"
+                onClick={() => {
+                  exportSatuFakturExcel(modalCetakFaktur);
+                  setModalCetakFaktur(null);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "11px 16px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "#ECFDF5",
+                  color: "#065F46",
+                  border: "1.5px solid #A7F3D0",
+                  cursor: "pointer",
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="8" y1="13" x2="16" y2="13" />
+                  <line x1="8" y1="17" x2="16" y2="17" />
+                </svg>
+                📊 Unduh Format Excel (.xls)
+              </button>
+
+              {/* Opsi 3: Unduh Word */}
+              <button
+                type="button"
+                onClick={() => {
+                  exportSatuFakturWord(modalCetakFaktur);
+                  setModalCetakFaktur(null);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "11px 16px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "#EFF6FF",
+                  color: "#1E40AF",
+                  border: "1.5px solid #BFDBFE",
+                  cursor: "pointer",
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                📝 Unduh Format Word (.doc)
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setModalCetakFaktur(null)}
+              style={{
+                width: "100%",
+                padding: "9px",
+                borderRadius: 8,
+                background: "#F1F5F9",
+                border: "none",
+                color: "#475569",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
     </KasirShell>
   );
 }

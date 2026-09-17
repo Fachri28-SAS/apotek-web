@@ -1,78 +1,217 @@
+import React from "react";
 import { rupiah } from "../../../utils/format";
-import { cetakLaporanPenerimaan } from "../../../utils/cetakLaporanPenerimaan";
+import { cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../../utils/exportDokumen";
+import TombolExportGroup from "./TombolExportGroup";
 
 export default function DetailFakturModal({ data, onClose }) {
   if (!data) return null;
 
+  const isLunas = data.status_bayar === "lunas";
+
   return (
-    <div className="struk-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="struk-modal" style={{ maxWidth: 640 }}>
-        <div className="struk-modal-head">
-          <h3 style={{ fontSize: 16, fontWeight: 700 }}>Detail Faktur {data.no_faktur}</h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      className="modal-faktur-overlay"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.65)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+        padding: 16,
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="modal-faktur-box"
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 720,
+          maxHeight: "92vh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header Modal */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 22px",
+            borderBottom: "1.5px solid var(--line, #E2E8F0)",
+            background: "#FAF5FF",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: "#4A044E", margin: 0 }}>
+              Faktur Penerimaan {data.no_faktur}
+            </h3>
+            <span style={{ fontSize: 11.5, color: "#701A75" }}>
+              Supplier: <strong>{data.nama_supplier}</strong>
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <TombolExportGroup
+              onCetakPdf={() => cetakSatuFakturA4(data)}
+              onExportExcel={() => exportSatuFakturExcel(data)}
+              onExportWord={() => exportSatuFakturWord(data)}
+            />
             <button
-              type="button"
-              onClick={() => cetakLaporanPenerimaan([data], { dariTanggal: data.tanggal_terima, sampaiTanggal: data.tanggal_terima })}
+              onClick={onClose}
+              aria-label="Tutup"
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 12px",
-                borderRadius: 8,
-                background: "var(--magenta)",
-                color: "#fff",
+                background: "#F3E8FF",
                 border: "none",
-                fontWeight: 700,
-                fontSize: 12,
+                borderRadius: "50%",
+                width: 32,
+                height: 32,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 cursor: "pointer",
+                color: "#701A75",
               }}
-              title="Cetak Laporan Penerimaan Barang untuk faktur ini"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
-                <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-                <path d="M6 14h12v8H6z" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 18, height: 18 }}>
+                <path d="M6 6l12 12M18 6L6 18" />
               </svg>
-              Cetak
-            </button>
-            <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
           </div>
         </div>
 
-        <div style={{ padding: "20px 22px" }}>
-          <div className="detail-faktur-info">
-            <div><span>Supplier</span><strong>{data.nama_supplier}</strong></div>
-            <div><span>Tanggal Terima</span><strong>{new Date(data.tanggal_terima).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}</strong></div>
-            <div><span>Jatuh Tempo</span><strong>{data.tanggal_jatuh_tempo ? new Date(data.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "—"}</strong></div>
-            <div><span>Status</span><strong>{data.is_pkp ? "PKP" : "Non PKP"}</strong></div>
+        {/* Content Area */}
+        <div style={{ padding: "20px 22px", overflowY: "auto" }}>
+          {/* Metadata Grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 12,
+              background: "#F8FAFC",
+              border: "1px solid #E2E8F0",
+              borderRadius: 10,
+              padding: "12px 16px",
+              fontSize: 12,
+            }}
+          >
+            <div>
+              <span style={{ color: "#64748B", display: "block" }}>Supplier</span>
+              <strong style={{ color: "#1E293B" }}>{data.nama_supplier || "-"}</strong>
+            </div>
+            <div>
+              <span style={{ color: "#64748B", display: "block" }}>Tgl Terima</span>
+              <strong style={{ color: "#1E293B" }}>
+                {data.tanggal_terima
+                  ? new Date(data.tanggal_terima).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })
+                  : "-"}
+              </strong>
+            </div>
+            <div>
+              <span style={{ color: "#64748B", display: "block" }}>Jatuh Tempo</span>
+              <strong style={{ color: "#1E293B" }}>
+                {data.tanggal_jatuh_tempo
+                  ? new Date(data.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })
+                  : "—"}
+              </strong>
+            </div>
+            <div>
+              <span style={{ color: "#64748B", display: "block" }}>Status Pembayaran</span>
+              <strong style={{ color: isLunas ? "#15803D" : "#DC2626" }}>
+                {isLunas ? "✓ Lunas" : "○ Belum Lunas"}
+              </strong>
+            </div>
           </div>
 
-          <table className="obat-table" style={{ marginTop: 16 }}>
-            <thead>
-              <tr><th>Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Satuan</th><th>Diskon</th><th>Batch</th><th>Subtotal</th></tr>
-            </thead>
-            <tbody>
-              {(data.items || []).map((it) => (
-                <tr key={it.id}>
-                  <td className="obat-nama-cell">{it.nama_obat}</td>
-                  <td>{it.qty}</td>
-                  <td>{it.kemasan ?? it.qty}</td>
-                  <td className="obat-harga-cell">{rupiah(it.harga_beli)}</td>
-                  <td className="obat-harga-cell">{Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}</td>
-                  <td className="obat-batch-cell">{it.nomor_batch || "—"}</td>
-                  <td style={{ fontWeight: 700 }}>{rupiah(it.subtotal ?? (Number(it.qty || 0) * Number(it.harga_beli || 0) - Number(it.diskon || 0)))}</td>
+          {/* Tabel Obat */}
+          <div style={{ overflowX: "auto", marginTop: 16 }}>
+            <table className="obat-table" style={{ width: "100%", fontSize: 12 }}>
+              <thead>
+                <tr>
+                  <th style="text-align: left;">Obat</th>
+                  <th style="text-align: right;">Qty</th>
+                  <th style="text-align: right;">Kemasan</th>
+                  <th style="text-align: right;">Harga Satuan</th>
+                  <th style="text-align: right;">Diskon</th>
+                  <th style="text-align: center;">Batch</th>
+                  <th style="text-align: right;">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(data.items || []).map((it) => (
+                  <tr key={it.id}>
+                    <td className="obat-nama-cell" style={{ fontWeight: 700 }}>{it.nama_obat}</td>
+                    <td style={{ textAlign: "right" }}>{it.qty}</td>
+                    <td style={{ textAlign: "right" }}>{it.kemasan ?? it.qty}</td>
+                    <td className="obat-harga-cell" style={{ textAlign: "right" }}>{rupiah(it.harga_beli)}</td>
+                    <td className="obat-harga-cell" style={{ textAlign: "right" }}>
+                      {Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}
+                    </td>
+                    <td className="obat-batch-cell" style={{ textAlign: "center" }}>{it.nomor_batch || "—"}</td>
+                    <td style={{ fontWeight: 700, textAlign: "right" }}>
+                      {rupiah(it.subtotal ?? (Number(it.qty || 0) * Number(it.harga_beli || 0) - Number(it.diskon || 0)))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="penerimaan-ringkasan" style={{ marginLeft: 0, maxWidth: "none" }}>
-            <div className="payment-row"><span>Subtotal</span><span>{rupiah(data.subtotal)}</span></div>
-            <div className="payment-row"><span>Diskon Faktur</span><span>-{rupiah(Math.max(0, Number(data.subtotal || 0) - Number(data.subtotal_setelah_diskon ?? data.subtotal ?? 0)))}</span></div>
-            <div className="payment-row"><span>DPP</span><span>{rupiah(data.dpp ?? data.subtotal_setelah_diskon ?? data.subtotal)}</span></div>
-            <div className="payment-row"><span>PPN</span><span>{rupiah(data.ppn)}</span></div>
-            <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(data.total)}</strong></div>
+          {/* Ringkasan Biaya */}
+          <div
+            style={{
+              marginTop: 18,
+              marginLeft: "auto",
+              maxWidth: 320,
+              background: "#F8FAFC",
+              border: "1px solid #E2E8F0",
+              borderRadius: 10,
+              padding: "12px 16px",
+              fontSize: 12.5,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ color: "#64748B" }}>Subtotal</span>
+              <span>{rupiah(data.subtotal)}</span>
+            </div>
+            {Number(data.diskon) > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, color: "#DC2626" }}>
+                <span>Diskon Faktur</span>
+                <span>-{rupiah(data.diskon)}</span>
+              </div>
+            )}
+            {Number(data.ppn) > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ color: "#64748B" }}>PPN</span>
+                <span>{rupiah(data.ppn)}</span>
+              </div>
+            )}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                borderTop: "1.5px solid #CBD5E1",
+                paddingTop: 8,
+                marginTop: 6,
+                fontWeight: 800,
+                fontSize: 14,
+                color: "#0F172A",
+              }}
+            >
+              <span>Total Tagihan</span>
+              <span>{rupiah(data.total)}</span>
+            </div>
           </div>
         </div>
       </div>
