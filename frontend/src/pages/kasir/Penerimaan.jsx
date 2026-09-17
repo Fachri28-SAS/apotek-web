@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
-import { rupiah } from "../../utils/format";
+import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import SearchObatPenerimaan from "./komponen/SearchObatPenerimaan";
 import TambahSupplierModal from "./komponen/TambahSupplierModal";
@@ -96,6 +96,10 @@ export default function Penerimaan() {
     const satuan = obat.satuan[0];
     const initialQty = 1;
     const initialKemasan = 1;
+    const hargaBeliAwal = Number(satuan.harga_beli || 0);
+    const hargaJualAwal = (satuan.harga_jual && Number(satuan.harga_jual) > 0)
+      ? Number(satuan.harga_jual)
+      : hitungHargaJualOtomatis(hargaBeliAwal, 25);
 
     setItems((prev) => [...prev, {
       key: Date.now() + Math.random(),
@@ -110,6 +114,7 @@ export default function Penerimaan() {
       nomor_batch: "",
       tanggal_exp: tambahBulan(new Date(), 3), // default 3 bulan, bisa diubah manual
       harga_jual_referensi: satuan.harga_jual,
+      harga_jual_baru: hargaJualAwal,
       harga_beli_sebelumnya: satuan.harga_beli,
     }]);
     setSukses("");
@@ -165,6 +170,7 @@ export default function Penerimaan() {
             diskon: Number(it.diskon || 0),
             nomor_batch: it.nomor_batch,
             tanggal_exp: it.tanggal_exp || null,
+            harga_jual_baru: Number(it.harga_jual_baru ?? it.harga_jual_referensi),
           })),
         }),
       });
@@ -281,16 +287,19 @@ export default function Penerimaan() {
                 <thead>
                   <tr>
                     <th>Nama Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Satuan</th>
-                    <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual</th>
+                    <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((it) => {
                     const badge = badgeHarga(Number(it.harga_beli), it.harga_beli_sebelumnya);
-                    const margin = it.harga_jual_referensi > 0
-                      ? Math.round(((it.harga_jual_referensi - it.harga_beli) / it.harga_jual_referensi) * 100)
-                      : null;
+                    const unitBeli = (Number(it.kemasan) > 0 && Number(it.qty) > 0)
+                      ? (Number(it.qty) * Number(it.harga_beli)) / Number(it.kemasan)
+                      : Number(it.harga_beli);
+                    const hargaJualAktif = Number(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
+                    const margin = hitungMarginPersen(unitBeli, hargaJualAktif);
+                    const marginStat = getStatusMargin(margin);
                     const subtotalItem = it.qty * it.harga_beli - Number(it.diskon || 0);
 
                     return (
@@ -328,8 +337,48 @@ export default function Penerimaan() {
                           <input type="date" className="cart-input-angka" value={it.tanggal_exp} onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)} />
                           <div className="exp-default-hint">Default 3 bln, bisa diubah</div>
                         </td>
-                        <td className="obat-harga-cell">{rupiah(it.harga_jual_referensi)}</td>
-                        <td className="obat-margin-cell">{margin !== null ? `${margin}%` : "-"}</td>
+                        <td>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                            <input
+                              type="number"
+                              min="0"
+                              className="cart-input-angka"
+                              style={{ width: 95 }}
+                              value={it.harga_jual_baru ?? it.harga_jual_referensi ?? ""}
+                              onChange={(e) => ubahItem(it.key, "harga_jual_baru", e.target.value)}
+                              title="Harga jual satuan yang akan disimpan ke Data Obat"
+                            />
+                            <button
+                              type="button"
+                              style={{
+                                background: "none",
+                                border: "none",
+                                color: "var(--magenta)",
+                                fontSize: 10,
+                                cursor: "pointer",
+                                fontWeight: 700,
+                                padding: 0,
+                                textAlign: "left"
+                              }}
+                              title="Hitung otomatis margin 25% kelipatan Rp 500"
+                              onClick={() => {
+                                const auto = hitungHargaJualOtomatis(unitBeli, 25);
+                                ubahItem(it.key, "harga_jual_baru", auto);
+                              }}
+                            >
+                              ⚡ Auto 25% (Bulat 500)
+                            </button>
+                          </div>
+                        </td>
+                        <td className="obat-margin-cell">
+                          {marginStat.status !== "kosong" ? (
+                            <span className={`margin-badge ${marginStat.warna}`}>
+                              {marginStat.label}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
                         <td style={{ fontWeight: 700 }}>{rupiah(subtotalItem)}</td>
                         <td>
                           <button className="cart-hapus-btn" onClick={() => hapusItem(it.key)}>

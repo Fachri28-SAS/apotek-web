@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
+import { hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../../utils/format";
 
 function satuanKosong() {
   return { nama_satuan: "", faktor: 1, harga_beli: "", harga_jual: "" };
@@ -346,17 +347,69 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                 <label>Harga Beli</label>
                 <input
                   type="number" min="0" value={satuanTunggal.harga_beli}
-                  onChange={(e) => setSatuanTunggal((s) => ({ ...s, harga_beli: e.target.value }))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const autoJual = hitungHargaJualOtomatis(val, 25);
+                    setSatuanTunggal((s) => ({
+                      ...s,
+                      harga_beli: val,
+                      harga_jual: (!modeEdit && (!s.harga_jual || Number(s.harga_jual) === 0)) ? autoJual : s.harga_jual,
+                    }));
+                  }}
                   required
                 />
               </div>
               <div className="payment-field">
-                <label>Harga Jual</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <label style={{ margin: 0 }}>Harga Jual</label>
+                  <button
+                    type="button"
+                    style={{
+                      background: "var(--magenta-tint)",
+                      color: "var(--magenta-dark)",
+                      border: "1px solid var(--magenta)",
+                      borderRadius: 6,
+                      padding: "2px 8px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                    title="Hitung otomatis margin 25% & bulatkan kelipatan Rp 500"
+                    onClick={() => {
+                      const auto = hitungHargaJualOtomatis(satuanTunggal.harga_beli, 25);
+                      setSatuanTunggal((s) => ({ ...s, harga_jual: auto }));
+                    }}
+                  >
+                    ⚡ Auto 25% (Bulat 500)
+                  </button>
+                </div>
                 <input
                   type="number" min="0" value={satuanTunggal.harga_jual}
                   onChange={(e) => setSatuanTunggal((s) => ({ ...s, harga_jual: e.target.value }))}
                   required
                 />
+                {(() => {
+                  const m = hitungMarginPersen(satuanTunggal.harga_beli, satuanTunggal.harga_jual);
+                  const stat = getStatusMargin(m);
+                  return m !== null ? (
+                    <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                      <span style={{ color: "var(--ink-soft)" }}>Margin:</span>
+                      <span className={`margin-badge ${stat.warna}`}>
+                        {stat.label}
+                      </span>
+                      {stat.status === "rugi" && (
+                        <span style={{ color: "#DC2626", fontSize: 11, fontWeight: 700 }}>
+                          ⚠️ Jual rugi!
+                        </span>
+                      )}
+                      {stat.status === "tipis" && (
+                        <span style={{ color: "#B45309", fontSize: 11 }}>
+                          (Di bawah batas aman 20%)
+                        </span>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
               </div>
               {modeEdit && satuanTunggal.harga_beli_awal != null && (
                 <div className="harga-awal-info">
@@ -387,7 +440,19 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                       <td><input type="number" min="1" value={s.faktor} onChange={(e) => ubahBarisSatuan(i, "faktor", e.target.value)} disabled={!!s.id} title={s.id ? "Faktor varian lama tidak bisa diubah" : ""} required /></td>
                       <td>
                         <div className="satuan-harga-cell">
-                          <input type="number" min="0" value={s.harga_beli} onChange={(e) => ubahBarisSatuan(i, "harga_beli", e.target.value)} required />
+                          <input
+                            type="number"
+                            min="0"
+                            value={s.harga_beli}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              ubahBarisSatuan(i, "harga_beli", val);
+                              if (!s.id && (!s.harga_jual || Number(s.harga_jual) === 0)) {
+                                ubahBarisSatuan(i, "harga_jual", hitungHargaJualOtomatis(val, 25));
+                              }
+                            }}
+                            required
+                          />
                           {s.id && s.harga_beli_awal != null && (
                             <button
                               type="button"
@@ -400,7 +465,30 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                           )}
                         </div>
                       </td>
-                      <td><input type="number" min="0" value={s.harga_jual} onChange={(e) => ubahBarisSatuan(i, "harga_jual", e.target.value)} required /></td>
+                      <td>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <input type="number" min="0" value={s.harga_jual} onChange={(e) => ubahBarisSatuan(i, "harga_jual", e.target.value)} required />
+                          {(() => {
+                            const m = hitungMarginPersen(s.harga_beli, s.harga_jual);
+                            const stat = getStatusMargin(m);
+                            return m !== null ? (
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span className={`margin-badge ${stat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
+                                  {stat.label}
+                                </span>
+                                <button
+                                  type="button"
+                                  style={{ background: "none", border: "none", color: "var(--magenta)", fontSize: 10, cursor: "pointer", fontWeight: 700, padding: 0 }}
+                                  title="Hitung otomatis margin 25% bulat 500"
+                                  onClick={() => ubahBarisSatuan(i, "harga_jual", hitungHargaJualOtomatis(s.harga_beli, 25))}
+                                >
+                                  Auto 25%
+                                </button>
+                              </div>
+                            ) : null;
+                          })()}
+                        </div>
+                      </td>
                       <td>
                         {satuanList.length > 1 && (
                           <button type="button" className="satuan-hapus-btn" onClick={() => hapusBarisSatuan(i, s)} title="Hapus satuan ini">

@@ -68,9 +68,11 @@ class PenerimaanController extends Controller
                 $subtotal += $subtotalItem;
 
                 $hargaBeliSebelumnya = $satuan->harga_beli;
-                $hargaJualSaatIni = $satuan->harga_jual;
-                $marginPersen = $hargaJualSaatIni > 0
-                    ? round((($hargaJualSaatIni - $it['harga_beli']) / $hargaJualSaatIni) * 100, 2)
+                $hargaJualBaru = isset($it['harga_jual_baru']) && $it['harga_jual_baru'] > 0
+                    ? (float) $it['harga_jual_baru']
+                    : (float) $satuan->harga_jual;
+                $marginPersen = $hargaJualBaru > 0
+                    ? round((($hargaJualBaru - $it['harga_beli']) / $hargaJualBaru) * 100, 2)
                     : null;
 
                 $kemasan = isset($it['kemasan']) && $it['kemasan'] > 0
@@ -91,7 +93,7 @@ class PenerimaanController extends Controller
                     'nomor_batch' => $it['nomor_batch'] ?? null,
                     'tanggal_exp' => $it['tanggal_exp'] ?? null,
                     'harga_beli_sebelumnya' => $hargaBeliSebelumnya,
-                    'harga_jual_saat_itu' => $hargaJualSaatIni,
+                    'harga_jual_saat_itu' => $hargaJualBaru,
                     'margin_persen' => $marginPersen,
                 ];
             }
@@ -150,10 +152,15 @@ class PenerimaanController extends Controller
                     ? round(($item['qty'] * $item['harga_beli']) / $stokMasuk)
                     : $item['harga_beli'];
 
-                ObatSatuan::where('id', $item['obat_satuan_id'])->update([
+                $updateSatuan = [
                     'harga_beli' => $hargaBeliPerUnitMasuk,
                     'harga_beli_sebelumnya' => $item['harga_beli_sebelumnya'],
-                ]);
+                ];
+                if (!empty($item['harga_jual_saat_itu']) && $item['harga_jual_saat_itu'] > 0) {
+                    $updateSatuan['harga_jual'] = $item['harga_jual_saat_itu'];
+                }
+
+                ObatSatuan::where('id', $item['obat_satuan_id'])->update($updateSatuan);
 
                 // 3. Nomor batch & tanggal exp di Data Obat ikut update
                 if ($item['nomor_batch']) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
-import { rupiah } from "../../utils/format";
+import { rupiah, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
 import SampahModal from "./komponen/SampahModal";
@@ -11,11 +11,6 @@ function daysUntil(dateStr) {
   const now = new Date(); now.setHours(0,0,0,0);
   const exp = new Date(dateStr); exp.setHours(0,0,0,0);
   return Math.ceil((exp - now) / 86400000);
-}
-
-function marginPct(beli, jual) {
-  if (!jual || jual === 0) return "-";
-  return ((jual - beli) / jual * 100).toFixed(1) + "%";
 }
 
 /**
@@ -45,6 +40,21 @@ export default function DataObat() {
   const [obatEdit, setObatEdit] = useState(null);
   const [sampahOpen, setSampahOpen] = useState(false);
   const [riwayatObat, setRiwayatObat] = useState(null);
+  const [filterMarginTipis, setFilterMarginTipis] = useState(false);
+
+  // Deteksi obat dengan margin di bawah batas aman (< 20%) atau jual rugi (< 0)
+  const obatBermasalahMargin = daftar.filter((o) => {
+    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+    const m = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
+    return m !== null && m < 20;
+  });
+  const jumlahRugi = obatBermasalahMargin.filter((o) => {
+    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+    return (hitungMarginPersen(def?.harga_beli, def?.harga_jual) || 0) < 0;
+  }).length;
+  const jumlahTipis = obatBermasalahMargin.length - jumlahRugi;
+
+  const daftarTampil = filterMarginTipis ? obatBermasalahMargin : daftar;
 
   function muatUlang() {
     setLoading(true);
@@ -80,13 +90,42 @@ export default function DataObat() {
       <div className="halaman-header">
         <div>
           <h1 style={{ fontSize: 24 }}>Data Obat</h1>
-          <p className="halaman-sub">{daftar.length} obat terdaftar</p>
+          <p className="halaman-sub">
+            {filterMarginTipis
+              ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 20%)`
+              : `${daftar.length} obat terdaftar`}
+          </p>
         </div>
         <div className="halaman-header-aksi">
           <button className="btn-sampah" onClick={() => setSampahOpen(true)}>🗑 Sampah</button>
           <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
         </div>
       </div>
+
+      {/* Banner Alert Margin Tipis / Rugi */}
+      {obatBermasalahMargin.length > 0 && (
+        <div className="margin-alert-box">
+          <div className="alert-text">
+            <span style={{ fontSize: 20 }}>⚠️</span>
+            <div>
+              <strong>Peringatan Margin:</strong> Ditemukan <strong>{obatBermasalahMargin.length} obat</strong> dengan margin di bawah batas aman (20%).
+              {jumlahRugi > 0 ? (
+                <span style={{ color: "#DC2626", fontWeight: 800 }}> {jumlahRugi} obat jual rugi (harga beli &gt; harga jual)!</span>
+              ) : null}
+              {jumlahTipis > 0 ? (
+                <span> {jumlahTipis} obat margin tipis (&lt; 20%).</span>
+              ) : null}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="alert-btn"
+            onClick={() => setFilterMarginTipis(!filterMarginTipis)}
+          >
+            {filterMarginTipis ? "✕ Tampilkan Semua Obat" : `🔍 Lihat ${obatBermasalahMargin.length} Obat Bermasalah`}
+          </button>
+        </div>
+      )}
 
       {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 5) ---------- */}
       <div className="mobile-only" style={{ marginBottom: 20 }}>
@@ -104,12 +143,14 @@ export default function DataObat() {
 
         {loading ? (
           <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Memuat obat…</div>
-        ) : daftar.length === 0 ? (
+        ) : daftarTampil.length === 0 ? (
           <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Tidak ada obat yang cocok.</div>
         ) : (
-          daftar.map((obat) => {
+          daftarTampil.map((obat) => {
             const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
             const stokMenipis = obat.stok <= (obat.stok_minimum || 0);
+            const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
+            const mStat = getStatusMargin(mNum);
 
             return (
               <div
@@ -124,8 +165,13 @@ export default function DataObat() {
                 </div>
                 <div className="body">
                   <div className="t1">{obat.nama}</div>
-                  <div className="t2">
-                    {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""} {obat.nomor_batch ? `· Batch ${obat.nomor_batch}` : ""}
+                  <div className="t2" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span>{rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""} {obat.nomor_batch ? `· Batch ${obat.nomor_batch}` : ""}</span>
+                    {mStat.status !== "kosong" && (
+                      <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
+                        {mStat.label}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
@@ -163,8 +209,8 @@ export default function DataObat() {
           </thead>
           <tbody>
             {loading && <tr><td colSpan={12} className="obat-table-info">Memuat…</td></tr>}
-            {!loading && daftar.length === 0 && <tr><td colSpan={12} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
-            {!loading && daftar.map((obat) => {
+            {!loading && daftarTampil.length === 0 && <tr><td colSpan={12} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
+            {!loading && daftarTampil.map((obat) => {
               const def = obat.satuan?.find(s => s.is_default) || obat.satuan?.[0];
               const hari = daysUntil(obat.tanggal_exp);
               const satuanNames = obat.satuan?.map(s => s.nama_satuan).join(" / ");
@@ -174,6 +220,8 @@ export default function DataObat() {
               const hargaJual = obat.satuan?.length > 1
                 ? obat.satuan.map(s => rupiah(s.harga_jual)).join(" / ")
                 : rupiah(def?.harga_jual);
+              const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
+              const mStat = getStatusMargin(mNum);
 
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
@@ -201,7 +249,15 @@ export default function DataObat() {
                     })()}
                   </td>
                   <td className="obat-harga-cell">{hargaJual}</td>
-                  <td className="obat-margin-cell">{marginPct(def?.harga_beli, def?.harga_jual)}</td>
+                  <td className="obat-margin-cell">
+                    {mStat.status !== "kosong" ? (
+                      <span className={`margin-badge ${mStat.warna}`}>
+                        {mStat.label}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
                   <td>
                     <span>{obat.stok} {obat.satuan_dasar}</span>
                     {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis">MENIPIS</div>}
