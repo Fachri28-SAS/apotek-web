@@ -58,7 +58,7 @@
       "destination": "http://api.apotekbimafarma.com/storage/:match*"
     },
     {
-      "source": "/((?!sw\\.js$|workbox-.*\\.js$|manifest\\.webmanifest$|registerSW\\.js$).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
