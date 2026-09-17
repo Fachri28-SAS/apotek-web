@@ -27,12 +27,24 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
 
   const [multiSatuan, setMultiSatuan] = useState((obat?.satuan?.length || 0) > 1);
   const [satuanList, setSatuanList] = useState(
-    obat?.satuan?.length ? obat.satuan.map((s) => ({ ...s })) : [satuanKosong()]
+    obat?.satuan?.length
+      ? obat.satuan.map((s) => ({
+          ...s,
+          harga_beli: s.harga_beli != null && s.harga_beli !== "" ? Math.round(Number(s.harga_beli)) : "",
+          harga_jual: s.harga_jual != null && s.harga_jual !== "" ? Math.round(Number(s.harga_jual)) : "",
+          harga_beli_awal: s.harga_beli_awal != null && s.harga_beli_awal !== "" ? Math.round(Number(s.harga_beli_awal)) : s.harga_beli_awal,
+        }))
+      : [satuanKosong()]
   );
   // Mode 1-satuan pakai state terpisah biar sederhana, disatukan lagi saat submit
   const [satuanTunggal, setSatuanTunggal] = useState(
     obat?.satuan?.length === 1
-      ? { ...obat.satuan[0] }
+      ? {
+          ...obat.satuan[0],
+          harga_beli: obat.satuan[0].harga_beli != null && obat.satuan[0].harga_beli !== "" ? Math.round(Number(obat.satuan[0].harga_beli)) : "",
+          harga_jual: obat.satuan[0].harga_jual != null && obat.satuan[0].harga_jual !== "" ? Math.round(Number(obat.satuan[0].harga_jual)) : "",
+          harga_beli_awal: obat.satuan[0].harga_beli_awal != null && obat.satuan[0].harga_beli_awal !== "" ? Math.round(Number(obat.satuan[0].harga_beli_awal)) : obat.satuan[0].harga_beli_awal,
+        }
       : { nama_satuan: obat?.satuan_dasar || "", faktor: 1, harga_beli: "", harga_jual: "" }
   );
 
@@ -346,7 +358,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
               <div className="payment-field">
                 <label>Harga Beli</label>
                 <input
-                  type="number" min="0" value={satuanTunggal.harga_beli}
+                  type="number" min="0" step="any" value={satuanTunggal.harga_beli}
                   onChange={(e) => {
                     const val = e.target.value;
                     const autoJual = hitungHargaJualOtomatis(val, 25);
@@ -384,7 +396,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                   </button>
                 </div>
                 <input
-                  type="number" min="0" value={satuanTunggal.harga_jual}
+                  type="number" min="0" step="any" value={satuanTunggal.harga_jual}
                   onChange={(e) => setSatuanTunggal((s) => ({ ...s, harga_jual: e.target.value }))}
                   required
                 />
@@ -413,7 +425,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
               </div>
               {modeEdit && satuanTunggal.harga_beli_awal != null && (
                 <div className="harga-awal-info">
-                  <span>Harga Awal: Rp{Number(satuanTunggal.harga_beli_awal).toLocaleString("id-ID")}</span>
+                  <span>Harga Awal: Rp{Math.round(Number(satuanTunggal.harga_beli_awal || 0)).toLocaleString("id-ID")}</span>
                   <button
                     type="button"
                     className="harga-awal-koreksi-btn"
@@ -443,6 +455,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                           <input
                             type="number"
                             min="0"
+                            step="any"
                             value={s.harga_beli}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -457,7 +470,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                             <button
                               type="button"
                               className="harga-awal-icon-btn"
-                              title={`Harga Awal: Rp${Number(s.harga_beli_awal).toLocaleString("id-ID")} — klik untuk koreksi`}
+                              title={`Harga Awal: Rp${Math.round(Number(s.harga_beli_awal || 0)).toLocaleString("id-ID")} — klik untuk koreksi`}
                               onClick={() => koreksiHargaAwal(s.harga_beli_awal, (angka) => ubahBarisSatuan(i, "harga_beli_awal", angka))}
                             >
                               ⓘ
@@ -467,7 +480,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                       </td>
                       <td>
                         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          <input type="number" min="0" value={s.harga_jual} onChange={(e) => ubahBarisSatuan(i, "harga_jual", e.target.value)} required />
+                          <input type="number" min="0" step="any" value={s.harga_jual} onChange={(e) => ubahBarisSatuan(i, "harga_jual", e.target.value)} required />
                           {(() => {
                             const m = hitungMarginPersen(s.harga_beli, s.harga_jual);
                             const stat = getStatusMargin(m);

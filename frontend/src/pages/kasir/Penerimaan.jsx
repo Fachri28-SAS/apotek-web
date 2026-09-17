@@ -328,7 +328,7 @@ export default function Penerimaan() {
                           />
                         </td>
                         <td>
-                          <input type="number" min="0" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
+                          <input type="number" min="0" step="any" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
                           {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
                         </td>
                         <td><input type="number" min="0" className="cart-input-angka" style={{ width: 70 }} value={it.diskon} onChange={(e) => ubahItem(it.key, "diskon", e.target.value)} /></td>
@@ -342,6 +342,7 @@ export default function Penerimaan() {
                             <input
                               type="number"
                               min="0"
+                              step="any"
                               className="cart-input-angka"
                               style={{ width: 95 }}
                               value={it.harga_jual_baru ?? it.harga_jual_referensi ?? ""}
