@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
-import { rupiah, hitungMarginPersen, getStatusMargin } from "../../utils/format";
+import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
 import SampahModal from "./komponen/SampahModal";
@@ -41,6 +41,7 @@ export default function DataObat() {
   const [sampahOpen, setSampahOpen] = useState(false);
   const [riwayatObat, setRiwayatObat] = useState(null);
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
+  const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
   // Deteksi obat dengan margin di bawah batas aman (< 20%) atau jual rugi (< 0)
   const obatBermasalahMargin = daftar.filter((o) => {
@@ -85,6 +86,93 @@ export default function DataObat() {
     muatUlang();
   }
 
+  async function handlePerbaikiSemuaMargin() {
+    if (obatBermasalahMargin.length === 0) return;
+    if (
+      !window.confirm(
+        `Sesuaikan ${obatBermasalahMargin.length} obat yang marginnya bermasalah / tipis?\n\n` +
+        `• Harga jual otomatis dihitung dengan Margin 25% (Harga Beli / 0.75)\n` +
+        `• Dibulatkan ke atas ke kelipatan Rp 500 terdekat (bebas koma / angka ganjil)\n` +
+        `• Desimal pada harga beli juga akan dibersihkan ke rupiah bulat utuh.`
+      )
+    ) {
+      return;
+    }
+
+    setSedangPerbaiki(true);
+    try {
+      try {
+        await api("/obat/perbaiki-margin-semua", {
+          method: "POST",
+          body: JSON.stringify({ hanya_bermasalah: true }),
+        });
+      } catch (e) {
+        // Fallback langsung lewat PUT per obat
+        for (const o of obatBermasalahMargin) {
+          if (!o.satuan || o.satuan.length === 0) continue;
+          const satuanBaru = o.satuan.map((s) => {
+            const beliBulat = Math.round(Number(s.harga_beli || 0));
+            const autoJual = hitungHargaJualOtomatis(beliBulat, 25);
+            return {
+              id: s.id,
+              nama_satuan: s.nama_satuan,
+              faktor: s.faktor || 1,
+              harga_beli: beliBulat,
+              harga_jual: autoJual,
+            };
+          });
+          await api(`/obat/${o.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ nama: o.nama, satuan: satuanBaru }),
+          });
+        }
+      }
+      alert(`Sukses! ${obatBermasalahMargin.length} obat telah diperbaiki menjadi margin 25% dan bulat kelipatan 500.`);
+      muatUlang();
+    } catch (err) {
+      alert("Gagal memperbaiki margin: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setSedangPerbaiki(false);
+    }
+  }
+
+  async function handlePerbaikiSatuObat(obat) {
+    const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
+    const beliBulat = Math.round(Number(def?.harga_beli || 0));
+    const autoJual = hitungHargaJualOtomatis(beliBulat, 25);
+
+    if (
+      !window.confirm(
+        `Perbarui harga obat "${obat.nama}"?\n` +
+        `• Harga Beli: ${rupiah(beliBulat)}\n` +
+        `• Harga Jual Baru: ${rupiah(autoJual)} (Margin 25% & Kelipatan Rp 500)`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const satuanBaru = obat.satuan.map((s) => {
+        const b = Math.round(Number(s.harga_beli || 0));
+        return {
+          id: s.id,
+          nama_satuan: s.nama_satuan,
+          faktor: s.faktor || 1,
+          harga_beli: b,
+          harga_jual: hitungHargaJualOtomatis(b, 25),
+        };
+      });
+
+      await api(`/obat/${obat.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ nama: obat.nama, satuan: satuanBaru }),
+      });
+      muatUlang();
+    } catch (err) {
+      alert("Gagal memperbarui harga: " + (err.message || "Terjadi kesalahan"));
+    }
+  }
+
   return (
     <KasirShell>
       <div className="halaman-header">
@@ -117,13 +205,29 @@ export default function DataObat() {
               ) : null}
             </div>
           </div>
-          <button
-            type="button"
-            className="alert-btn"
-            onClick={() => setFilterMarginTipis(!filterMarginTipis)}
-          >
-            {filterMarginTipis ? "✕ Tampilkan Semua Obat" : `🔍 Lihat ${obatBermasalahMargin.length} Obat Bermasalah`}
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <button
+              type="button"
+              className="alert-btn"
+              onClick={() => setFilterMarginTipis(!filterMarginTipis)}
+            >
+              {filterMarginTipis ? "✕ Tampilkan Semua Obat" : `🔍 Lihat ${obatBermasalahMargin.length} Obat Bermasalah`}
+            </button>
+            <button
+              type="button"
+              className="alert-btn"
+              style={{
+                background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
+                borderColor: "#6D28D9",
+                color: "#fff",
+                fontWeight: 700
+              }}
+              disabled={sedangPerbaiki}
+              onClick={handlePerbaikiSemuaMargin}
+            >
+              {sedangPerbaiki ? "Memproses…" : `⚡ Perbaiki Semua Margin 25% & Bulat 500 (${obatBermasalahMargin.length} Obat)`}
+            </button>
+          </div>
         </div>
       )}
 
@@ -171,6 +275,27 @@ export default function DataObat() {
                       <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
                         {mStat.label}
                       </span>
+                    )}
+                    {(mStat.status === "rugi" || mStat.status === "tipis") && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePerbaikiSatuObat(obat);
+                        }}
+                        style={{
+                          background: "#F5F3FF",
+                          border: "1px solid #7C3AED",
+                          color: "#6D28D9",
+                          borderRadius: 4,
+                          padding: "1px 6px",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          cursor: "pointer"
+                        }}
+                      >
+                        ⚡ Jadi 25%
+                      </button>
                     )}
                   </div>
                 </div>
@@ -251,9 +376,34 @@ export default function DataObat() {
                   <td className="obat-harga-cell">{hargaJual}</td>
                   <td className="obat-margin-cell">
                     {mStat.status !== "kosong" ? (
-                      <span className={`margin-badge ${mStat.warna}`}>
-                        {mStat.label}
-                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
+                        <span className={`margin-badge ${mStat.warna}`}>
+                          {mStat.label}
+                        </span>
+                        {(mStat.status === "rugi" || mStat.status === "tipis") && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePerbaikiSatuObat(obat);
+                            }}
+                            style={{
+                              background: "#F5F3FF",
+                              border: "1px solid #7C3AED",
+                              color: "#6D28D9",
+                              borderRadius: 5,
+                              padding: "2px 7px",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              whiteSpace: "nowrap"
+                            }}
+                            title="Otomatis hitung margin 25% dan dibulatkan ke kelipatan 500"
+                          >
+                            ⚡ Jadi 25%
+                          </button>
+                        )}
+                      </div>
                     ) : (
                       "-"
                     )}

@@ -453,4 +453,55 @@ class ObatController extends Controller
 
         return response()->json(['message' => 'Penyesuaian stok & rincian batch tersimpan', 'data' => $hasil]);
     }
+
+    /**
+     * POST /api/obat/perbaiki-margin-semua
+     * Menyesuaikan harga jual lama agar memiliki margin sehat 25% dan kelipatan Rp 500 ke atas,
+     * serta membersihkan desimal koma (misal .07, .34) pada harga beli.
+     */
+    public function perbaikiMarginSemua(Request $r)
+    {
+        $hanyaBermasalah = $r->boolean('hanya_bermasalah', true);
+        $satuans = ObatSatuan::all();
+        $diperbarui = 0;
+
+        DB::transaction(function () use ($satuans, $hanyaBermasalah, &$diperbarui) {
+            foreach ($satuans as $satuan) {
+                $beli = (float) $satuan->harga_beli;
+                $jual = (float) $satuan->harga_jual;
+                $beliBulat = (float) round($beli);
+
+                // Margin saat ini: (jual - beli) / jual
+                $marginPct = $jual > 0 ? (($jual - $beli) / $jual) * 100 : -100;
+
+                // Cek apakah obat bermasalah:
+                // - Margin < 20% ATAU
+                // - Jual <= beli (rugi/impas) ATAU
+                // - Harga jual tidak genap kelipatan 500 (misal 7.003) ATAU
+                // - Harga beli/jual ada koma desimal (.07)
+                $isBermasalah = $marginPct < 20 || $jual <= $beli || fmod($jual, 500) != 0 || $beli != $beliBulat;
+
+                if ($hanyaBermasalah && !$isBermasalah) {
+                    continue;
+                }
+
+                // Rumus margin 25%: Beli / 0.75 dibulatkan ke atas kelipatan 500
+                $jualBaru = $beliBulat > 0 ? (ceil(($beliBulat / 0.75) / 500) * 500) : $jual;
+                if (fmod($jualBaru, 500) != 0) {
+                    $jualBaru = ceil($jualBaru / 500) * 500;
+                }
+
+                $satuan->update([
+                    'harga_beli' => $beliBulat,
+                    'harga_jual' => $jualBaru,
+                ]);
+                $diperbarui++;
+            }
+        });
+
+        return response()->json([
+            'message' => "Berhasil memperbarui {$diperbarui} satuan obat menjadi margin 25% dan kelipatan Rp 500.",
+            'jumlah_diperbarui' => $diperbarui
+        ]);
+    }
 }

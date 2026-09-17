@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/penerimaan', [PenerimaanController::class, 'index']);
         Route::get('/penerimaan/{penerimaan}', [PenerimaanController::class, 'show']);
         Route::put('/penerimaan/{penerimaan}/toggle-bayar', [PenerimaanController::class, 'toggleBayar']);
+        Route::post('/obat/perbaiki-margin-semua', [ObatController::class, 'perbaikiMarginSemua']);
         Route::post('/obat', [ObatController::class, 'store']);
         Route::put('/obat/{obat}', [ObatController::class, 'update']);
         Route::delete('/obat/{obat}', [ObatController::class, 'destroy']);

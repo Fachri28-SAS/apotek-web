@@ -5,7 +5,8 @@ import { api } from "../lib/api";
 import "./Landing.css";
 
 function rupiah(n) {
-  return "Rp" + Number(n || 0).toLocaleString("id-ID");
+  if (n === null || n === undefined || isNaN(n)) return "Rp0";
+  return "Rp" + Math.round(Number(n)).toLocaleString("id-ID");
 }
 
 function getGambarObatUrl(itemOrObat) {

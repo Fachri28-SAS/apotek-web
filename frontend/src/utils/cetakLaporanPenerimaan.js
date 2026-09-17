@@ -29,7 +29,8 @@ export function cetakLaporanPenerimaan(fakturs = [], { dariTanggal, sampaiTangga
   }
 
   function formatRp(num) {
-    return "Rp" + Number(num || 0).toLocaleString("id-ID");
+    if (num === null || num === undefined || isNaN(num)) return "Rp0";
+    return "Rp" + Math.round(Number(num)).toLocaleString("id-ID");
   }
 
   // Siapkan baris item
