@@ -71,8 +71,8 @@ class PengeluaranController extends Controller
         $breakdown = [];
         $totalGaji = (float) ($kategoriSummary['gaji']->total ?? 0);
         $totalOperasionalNonGaji = max(0, $totalOperasional - $totalGaji);
-        // Pendapatan Bersih = Total Laba Kotor Penjualan - Beban Operasional (Gaji + Operasional lainnya)
-        $pendapatanBersih = (float) ($totalLabaPenjualan - $totalOperasional);
+        // Pendapatan Bersih = Total Laba Kotor Penjualan - Total Pengeluaran (Beban Operasional + Pembelian Obat Supplier)
+        $pendapatanBersih = (float) ($totalLabaPenjualan - $totalPengeluaran);
 
         $daftarKategori = [
             'pembelian_obat' => ['label' => 'Pembelian Obat (Supplier)', 'total' => $totalPembelianSupplier, 'warna' => '#1A56B8'],
@@ -109,6 +109,7 @@ class PengeluaranController extends Controller
                 'total_operasional' => $totalOperasional,
                 'total_operasional_non_gaji' => $totalOperasionalNonGaji,
                 'pendapatan_bersih' => $pendapatanBersih,
+                'pendapatan_bersih_operasional_saja' => (float) ($totalLabaPenjualan - $totalOperasional),
                 'total_pengeluaran' => $totalPengeluaran,
                 'total_pembelian_obat' => $totalPembelianSupplier,
                 'jumlah_catatan' => $daftarOperasional->count() + $fakturSupplier->count(),

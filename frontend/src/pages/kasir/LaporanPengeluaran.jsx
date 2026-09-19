@@ -397,8 +397,8 @@ export default function LaporanPengeluaran() {
 
       {error && <div className="login-error">{error}</div>}
 
-      {/* KPI GRID 4 KOLOM BERJAJAR */}
-      <div className="kpi-grid kpi-grid-4">
+      {/* KPI GRID 5 KOLOM BERJAJAR */}
+      <div className="kpi-grid kpi-grid-5">
         {/* 1. Total Pendapatan (Laba) - Persis sama dari Laporan Penjualan */}
         <div className="kpi-card hijau" style={{ border: "1.5px solid #86EFAC" }}>
           <div className="kpi-icon">
@@ -422,7 +422,25 @@ export default function LaporanPengeluaran() {
           </div>
         </div>
 
-        {/* 2. Gaji Karyawan */}
+        {/* 2. Pembelian Obat (Supplier / Kulakan) */}
+        <div className="kpi-card ungu" style={{ border: "1.5px solid #DDD6FE" }}>
+          <div className="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <div>
+            <div className="kpi-angka" style={{ color: "var(--magenta-dark)" }}>
+              {loading ? "…" : rupiah(data?.kpi?.total_pembelian_obat || 0)}
+            </div>
+            <div className="kpi-label" style={{ color: "var(--magenta-dark)" }}>Pembelian Obat (Supplier)</div>
+            <div className="kpi-sub">Kulakan faktur supplier</div>
+          </div>
+        </div>
+
+        {/* 3. Gaji Karyawan */}
         <div className="kpi-card biru">
           <div className="kpi-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -438,7 +456,7 @@ export default function LaporanPengeluaran() {
           </div>
         </div>
 
-        {/* 3. Biaya Operasional */}
+        {/* 4. Biaya Operasional */}
         <div className="kpi-card kuning">
           <div className="kpi-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -454,9 +472,11 @@ export default function LaporanPengeluaran() {
           </div>
         </div>
 
-        {/* 4. Total Pendapatan Bersih */}
+        {/* 5. Total Pendapatan Bersih */}
         {(() => {
-          const bersih = data?.kpi?.pendapatan_bersih ?? ((data?.kpi?.total_laba_penjualan || 0) - (data?.kpi?.total_operasional || 0));
+          const bersih = data?.kpi?.pendapatan_bersih != null
+            ? Number(data.kpi.pendapatan_bersih)
+            : ((Number(data?.kpi?.total_laba_penjualan || data?.kpi?.total_pendapatan || 0)) - ((Number(data?.kpi?.total_operasional || 0)) + (Number(data?.kpi?.total_pembelian_obat || 0))));
           const isPositif = bersih >= 0;
           return (
             <div className={"kpi-card " + (isPositif ? "hijau" : "merah")} style={{ border: isPositif ? "1.5px solid #86EFAC" : "1.5px solid #FCA5A5" }}>
@@ -473,7 +493,7 @@ export default function LaporanPengeluaran() {
                 <div className="kpi-label" style={{ color: isPositif ? "var(--green-dark)" : "#991B1B" }}>
                   Total Pendapatan Bersih
                 </div>
-                <div className="kpi-sub">Laba kotor - Beban operasional</div>
+                <div className="kpi-sub">Laba - Operasional & Kulakan</div>
               </div>
             </div>
           );
