@@ -159,13 +159,21 @@ class PenjualanController extends Controller
             $q->where('user_id', $r->kasir_id);
         }
 
-        match ($r->periode) {
-            'hari-ini' => $q->whereDate('tanggal', now()->toDateString()),
-            'minggu-ini' => $q->whereBetween('tanggal', [now()->startOfWeek(), now()->endOfWeek()]),
-            'bulan-ini' => $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year),
-            'bulan-lalu' => $q->whereMonth('tanggal', now()->subMonth()->month)->whereYear('tanggal', now()->subMonth()->year),
-            default => null,
-        };
+        if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
+            $q->whereBetween('tanggal', [$r->dari_tanggal, $r->sampai_tanggal]);
+        } elseif ($r->filled('dari_tanggal')) {
+            $q->whereDate('tanggal', '>=', $r->dari_tanggal);
+        } elseif ($r->filled('sampai_tanggal')) {
+            $q->whereDate('tanggal', '<=', $r->sampai_tanggal);
+        } else {
+            match ($r->periode) {
+                'hari-ini' => $q->whereDate('tanggal', now()->toDateString()),
+                'minggu-ini' => $q->whereBetween('tanggal', [now()->startOfWeek(), now()->endOfWeek()]),
+                'bulan-ini' => $q->whereMonth('tanggal', now()->month)->whereYear('tanggal', now()->year),
+                'bulan-lalu' => $q->whereMonth('tanggal', now()->subMonth()->month)->whereYear('tanggal', now()->subMonth()->year),
+                default => null,
+            };
+        }
 
         return $q->withCount('items')->orderByDesc('id')->limit(200)->get();
     }

@@ -6,23 +6,6 @@ import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokum
 import KasirShell from "./KasirShell";
 import TombolExportGroup from "./komponen/TombolExportGroup";
 
-const PERIODE = [
-  { key: "hari-ini", label: "Hari Ini" },
-  { key: "minggu-ini", label: "Minggu Ini" },
-  { key: "bulan-ini", label: "Bulan Ini" },
-  { key: "bulan-lalu", label: "Bulan Lalu" },
-];
-
-const KATEGORI_OPTIONS = [
-  { key: "gaji", label: "Gaji Karyawan", badgeColor: "#15803D", bg: "#DCFCE7" },
-  { key: "operasional", label: "Operasional Harian", badgeColor: "#A64BC7", bg: "#F3E8FF" },
-  { key: "listrik_air", label: "Listrik, Air & Internet", badgeColor: "#D97706", bg: "#FEF3C7" },
-  { key: "perlengkapan", label: "ATK & Perlengkapan", badgeColor: "#BE185D", bg: "#FCE7F3" },
-  { key: "sewa", label: "Sewa & Tempat", badgeColor: "#4338CA", bg: "#EEF2FF" },
-  { key: "pemeliharaan", label: "Perawatan & Kebersihan", badgeColor: "#0F766E", bg: "#CCFBF1" },
-  { key: "lainnya", label: "Lain-lain", badgeColor: "#475569", bg: "#F1F5F9" },
-];
-
 function getTglYmd(d) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -41,39 +24,21 @@ function formatTglIndo(tglStr) {
   });
 }
 
-function getPresetRange(key) {
-  const now = new Date();
-  if (key === "hari-ini") {
-    const tgl = getTglYmd(now);
-    return { dari: tgl, sampai: tgl };
-  }
-  if (key === "minggu-ini") {
-    const day = now.getDay();
-    const diffToMon = (day === 0 ? -6 : 1) - day;
-    const mon = new Date(now);
-    mon.setDate(now.getDate() + diffToMon);
-    const sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
-    return { dari: getTglYmd(mon), sampai: getTglYmd(sun) };
-  }
-  if (key === "bulan-ini") {
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return { dari: getTglYmd(start), sampai: getTglYmd(now) };
-  }
-  if (key === "bulan-lalu") {
-    const startM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endM = new Date(now.getFullYear(), now.getMonth(), 0);
-    return { dari: getTglYmd(startM), sampai: getTglYmd(endM) };
-  }
-  return { dari: getTglYmd(now), sampai: getTglYmd(now) };
-}
+const KATEGORI_OPTIONS = [
+  { key: "gaji", label: "Gaji Karyawan", badgeColor: "#15803D", bg: "#DCFCE7" },
+  { key: "operasional", label: "Operasional Harian", badgeColor: "#A64BC7", bg: "#F3E8FF" },
+  { key: "listrik_air", label: "Listrik, Air & Internet", badgeColor: "#D97706", bg: "#FEF3C7" },
+  { key: "perlengkapan", label: "ATK & Perlengkapan", badgeColor: "#BE185D", bg: "#FCE7F3" },
+  { key: "sewa", label: "Sewa & Tempat", badgeColor: "#4338CA", bg: "#EEF2FF" },
+  { key: "pemeliharaan", label: "Perawatan & Kebersihan", badgeColor: "#0F766E", bg: "#CCFBF1" },
+  { key: "lainnya", label: "Lain-lain", badgeColor: "#475569", bg: "#F1F5F9" },
+];
 
 export default function LaporanPengeluaran() {
   const { user } = useAuth();
-  const initRange = getPresetRange("hari-ini");
-  const [periode, setPeriode] = useState("hari-ini");
-  const [dariTanggal, setDariTanggal] = useState(initRange.dari);
-  const [sampaiTanggal, setSampaiTanggal] = useState(initRange.sampai);
+  const tglSekarang = getTglYmd(new Date());
+  const [dariTanggal, setDariTanggal] = useState(tglSekarang);
+  const [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -102,7 +67,7 @@ export default function LaporanPengeluaran() {
   function muatData() {
     setLoading(true);
     const params = new URLSearchParams();
-    params.set("periode", periode);
+    params.set("periode", "custom");
     if (dariTanggal) params.set("dari_tanggal", dariTanggal);
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
 
@@ -138,18 +103,11 @@ export default function LaporanPengeluaran() {
 
   useEffect(() => {
     muatData();
-  }, [periode, dariTanggal, sampaiTanggal]);
+  }, [dariTanggal, sampaiTanggal]);
 
-  function pilihPreset(pKey) {
-    const range = getPresetRange(pKey);
-    setPeriode(pKey);
-    setDariTanggal(range.dari);
-    setSampaiTanggal(range.sampai);
-  }
-
-  const labelPeriode = periode === "custom"
-    ? (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`)
-    : ((PERIODE.find((p) => p.key === periode)?.label || "Periode") + (dariTanggal ? ` (${dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : `${formatTglIndo(dariTanggal)} - ${formatTglIndo(sampaiTanggal)}`})` : ""));
+  const labelPeriode = dariTanggal === sampaiTanggal
+    ? formatTglIndo(dariTanggal)
+    : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`;
 
   async function handleSimpan(e) {
     e.preventDefault();
@@ -348,7 +306,7 @@ export default function LaporanPengeluaran() {
   function handleExcelPengeluaran() {
     const { judul, headers, rows, footers, keterangan } = siapkanDataExportPengeluaran();
     exportExcel({
-      filename: `pengeluaran-${tabAktif}-${periode}`,
+      filename: `pengeluaran-${tabAktif}-${dariTanggal === sampaiTanggal ? dariTanggal : `${dariTanggal}-sd-${sampaiTanggal}`}`,
       judul,
       periode: labelPeriode,
       keterangan,
@@ -361,7 +319,7 @@ export default function LaporanPengeluaran() {
   function handleWordPengeluaran() {
     const { judul, headers, rows, footers, keterangan } = siapkanDataExportPengeluaran();
     exportWord({
-      filename: `pengeluaran-${tabAktif}-${periode}`,
+      filename: `pengeluaran-${tabAktif}-${dariTanggal === sampaiTanggal ? dariTanggal : `${dariTanggal}-sd-${sampaiTanggal}`}`,
       judul,
       periode: labelPeriode,
       keterangan,
@@ -383,14 +341,11 @@ export default function LaporanPengeluaran() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Kalender Filter Tanggal */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-            <span>Dari:</span>
+            <span>📅 Dari:</span>
             <input
               type="date"
               value={dariTanggal}
-              onChange={(e) => {
-                setDariTanggal(e.target.value);
-                setPeriode("custom");
-              }}
+              onChange={(e) => setDariTanggal(e.target.value)}
               style={{
                 padding: "7px 10px",
                 borderRadius: 8,
@@ -408,10 +363,7 @@ export default function LaporanPengeluaran() {
             <input
               type="date"
               value={sampaiTanggal}
-              onChange={(e) => {
-                setSampaiTanggal(e.target.value);
-                setPeriode("custom");
-              }}
+              onChange={(e) => setSampaiTanggal(e.target.value)}
               style={{
                 padding: "7px 10px",
                 borderRadius: 8,
@@ -422,20 +374,6 @@ export default function LaporanPengeluaran() {
                 background: "#fff",
               }}
             />
-          </div>
-
-          {/* Preset Chips */}
-          <div className="periode-chips" style={{ margin: 0 }}>
-            {PERIODE.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                onClick={() => pilihPreset(p.key)}
-              >
-                {p.label}
-              </button>
-            ))}
           </div>
 
           <button

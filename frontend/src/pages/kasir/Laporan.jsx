@@ -13,13 +13,6 @@ function daysUntil(dateStr) {
   return Math.ceil((exp - now) / 86400000);
 }
 
-var PERIODE = [
-  { key: "hari-ini", label: "Hari Ini" },
-  { key: "minggu-ini", label: "Minggu Ini" },
-  { key: "bulan-ini", label: "Bulan Ini" },
-  { key: "bulan-lalu", label: "Bulan Lalu" },
-];
-
 function getTglYmd(d) {
   var yyyy = d.getFullYear();
   var mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -36,33 +29,6 @@ function formatTglIndo(tglStr) {
     month: "long",
     year: "numeric",
   });
-}
-
-function getPresetRange(key) {
-  var now = new Date();
-  if (key === "hari-ini") {
-    var tgl = getTglYmd(now);
-    return { dari: tgl, sampai: tgl };
-  }
-  if (key === "minggu-ini") {
-    var day = now.getDay();
-    var diffToMon = (day === 0 ? -6 : 1) - day;
-    var mon = new Date(now);
-    mon.setDate(now.getDate() + diffToMon);
-    var sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
-    return { dari: getTglYmd(mon), sampai: getTglYmd(sun) };
-  }
-  if (key === "bulan-ini") {
-    var start = new Date(now.getFullYear(), now.getMonth(), 1);
-    return { dari: getTglYmd(start), sampai: getTglYmd(now) };
-  }
-  if (key === "bulan-lalu") {
-    var startM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    var endM = new Date(now.getFullYear(), now.getMonth(), 0);
-    return { dari: getTglYmd(startM), sampai: getTglYmd(endM) };
-  }
-  return { dari: getTglYmd(now), sampai: getTglYmd(now) };
 }
 
 var LABEL_METODE = { tunai: "Tunai", qris: "QRIS", transfer: "Transfer" };
@@ -101,10 +67,9 @@ function exportCSV(transaksi) {
 
 export default function Laporan() {
   var { user } = useAuth();
-  var initRange = getPresetRange("hari-ini");
-  var [periode, setPeriode] = useState("hari-ini");
-  var [dariTanggal, setDariTanggal] = useState(initRange.dari);
-  var [sampaiTanggal, setSampaiTanggal] = useState(initRange.sampai);
+  var tglSekarang = getTglYmd(new Date());
+  var [dariTanggal, setDariTanggal] = useState(tglSekarang);
+  var [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
   var [data, setData] = useState(null);
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState("");
@@ -112,26 +77,19 @@ export default function Laporan() {
   useEffect(function() {
     setLoading(true);
     var params = new URLSearchParams();
-    params.set("periode", periode);
     if (dariTanggal) params.set("dari_tanggal", dariTanggal);
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
+    params.set("periode", "custom");
 
     api("/laporan?" + params.toString())
       .then(function(d) { setData(d); setError(""); })
       .catch(function(e) { setError(e.message); })
       .finally(function() { setLoading(false); });
-  }, [periode, dariTanggal, sampaiTanggal]);
+  }, [dariTanggal, sampaiTanggal]);
 
-  function pilihPreset(pKey) {
-    var range = getPresetRange(pKey);
-    setPeriode(pKey);
-    setDariTanggal(range.dari);
-    setSampaiTanggal(range.sampai);
-  }
-
-  var labelPeriode = periode === "custom"
-    ? (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : (formatTglIndo(dariTanggal) + " s/d " + formatTglIndo(sampaiTanggal)))
-    : ((PERIODE.find(function(p){ return p.key === periode; })?.label || "Periode") + (dariTanggal ? " (" + (dariTanggal === sampaiTanggal ? formatTglIndo(dariTanggal) : formatTglIndo(dariTanggal) + " - " + formatTglIndo(sampaiTanggal)) + ")" : ""));
+  var labelPeriode = dariTanggal === sampaiTanggal
+    ? formatTglIndo(dariTanggal)
+    : (formatTglIndo(dariTanggal) + " s/d " + formatTglIndo(sampaiTanggal));
 
   function siapkanDataExportLaporan() {
     var transaksi = data && data.transaksi ? data.transaksi : [];
@@ -214,7 +172,7 @@ export default function Laporan() {
   function handleExcelLaporan() {
     var exp = siapkanDataExportLaporan();
     exportExcel({
-      filename: "laporan-penjualan-" + periode,
+      filename: "laporan-penjualan-" + (dariTanggal === sampaiTanggal ? dariTanggal : (dariTanggal + "-sd-" + sampaiTanggal)),
       judul: "LAPORAN PENJUALAN",
       periode: labelPeriode,
       headers: exp.headers,
@@ -226,7 +184,7 @@ export default function Laporan() {
   function handleWordLaporan() {
     var exp = siapkanDataExportLaporan();
     exportWord({
-      filename: "laporan-penjualan-" + periode,
+      filename: "laporan-penjualan-" + (dariTanggal === sampaiTanggal ? dariTanggal : (dariTanggal + "-sd-" + sampaiTanggal)),
       judul: "LAPORAN PENJUALAN",
       periode: labelPeriode,
       headers: exp.headers,
@@ -255,13 +213,12 @@ export default function Laporan() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Kalender Filter Tanggal */}
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-            <span>Dari:</span>
+            <span>📅 Dari:</span>
             <input
               type="date"
               value={dariTanggal}
               onChange={function(e) {
                 setDariTanggal(e.target.value);
-                setPeriode("custom");
               }}
               style={{
                 padding: "7px 10px",
@@ -282,7 +239,6 @@ export default function Laporan() {
               value={sampaiTanggal}
               onChange={function(e) {
                 setSampaiTanggal(e.target.value);
-                setPeriode("custom");
               }}
               style={{
                 padding: "7px 10px",
@@ -294,22 +250,6 @@ export default function Laporan() {
                 background: "#fff",
               }}
             />
-          </div>
-
-          {/* Preset Chips */}
-          <div className="periode-chips" style={{ margin: 0 }}>
-            {PERIODE.map(function(p) {
-              return (
-                <button
-                  key={p.key}
-                  type="button"
-                  className={"periode-chip " + (periode === p.key ? "active" : "")}
-                  onClick={function(){ pilihPreset(p.key); }}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>

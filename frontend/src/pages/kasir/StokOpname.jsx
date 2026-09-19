@@ -3,13 +3,12 @@ import { api } from "../../lib/api";
 import KasirShell from "./KasirShell";
 import DetailBatchModal from "./komponen/DetailBatchModal";
 
-const PERIODE = [
-  { key: "", label: "Semua" },
-  { key: "hari-ini", label: "Hari Ini" },
-  { key: "minggu-ini", label: "Minggu Ini" },
-  { key: "bulan-ini", label: "Bulan Ini" },
-  { key: "bulan-lalu", label: "Bulan Lalu" },
-];
+function getTglYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 /* ---------- Search khusus opname: pilih OBAT, bukan satuan ---------- */
 function SearchObatOpname({ onPilih, sudahDipilih }) {
@@ -83,21 +82,26 @@ function SearchObatOpname({ onPilih, sudahDipilih }) {
 }
 
 export default function StokOpname() {
+  const tglSekarang = getTglYmd(new Date());
   const [items, setItems] = useState([]);
   const [riwayat, setRiwayat] = useState([]);
-  const [periode, setPeriode] = useState("bulan-ini");
+  const [dariTanggal, setDariTanggal] = useState(tglSekarang);
+  const [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sukses, setSukses] = useState("");
   const [modalBatchObat, setModalBatchObat] = useState(null);
 
   function muatRiwayat() {
-    api(`/stok-mutasi?tipe=penyesuaian${periode ? `&periode=${periode}` : ""}`)
+    const params = new URLSearchParams({ tipe: "penyesuaian" });
+    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
+    api(`/stok-mutasi?${params}`)
       .then(setRiwayat)
       .catch(() => setRiwayat([]));
   }
 
-  useEffect(() => { muatRiwayat(); }, [periode]);
+  useEffect(() => { muatRiwayat(); }, [dariTanggal, sampaiTanggal]);
 
   function tambahItem(obat) {
     setItems((prev) => [...prev, {
@@ -307,16 +311,44 @@ export default function StokOpname() {
 
       {/* ---------- RIWAYAT ---------- */}
       <div className="panel">
-        <div className="panel-head">
+        <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
           <h3>Riwayat Penyesuaian</h3>
-          <div className="periode-chips">
-            {PERIODE.map((p) => (
-              <button key={p.key} type="button"
-                className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                onClick={() => setPeriode(p.key)}>
-                {p.label}
-              </button>
-            ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>📅 Dari:</span>
+              <input
+                type="date"
+                value={dariTanggal}
+                onChange={(e) => setDariTanggal(e.target.value)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Sampai:</span>
+              <input
+                type="date"
+                value={sampaiTanggal}
+                onChange={(e) => setSampaiTanggal(e.target.value)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
           </div>
         </div>
 

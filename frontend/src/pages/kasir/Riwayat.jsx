@@ -4,18 +4,19 @@ import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import StrukModal from "./komponen/StrukModal";
 
-const PERIODE = [
-  { key: "hari-ini", label: "Hari Ini" },
-  { key: "minggu-ini", label: "Minggu Ini" },
-  { key: "bulan-ini", label: "Bulan Ini" },
-  { key: "bulan-lalu", label: "Bulan Lalu" },
-  { key: "", label: "Semua" },
-];
+function getTglYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export default function Riwayat() {
+  const tglSekarang = getTglYmd(new Date());
   const [daftar, setDaftar] = useState([]);
   const [kasirList, setKasirList] = useState([]);
-  const [periode, setPeriode] = useState("hari-ini");
+  const [dariTanggal, setDariTanggal] = useState(tglSekarang);
+  const [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
   const [kasirId, setKasirId] = useState("");
   const [sumber, setSumber] = useState("semua");
   const [loading, setLoading] = useState(true);
@@ -29,15 +30,19 @@ export default function Riwayat() {
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (periode) params.set("periode", periode);
+    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (kasirId) params.set("kasir_id", kasirId);
     if (sumber) params.set("sumber", sumber);
+    if (dariTanggal === tglSekarang && sampaiTanggal === tglSekarang) {
+      params.set("periode", "hari-ini");
+    }
 
     api(`/penjualan?${params}`)
       .then((d) => { setDaftar(d); setError(""); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [periode, kasirId, sumber]);
+  }, [dariTanggal, sampaiTanggal, kasirId, sumber]);
 
   async function bukaStruk(id) {
     try {
@@ -65,23 +70,50 @@ export default function Riwayat() {
 
       {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 4) ---------- */}
       <div className="mobile-only">
-        <div className="chips-mobile">
-          {PERIODE.map((p) => (
-            <button
-              key={p.key || "semua"}
-              type="button"
-              className={`chip-mobile ${periode === p.key ? "active" : ""}`}
-              onClick={() => setPeriode(p.key)}
-            >
-              {p.label}
-            </button>
-          ))}
+        {/* Kalender Filter Mobile */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12, padding: "0 2px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
+              📅 Dari:
+            </label>
+            <input
+              type="date"
+              value={dariTanggal}
+              onChange={(e) => setDariTanggal(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 12.5,
+                background: "#fff",
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
+              Sampai:
+            </label>
+            <input
+              type="date"
+              value={sampaiTanggal}
+              onChange={(e) => setSampaiTanggal(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 12.5,
+                background: "#fff",
+              }}
+            />
+          </div>
         </div>
 
         {loading ? (
           <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Memuat transaksi…</div>
         ) : daftar.length === 0 ? (
-          <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Belum ada transaksi pada periode ini.</div>
+          <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Belum ada transaksi pada periode tanggal ini.</div>
         ) : (
           daftar.map((t) => (
             <div
@@ -108,15 +140,44 @@ export default function Riwayat() {
 
       {/* ---------- TAMPILAN KHUSUS DESKTOP (PANEL & TABEL LENGKAP) ---------- */}
       <div className="panel desktop-only">
-        <div className="panel-head">
-          <div className="periode-chips">
-            {PERIODE.map((p) => (
-              <button key={p.key} type="button"
-                className={`periode-chip ${periode === p.key ? "active" : ""}`}
-                onClick={() => setPeriode(p.key)}>
-                {p.label}
-              </button>
-            ))}
+        <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
+          {/* Kalender Filter Tanggal */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>📅 Dari:</span>
+              <input
+                type="date"
+                value={dariTanggal}
+                onChange={(e) => setDariTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Sampai:</span>
+              <input
+                type="date"
+                value={sampaiTanggal}
+                onChange={(e) => setSampaiTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
           </div>
 
           <select className="filter-select" value={kasirId} onChange={(e) => setKasirId(e.target.value)}>

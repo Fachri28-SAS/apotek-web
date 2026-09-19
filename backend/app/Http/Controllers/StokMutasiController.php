@@ -22,14 +22,22 @@ class StokMutasiController extends Controller
             $q->where('tipe', $r->tipe);
         }
 
-        match ($r->periode) {
-            'hari-ini' => $q->whereDate('created_at', now()->toDateString()),
-            'minggu-ini' => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]),
-            'bulan-ini' => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year),
-            'bulan-lalu' => $q->whereMonth('created_at', now()->subMonth()->month)
-                              ->whereYear('created_at', now()->subMonth()->year),
-            default => null,
-        };
+        if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
+            $q->whereBetween(\Illuminate\Support\Facades\DB::raw('DATE(created_at)'), [$r->dari_tanggal, $r->sampai_tanggal]);
+        } elseif ($r->filled('dari_tanggal')) {
+            $q->whereDate('created_at', '>=', $r->dari_tanggal);
+        } elseif ($r->filled('sampai_tanggal')) {
+            $q->whereDate('created_at', '<=', $r->sampai_tanggal);
+        } else {
+            match ($r->periode) {
+                'hari-ini' => $q->whereDate('created_at', now()->toDateString()),
+                'minggu-ini' => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]),
+                'bulan-ini' => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year),
+                'bulan-lalu' => $q->whereMonth('created_at', now()->subMonth()->month)
+                                  ->whereYear('created_at', now()->subMonth()->year),
+                default => null,
+            };
+        }
 
         return $q->orderByDesc('id')->limit(100)->get();
     }
