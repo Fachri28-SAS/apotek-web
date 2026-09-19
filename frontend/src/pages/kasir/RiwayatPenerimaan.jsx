@@ -6,6 +6,7 @@ import { exportExcel, exportWord, cetakSatuFakturA4, exportSatuFakturWord, expor
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
 import TombolExportGroup from "./komponen/TombolExportGroup";
+import RekapHutangModal from "./komponen/RekapHutangModal";
 
 function getTglYmd(d) {
   const yyyy = d.getFullYear();
@@ -23,6 +24,9 @@ export default function RiwayatPenerimaan() {
   const [dariTanggal, setDariTanggal] = useState(awalBulanDefault);
   const [sampaiTanggal, setSampaiTanggal] = useState(hariIniDefault);
   const [filterStatus, setFilterStatus] = useState("semua"); // "semua" | "belum" | "lunas"
+  const [filterSupplier, setFilterSupplier] = useState("semua"); // "semua" | nama PT
+  const [daftarSupplierList, setDaftarSupplierList] = useState([]);
+  const [modalHutangSupplier, setModalHutangSupplier] = useState(null); // string nama PT atau null
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
@@ -30,12 +34,24 @@ export default function RiwayatPenerimaan() {
   const [error, setError] = useState("");
   const [notif, setNotif] = useState("");
 
+  // Ambil daftar supplier aktif
+  useEffect(() => {
+    api("/suppliers")
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res?.data || [];
+        setDaftarSupplierList(list);
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
     if (dariTanggal) params.set("dari_tanggal", dariTanggal);
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (search.trim()) params.set("search", search.trim());
+    if (filterSupplier && filterSupplier !== "semua") params.set("nama_supplier", filterSupplier);
+    if (filterStatus && filterStatus !== "semua") params.set("status_bayar", filterStatus);
 
     const timer = setTimeout(() => {
       api(`/penerimaan?${params}`)
@@ -45,7 +61,7 @@ export default function RiwayatPenerimaan() {
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [dariTanggal, sampaiTanggal, search]);
+  }, [dariTanggal, sampaiTanggal, search, filterSupplier, filterStatus]);
 
   const [konfirmasiBayar, setKonfirmasiBayar] = useState(null);
   const [loadingToggle, setLoadingToggle] = useState(false);
@@ -72,8 +88,17 @@ export default function RiwayatPenerimaan() {
     }
   }
 
-  // Filter berdasarkan status bayar jika dipilih
+  // Daftar semua nama supplier unik dari database dan dari data transaksi faktur
+  const supplierOptions = Array.from(
+    new Set([
+      ...daftarSupplierList.map((s) => s.nama).filter(Boolean),
+      ...daftar.map((p) => p.nama_supplier).filter(Boolean),
+    ])
+  ).sort((a, b) => a.localeCompare(b));
+
+  // Filter berdasarkan supplier dan status bayar jika dipilih
   const daftarTampil = daftar.filter((p) => {
+    if (filterSupplier !== "semua" && p.nama_supplier !== filterSupplier) return false;
     if (filterStatus === "belum") return p.status_bayar === "belum";
     if (filterStatus === "lunas") return p.status_bayar === "lunas";
     return true;
@@ -180,7 +205,27 @@ export default function RiwayatPenerimaan() {
           <div style={{ fontSize: 19, fontWeight: 800, color: "#15803D", marginTop: 4 }}>{rupiah(totalLunas)}</div>
         </div>
         <div style={{ background: "#FEF2F2", padding: "14px 18px", borderRadius: 14, border: "1px solid #FECACA" }}>
-          <div style={{ fontSize: 12, color: "#991B1B", fontWeight: 600 }}>○ Belum Dibayar (Tempo)</div>
+          <div style={{ fontSize: 12, color: "#991B1B", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>○ {filterSupplier !== "semua" ? `Hutang ${filterSupplier}` : "Belum Dibayar (Tempo)"}</span>
+            {filterSupplier !== "semua" && (
+              <button
+                type="button"
+                onClick={() => setModalHutangSupplier(filterSupplier)}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#DC2626",
+                  background: "#fff",
+                  border: "1px solid #FCA5A5",
+                  borderRadius: 6,
+                  padding: "2px 7px",
+                  cursor: "pointer",
+                }}
+              >
+                Rincian ➔
+              </button>
+            )}
+          </div>
           <div style={{ fontSize: 19, fontWeight: 800, color: "#DC2626", marginTop: 4 }}>{rupiah(totalBelumLunas)}</div>
         </div>
       </div>
@@ -242,11 +287,63 @@ export default function RiwayatPenerimaan() {
               />
             </div>
 
+            {/* Filter PT / Supplier */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Supplier / PT:</span>
+              <select
+                value={filterSupplier}
+                onChange={(e) => setFilterSupplier(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: filterSupplier !== "semua" ? "1.5px solid var(--magenta)" : "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: filterSupplier !== "semua" ? "#FAF5FF" : "#fff",
+                  color: filterSupplier !== "semua" ? "var(--magenta-dark)" : "var(--ink)",
+                  fontWeight: filterSupplier !== "semua" ? 700 : 500,
+                  maxWidth: 180,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="semua">Semua Supplier / PT</option>
+                {supplierOptions.map((sup) => (
+                  <option key={sup} value={sup}>
+                    {sup}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="periode-chips" style={{ margin: 0 }}>
               <button type="button" className={`periode-chip ${filterStatus === "semua" ? "active" : ""}`} onClick={() => setFilterStatus("semua")}>Semua Status</button>
               <button type="button" className={`periode-chip ${filterStatus === "belum" ? "active" : ""}`} onClick={() => setFilterStatus("belum")}>○ Belum Lunas</button>
               <button type="button" className={`periode-chip ${filterStatus === "lunas" ? "active" : ""}`} onClick={() => setFilterStatus("lunas")}>✓ Lunas</button>
             </div>
+
+            {/* Tombol Khusus Rekap Hutang per PT */}
+            <button
+              type="button"
+              onClick={() => setModalHutangSupplier(filterSupplier !== "semua" ? filterSupplier : (supplierOptions[0] || ""))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 13px",
+                borderRadius: 8,
+                border: "1.5px solid #FCA5A5",
+                background: "#FEF2F2",
+                color: "#B91C1C",
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+              title="Buka panel khusus rekapitulasi hutang per PT / Supplier berdasarkan rentang tanggal"
+            >
+              <span>🏢</span>
+              <span>Rekap Hutang PT</span>
+            </button>
 
             <TombolExportGroup
               onCetakPdf={() => cetakLaporanPenerimaan(daftarTampil, { dariTanggal, sampaiTanggal })}
@@ -308,8 +405,35 @@ export default function RiwayatPenerimaan() {
 
                       {/* 3. Nama PBF */}
                       <td>
-                        <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13.5 }}>
-                          {p.nama_supplier}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13.5 }}>
+                            {p.nama_supplier}
+                          </span>
+                          {p.nama_supplier && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setModalHutangSupplier(p.nama_supplier);
+                              }}
+                              title={`Lihat rekapitulasi semua hutang dari ${p.nama_supplier}`}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 3,
+                                padding: "2px 7px",
+                                borderRadius: 6,
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                background: "#FEF2F2",
+                                color: "#DC2626",
+                                border: "1px solid #FECACA",
+                                cursor: "pointer",
+                              }}
+                            >
+                              💳 Hutang
+                            </button>
+                          )}
                         </div>
                         {p.items_count > 0 && (
                           <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>
@@ -475,7 +599,43 @@ export default function RiwayatPenerimaan() {
       )}
 
       {/* Modal Detail Rincian Faktur */}
-      {detail && <DetailFakturModal data={detail} onClose={() => setDetail(null)} />}
+      {detail && (
+        <DetailFakturModal
+          data={detail}
+          onClose={() => setDetail(null)}
+          onLihatHutangSupplier={(sup) => {
+            setDetail(null);
+            setModalHutangSupplier(sup);
+          }}
+        />
+      )}
+
+      {/* Modal Rekapitulasi Hutang Per PT / Supplier */}
+      {modalHutangSupplier !== null && (
+        <RekapHutangModal
+          supplierName={modalHutangSupplier}
+          daftarSupplierList={supplierOptions}
+          initialDariTanggal={dariTanggal}
+          initialSampaiTanggal={sampaiTanggal}
+          onClose={() => setModalHutangSupplier(null)}
+          onLihatFaktur={(faktur) => {
+            setModalHutangSupplier(null);
+            setDetail(faktur);
+          }}
+          onStatusUpdated={() => {
+            // Segarkan data faktur penerimaan
+            const params = new URLSearchParams();
+            if (dariTanggal) params.set("dari_tanggal", dariTanggal);
+            if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
+            if (search.trim()) params.set("search", search.trim());
+            if (filterSupplier && filterSupplier !== "semua") params.set("nama_supplier", filterSupplier);
+            if (filterStatus && filterStatus !== "semua") params.set("status_bayar", filterStatus);
+            api(`/penerimaan?${params}`)
+              .then((d) => setDaftar(d || []))
+              .catch(() => {});
+          }}
+        />
+      )}
 
       {/* Modal Opsi Cetak & Unduh 1 Faktur */}
       {modalCetakFaktur && (

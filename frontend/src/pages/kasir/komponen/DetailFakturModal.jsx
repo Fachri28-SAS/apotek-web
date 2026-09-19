@@ -3,7 +3,7 @@ import { rupiah } from "../../../utils/format";
 import { cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../../utils/exportDokumen";
 import TombolExportGroup from "./TombolExportGroup";
 
-export default function DetailFakturModal({ data, onClose }) {
+export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier }) {
   if (!data) return null;
 
   const isLunas = data.status_bayar === "lunas";
@@ -57,9 +57,33 @@ export default function DetailFakturModal({ data, onClose }) {
             <h3 style={{ fontSize: 16, fontWeight: 800, color: "#4A044E", margin: 0 }}>
               Faktur Penerimaan {data.no_faktur}
             </h3>
-            <span style={{ fontSize: 11.5, color: "#701A75" }}>
-              Supplier: <strong>{data.nama_supplier}</strong>
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11.5, color: "#701A75" }}>
+                Supplier: <strong>{data.nama_supplier}</strong>
+              </span>
+              {onLihatHutangSupplier && (
+                <button
+                  type="button"
+                  onClick={() => onLihatHutangSupplier(data.nama_supplier)}
+                  style={{
+                    padding: "2px 8px",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    borderRadius: 6,
+                    border: "1px solid #C084FC",
+                    background: "#FAF5FF",
+                    color: "#6B21A8",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                  title="Lihat riwayat hutang dan faktur dari PT / Supplier ini"
+                >
+                  💳 Cek Hutang PT Ini
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

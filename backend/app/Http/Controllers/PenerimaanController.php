@@ -217,6 +217,12 @@ class PenerimaanController extends Controller
                                   ->whereYear('tanggal_terima', now()->subMonth()->year),
                 default => null,
             };
+        if ($r->filled('nama_supplier') && $r->nama_supplier !== 'semua') {
+            $q->where('nama_supplier', $r->nama_supplier);
+        }
+
+        if ($r->filled('status_bayar') && in_array($r->status_bayar, ['belum', 'lunas'])) {
+            $q->where('status_bayar', $r->status_bayar);
         }
 
         return $q->withCount('items')->with('items')->orderByDesc('tanggal_terima')->orderByDesc('id')->limit(1000)->get();
