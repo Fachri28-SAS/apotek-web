@@ -40,6 +40,7 @@ export default function Penerimaan() {
   const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahBulan(new Date(), 1));
   const [isPkp, setIsPkp] = useState(false);
   const [modalSupplierOpen, setModalSupplierOpen] = useState(false);
+  const [fakturTerbuka, setFakturTerbuka] = useState(true);
 
   // ---------- Panel 2: Daftar Item ----------
   const [items, setItems] = useState([]);
@@ -189,92 +190,188 @@ export default function Penerimaan() {
 
   return (
     <KasirShell>
-      <div className="halaman-header">
+      <div className="halaman-header" style={{ marginBottom: 12 }}>
         <div>
-          <h1>Penerimaan Barang</h1>
-          <p className="halaman-sub">Catat faktur pembelian dari supplier</p>
+          <h1 style={{ fontSize: 22, margin: 0 }}>Penerimaan Barang</h1>
+          <p className="halaman-sub" style={{ margin: "2px 0 0" }}>Catat faktur pembelian dari supplier</p>
         </div>
       </div>
 
       {error && <div className="login-error">{error}</div>}
       {sukses && <div className="pesan-sukses">{sukses}</div>}
 
-      {/* ---------- PANEL 1: FAKTUR PEMBELIAN ---------- */}
-      <div className="panel">
-        <div className="panel-head"><h3>Faktur Pembelian</h3></div>
-        <div className="obat-form-grid">
-          <div className="payment-field">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <label style={{ margin: 0 }}>Supplier</label>
-              <button
-                type="button"
-                onClick={() => setModalSupplierOpen(true)}
-                style={{
-                  background: "#FAF5FF",
-                  border: "1px solid var(--magenta)",
-                  borderRadius: 6,
-                  color: "var(--magenta-dark)",
-                  fontWeight: 700,
-                  fontSize: 11.5,
-                  cursor: "pointer",
-                  padding: "2px 8px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                + Tambah Supplier
-              </button>
-            </div>
-            <select value={supplierId} onChange={(e) => pilihSupplier(e.target.value)}>
-              <option value="">— Pilih atau ketik manual —</option>
-              {supplierList.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}
-            </select>
+      {/* ---------- PANEL 1: FAKTUR PEMBELIAN (COMPACT & COLLAPSIBLE) ---------- */}
+      <div className="panel" style={{ padding: "12px 16px", marginBottom: 12 }}>
+        <div
+          className="panel-head"
+          style={{
+            marginBottom: fakturTerbuka ? 10 : 0,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+          onClick={() => setFakturTerbuka(!fakturTerbuka)}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h3 style={{ margin: 0, fontSize: 15 }}>📋 Faktur Pembelian</h3>
+            {!fakturTerbuka && (
+              <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
+                {namaSupplier ? `• ${namaSupplier}` : "• (Supplier belum dipilih)"}
+                {noFaktur ? ` • No: ${noFaktur}` : ""}
+                {tanggalJatuhTempo ? ` • Tempo: ${tanggalJatuhTempo}` : ""}
+                {isPkp ? " • PKP 11%" : " • Non PKP"}
+              </span>
+            )}
           </div>
-          <div className="payment-field">
-            <label>Nama Supplier</label>
-            <input value={namaSupplier} onChange={(e) => setNamaSupplier(e.target.value)} placeholder="Contoh: PT Kimia Farma Trading" />
-          </div>
-          <div className="payment-field">
-            <label>No. Faktur Supplier</label>
-            <input value={noFaktur} onChange={(e) => setNoFaktur(e.target.value)} placeholder="Contoh: KF-2026-0088" />
-          </div>
-          <div className="payment-field">
-            <label>Tanggal Terima</label>
-            <input type="date" value={tanggalTerima} onChange={(e) => {
-              setTanggalTerima(e.target.value);
-              const opsi = TEMPO_OPSI.find((o) => o.key === tempoLabel);
-              if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(e.target.value, opsi.bulan));
-            }} />
-          </div>
-
-          <div className="payment-field" style={{ gridColumn: "1 / -1" }}>
-            <label>Tanggal Jatuh Tempo</label>
-            <div className="tempo-row">
-              {TEMPO_OPSI.map((o) => (
-                <button key={o.key} type="button"
-                  className={`periode-chip ${tempoLabel === o.key ? "active" : ""}`}
-                  onClick={() => ubahTempo(o.key)}>
-                  {o.label}
-                </button>
-              ))}
-              <input type="date" value={tanggalJatuhTempo} onChange={(e) => ubahTanggalTempoManual(e.target.value)} style={{ maxWidth: 170 }} />
-            </div>
-          </div>
-
-          <div className="payment-field">
-            <label>PKP Supplier</label>
-            <div className="metode-chips">
-              <button type="button" className={`metode-chip ${!isPkp ? "active" : ""}`} onClick={() => setIsPkp(false)}>Non PKP</button>
-              <button type="button" className={`metode-chip ${isPkp ? "active" : ""}`} onClick={() => setIsPkp(true)}>PKP (PPN 11%)</button>
-            </div>
-          </div>
+          <button
+            type="button"
+            style={{
+              background: "#F8FAFC",
+              border: "1px solid var(--line)",
+              borderRadius: 6,
+              color: "var(--ink-soft)",
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: "pointer",
+              padding: "3px 8px",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <span>{fakturTerbuka ? "▲ Ringkas Form" : "▼ Buka Detail Faktur"}</span>
+          </button>
         </div>
+
+        {fakturTerbuka && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Baris 1: 4 Kolom di Desktop (Supplier, Nama Supplier, No. Faktur, Tanggal Terima) */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 12px" }}>
+              <div className="payment-field" style={{ margin: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                  <label style={{ margin: 0, fontSize: 12, fontWeight: 700 }}>Supplier</label>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setModalSupplierOpen(true); }}
+                    style={{
+                      background: "#FAF5FF",
+                      border: "1px solid var(--magenta)",
+                      borderRadius: 5,
+                      color: "var(--magenta-dark)",
+                      fontWeight: 700,
+                      fontSize: 11,
+                      cursor: "pointer",
+                      padding: "1px 6px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 2,
+                    }}
+                  >
+                    + Tambah
+                  </button>
+                </div>
+                <select
+                  value={supplierId}
+                  onChange={(e) => pilihSupplier(e.target.value)}
+                  style={{ padding: "6px 8px", fontSize: 12.5, borderRadius: 8 }}
+                >
+                  <option value="">— Pilih atau ketik manual —</option>
+                  {supplierList.map((s) => <option key={s.id} value={s.id}>{s.nama}</option>)}
+                </select>
+              </div>
+
+              <div className="payment-field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Nama Supplier</label>
+                <input
+                  value={namaSupplier}
+                  onChange={(e) => setNamaSupplier(e.target.value)}
+                  placeholder="PT Kimia Farma Trading"
+                  style={{ padding: "6px 8px", fontSize: 12.5, borderRadius: 8 }}
+                />
+              </div>
+
+              <div className="payment-field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>No. Faktur Supplier</label>
+                <input
+                  value={noFaktur}
+                  onChange={(e) => setNoFaktur(e.target.value)}
+                  placeholder="Contoh: KF-2026-0088"
+                  style={{ padding: "6px 8px", fontSize: 12.5, borderRadius: 8 }}
+                />
+              </div>
+
+              <div className="payment-field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Tanggal Terima</label>
+                <input
+                  type="date"
+                  value={tanggalTerima}
+                  onChange={(e) => {
+                    setTanggalTerima(e.target.value);
+                    const opsi = TEMPO_OPSI.find((o) => o.key === tempoLabel);
+                    if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(e.target.value, opsi.bulan));
+                  }}
+                  style={{ padding: "6px 8px", fontSize: 12.5, borderRadius: 8 }}
+                />
+              </div>
+            </div>
+
+            {/* Baris 2: Jatuh Tempo & PKP Supplier */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "8px 12px", alignItems: "end" }}>
+              <div className="payment-field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Tanggal Jatuh Tempo</label>
+                <div className="tempo-row" style={{ gap: 4 }}>
+                  {TEMPO_OPSI.map((o) => (
+                    <button
+                      key={o.key}
+                      type="button"
+                      className={`periode-chip ${tempoLabel === o.key ? "active" : ""}`}
+                      onClick={() => ubahTempo(o.key)}
+                      style={{ padding: "4px 8px", fontSize: 11.5 }}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                  <input
+                    type="date"
+                    value={tanggalJatuhTempo}
+                    onChange={(e) => ubahTanggalTempoManual(e.target.value)}
+                    style={{ maxWidth: 140, padding: "5px 8px", fontSize: 12, borderRadius: 8 }}
+                  />
+                </div>
+              </div>
+
+              <div className="payment-field" style={{ margin: 0 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>PKP Supplier</label>
+                <div className="metode-chips" style={{ gap: 6 }}>
+                  <button
+                    type="button"
+                    className={`metode-chip ${!isPkp ? "active" : ""}`}
+                    onClick={() => setIsPkp(false)}
+                    style={{ padding: "5px 14px", fontSize: 12 }}
+                  >
+                    Non PKP
+                  </button>
+                  <button
+                    type="button"
+                    className={`metode-chip ${isPkp ? "active" : ""}`}
+                    onClick={() => setIsPkp(true)}
+                    style={{ padding: "5px 14px", fontSize: 12 }}
+                  >
+                    PKP (PPN 11%)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ---------- PANEL 2: DAFTAR ITEM ---------- */}
-      <div className="panel">
-        <div className="panel-head"><h3>Daftar Item</h3></div>
+      {/* ---------- PANEL 2: DAFTAR ITEM (NAIK LEBIH KE ATAS) ---------- */}
+      <div className="panel" style={{ padding: "14px 16px" }}>
+        <div className="panel-head" style={{ marginBottom: 10 }}>
+          <h3 style={{ margin: 0, fontSize: 16 }}>Daftar Item Faktur</h3>
+        </div>
 
         <SearchObatPenerimaan onPilih={tambahItem} supplierId={supplierId} />
 
