@@ -70,8 +70,8 @@ function getPresetRange(key) {
 
 export default function LaporanPengeluaran() {
   const { user } = useAuth();
-  const initRange = getPresetRange("bulan-ini");
-  const [periode, setPeriode] = useState("bulan-ini");
+  const initRange = getPresetRange("hari-ini");
+  const [periode, setPeriode] = useState("hari-ini");
   const [dariTanggal, setDariTanggal] = useState(initRange.dari);
   const [sampaiTanggal, setSampaiTanggal] = useState(initRange.sampai);
   const [data, setData] = useState(null);
@@ -112,6 +112,7 @@ export default function LaporanPengeluaran() {
     ])
       .then(([pengeluaranData, laporanData]) => {
         const labaKotor = laporanData?.kpi?.total_pendapatan ?? pengeluaranData?.kpi?.total_laba_penjualan ?? 0;
+        const marginPersen = laporanData?.kpi?.margin_persen ?? null;
         const totalGaji = pengeluaranData?.kpi?.total_gaji ?? 0;
         const totalOperasionalNonGaji = Math.max(0, (pengeluaranData?.kpi?.total_operasional ?? 0) - totalGaji);
         const totalBeban = pengeluaranData?.kpi?.total_operasional ?? 0;
@@ -122,6 +123,8 @@ export default function LaporanPengeluaran() {
           kpi: {
             ...pengeluaranData?.kpi,
             total_laba_penjualan: labaKotor,
+            total_pendapatan: labaKotor,
+            margin_persen: marginPersen,
             total_gaji: totalGaji,
             total_operasional_non_gaji: totalOperasionalNonGaji,
             pendapatan_bersih: pendapatanBersih,
@@ -456,7 +459,7 @@ export default function LaporanPengeluaran() {
 
       {/* KPI GRID 4 KOLOM BERJAJAR */}
       <div className="kpi-grid kpi-grid-4">
-        {/* 1. Laba Penjualan (dari Laporan Penjualan) */}
+        {/* 1. Total Pendapatan (Laba) - Persis sama dari Laporan Penjualan */}
         <div className="kpi-card hijau" style={{ border: "1.5px solid #86EFAC" }}>
           <div className="kpi-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -464,11 +467,18 @@ export default function LaporanPengeluaran() {
             </svg>
           </div>
           <div>
-            <div className="kpi-angka" style={{ color: "var(--green-dark)" }}>
-              {loading ? "…" : rupiah(data?.kpi?.total_laba_penjualan || 0)}
+            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 5 }}>
+              <span className="kpi-angka" style={{ color: "var(--green-dark)" }}>
+                {loading ? "…" : rupiah(data?.kpi?.total_pendapatan ?? data?.kpi?.total_laba_penjualan ?? 0)}
+              </span>
+              {!loading && data?.kpi?.margin_persen != null && (
+                <span className={"kpi-margin-badge " + (data.kpi.margin_persen >= 15 ? "" : "warning")}>
+                  {data.kpi.margin_persen}% Margin
+                </span>
+              )}
             </div>
-            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Laba Penjualan</div>
-            <div className="kpi-sub">Laba kotor penjualan obat</div>
+            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Total Pendapatan (Laba)</div>
+            <div className="kpi-sub">Selisih jual - beli</div>
           </div>
         </div>
 
