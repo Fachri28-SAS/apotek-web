@@ -3,7 +3,8 @@ import { AuthContext } from "./auth-context";
 import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken } from "../lib/api";
 
 function getCachedUser() {
-  const raw = localStorage.getItem("bimafarma_user") || sessionStorage.getItem("bimafarma_user");
+  // Prioritaskan sessionStorage agar sesi akun per tab tetap independen
+  const raw = sessionStorage.getItem("bimafarma_user") || localStorage.getItem("bimafarma_user");
   try {
     return raw ? JSON.parse(raw) : null;
   } catch {
@@ -27,8 +28,10 @@ export function AuthProvider({ children }) {
     getMe()
       .then((u) => {
         setUser(u);
-        const storage = localStorage.getItem("bimafarma_token") ? localStorage : sessionStorage;
-        storage.setItem("bimafarma_user", JSON.stringify(u));
+        sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+        if (localStorage.getItem("bimafarma_token")) {
+          localStorage.setItem("bimafarma_user", JSON.stringify(u));
+        }
       })
       .catch((err) => {
         // HANYA hapus sesi jika server memberikan 401 eksplisit (token invalid/expired di database).
@@ -48,8 +51,10 @@ export function AuthProvider({ children }) {
   async function login(username, password, ingat = true) {
     const u = await apiLogin(username, password, ingat);
     setUser(u);
-    const storage = ingat ? localStorage : sessionStorage;
-    storage.setItem("bimafarma_user", JSON.stringify(u));
+    sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+    if (ingat) {
+      localStorage.setItem("bimafarma_user", JSON.stringify(u));
+    }
     setLoading(false);
     return u;
   }

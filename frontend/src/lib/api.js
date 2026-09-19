@@ -6,18 +6,38 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getToken() {
-  return sessionStorage.getItem("bimafarma_token") || localStorage.getItem("bimafarma_token");
+  let token = sessionStorage.getItem("bimafarma_token");
+  if (!token) {
+    token = localStorage.getItem("bimafarma_token");
+    if (token) {
+      try {
+        sessionStorage.setItem("bimafarma_token", token);
+        const u = localStorage.getItem("bimafarma_user");
+        if (u) sessionStorage.setItem("bimafarma_user", u);
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return token;
 }
 
 function setToken(token, ingat = true) {
-  // Bersihkan dua-duanya dulu supaya tidak ada token basi tertinggal
-  // di storage yang tidak dipakai.
-  localStorage.removeItem("bimafarma_token");
-  sessionStorage.removeItem("bimafarma_token");
+  if (!token) {
+    sessionStorage.removeItem("bimafarma_token");
+    localStorage.removeItem("bimafarma_token");
+    return;
+  }
 
-  if (!token) return;
-  if (ingat) localStorage.setItem("bimafarma_token", token);
-  else sessionStorage.setItem("bimafarma_token", token);
+  // Selalu simpan di sessionStorage agar setiap tab browser independen (bisa multi-role tanpa bentrok)
+  sessionStorage.setItem("bimafarma_token", token);
+
+  // Jika opsi ingat aktif, simpan juga di localStorage sebagai fallback tab baru
+  if (ingat) {
+    localStorage.setItem("bimafarma_token", token);
+  } else {
+    localStorage.removeItem("bimafarma_token");
+  }
 }
 
 /**
