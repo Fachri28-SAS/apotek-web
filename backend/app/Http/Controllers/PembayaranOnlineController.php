@@ -17,16 +17,30 @@ class PembayaranOnlineController extends Controller
     {
         $this->batalkanYangKadaluwarsa();
 
-        // Hanya pesanan yang pembayaran SUDAH SUKSES / LUNAS
+        // HANYA pesanan yang SUDAH UPLOAD BUKTI atau SUDAH SUKSES LUNAS
+        // (Pesanan pending yang belum upload bukti/iseng TIDAK ditampilkan)
         $query = Pembayaran::with(['penjualan.items'])
-            ->where('status', 'sukses');
+            ->where(function ($q) {
+                $q->where('status', 'sukses')
+                  ->orWhere(function ($sub) {
+                      $sub->whereIn('status', ['menunggu_verifikasi', 'kurang_bayar'])
+                          ->whereNotNull('bukti_path');
+                  });
+            });
 
         $tab = $r->input('tab', 'perlu_disiapkan');
 
         if ($tab === 'perlu_disiapkan') {
+            // Menunggu verifikasi bukti kasir ATAU sudah sukses tapi belum ditandai selesai disiapkan
             $query->where(function ($q) {
-                $q->whereNull('catatan_verifikasi')
-                  ->orWhere('catatan_verifikasi', '!=', 'selesai');
+                $q->where('status', 'menunggu_verifikasi')
+                  ->orWhere(function ($sub) {
+                      $sub->where('status', 'sukses')
+                          ->where(function ($c) {
+                              $c->whereNull('catatan_verifikasi')
+                                ->orWhere('catatan_verifikasi', '!=', 'selesai');
+                          });
+                  });
             });
         } elseif ($tab === 'selesai') {
             $query->where('catatan_verifikasi', 'selesai');
@@ -37,9 +51,13 @@ class PembayaranOnlineController extends Controller
             'status' => $p->status,
             'status_pembayaran' => $p->status,
             'status_penjualan' => $p->catatan_verifikasi === 'selesai' ? 'selesai' : ($p->penjualan?->status ?? 'lunas'),
-            'metode' => $p->metode ?: 'Duitku',
+            'metode' => $p->metode ?: 'QRIS Bima Farma',
             'provider' => $p->provider,
             'jumlah' => (float) $p->jumlah,
+            'nominal_klaim_customer' => (float) ($p->nominal_klaim_customer ?: $p->jumlah),
+            'bukti_url' => $p->bukti_path ? asset('storage/' . $p->bukti_path) : null,
+            'bukti_path' => $p->bukti_path,
+            'catatan_verifikasi' => $p->catatan_verifikasi,
             'paid_at' => $p->paid_at ?? $p->updated_at,
             'created_at' => $p->created_at,
             'penjualan' => $p->penjualan ? [
@@ -68,21 +86,31 @@ class PembayaranOnlineController extends Controller
 
     /**
      * GET /api/pembayaran-online/counter
-     * Polling ringan untuk badge counter sidebar kasir: pesanan lunas yang perlu disiapkan.
+     * Polling ringan untuk badge counter sidebar kasir: pesanan yang perlu diverifikasi / disiapkan.
      */
     public function counter()
     {
-        $perluDisiapkan = Pembayaran::where('status', 'sukses')
-            ->where(function ($q) {
-                $q->whereNull('catatan_verifikasi')
-                  ->orWhere('catatan_verifikasi', '!=', 'selesai');
-            })
+        $perluDiproses = Pembayaran::where(function ($q) {
+            $q->where(function ($sub) {
+                $sub->where('status', 'menunggu_verifikasi')
+                    ->whereNotNull('bukti_path');
+            })->orWhere(function ($sub) {
+                $sub->where('status', 'sukses')
+                    ->where(function ($c) {
+                        $c->whereNull('catatan_verifikasi')
+                          ->orWhere('catatan_verifikasi', '!=', 'selesai');
+                    });
+            });
+        })->count();
+
+        $menungguVerifikasi = Pembayaran::where('status', 'menunggu_verifikasi')
+            ->whereNotNull('bukti_path')
             ->count();
 
         return response()->json([
-            'menunggu_verifikasi' => $perluDisiapkan,
-            'perlu_disiapkan' => $perluDisiapkan,
-            'total_notifikasi' => $perluDisiapkan,
+            'menunggu_verifikasi' => $menungguVerifikasi,
+            'perlu_disiapkan' => $perluDiproses,
+            'total_notifikasi' => $perluDiproses,
         ]);
     }
 

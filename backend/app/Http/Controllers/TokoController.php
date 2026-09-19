@@ -221,12 +221,34 @@ class TokoController extends Controller
         ]);
 
         if (!preg_match('/^data:image\/(\w+);base64,/', $data['bukti_base64'], $tipe)) {
-            abort(422, 'Format gambar tidak valid.');
+            abort(422, 'Format gambar tidak valid. Harap upload gambar berformat JPG, PNG, atau WEBP.');
         }
-        $ekstensi = $tipe[1];
-        $isiFile = base64_decode(substr($data['bukti_base64'], strpos($data['bukti_base64'], ',') + 1));
+        $ekstensi = strtolower($tipe[1]);
+        if ($ekstensi === 'jpeg') $ekstensi = 'jpg';
+        if (!in_array($ekstensi, ['jpg', 'png', 'webp'])) {
+            abort(422, 'Tipe file harus berupa gambar (JPG, PNG, atau WEBP).');
+        }
 
-        $namaFile = 'bukti-' . $pembayaran->id . '-' . time() . '.' . $ekstensi;
+        $rawBase64 = substr($data['bukti_base64'], strpos($data['bukti_base64'], ',') + 1);
+        $isiFile = base64_decode($rawBase64);
+        if (!$isiFile) {
+            abort(422, 'Gagal memproses file gambar bukti transfer.');
+        }
+        if (strlen($isiFile) > 5 * 1024 * 1024) {
+            abort(422, 'Ukuran foto bukti transfer maksimal 5MB.');
+        }
+
+        // Keamanan Tambahan: Verifikasi integritas header binary gambar (Mencegah upload file berbahaya / shell script)
+        $infoGambar = @getimagesizefromstring($isiFile);
+        if ($infoGambar === false) {
+            abort(422, 'File yang diunggah bukan gambar valid atau telah rusak.');
+        }
+        $mimeValid = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!isset($infoGambar['mime']) || !in_array($infoGambar['mime'], $mimeValid)) {
+            abort(422, 'Format gambar tidak didukung (harus JPG, PNG, atau WEBP).');
+        }
+
+        $namaFile = 'bukti-' . $pembayaran->id . '-' . time() . '-' . Str::random(10) . '.' . $ekstensi;
         Storage::disk('public')->put('bukti-pembayaran/' . $namaFile, $isiFile);
 
         $pembayaran->update([

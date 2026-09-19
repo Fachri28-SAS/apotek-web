@@ -13,6 +13,7 @@ export default function PembayaranOnline() {
   const [prosesId, setProsesId] = useState(null);
   const [tabAktif, setTabAktif] = useState("perlu_disiapkan"); // perlu_disiapkan | selesai | semua
   const [itemExpanded, setItemExpanded] = useState({}); // { [pembayaran_id]: boolean }
+  const [previewBukti, setPreviewBukti] = useState(null); // url foto bukti transfer
 
   function muat() {
     api(`/pembayaran-online?tab=${tabAktif}`)
@@ -32,6 +33,53 @@ export default function PembayaranOnline() {
     }, 5000);
     return () => clearInterval(timer);
   }, [tabAktif]);
+
+  async function prosesKonfirmasi(pembayaran) {
+    const nama = pembayaran.penjualan?.nama_pembeli || "Pelanggan";
+    if (!confirm(`Konfirmasi pembayaran QRIS Rp ${rupiah(pembayaran.jumlah)} dari ${nama}?\n\nStok obat akan otomatis dipotong.`)) {
+      return;
+    }
+
+    setProsesId(pembayaran.id);
+    setError("");
+    setPesanSukses("");
+
+    try {
+      const res = await api(`/pembayaran-online/${pembayaran.id}/konfirmasi`, { method: "POST" });
+      setPesanSukses(res.message || "Pembayaran berhasil dikonfirmasi lunas.");
+      muat();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProsesId(null);
+    }
+  }
+
+  async function prosesTolak(pembayaran) {
+    const nama = pembayaran.penjualan?.nama_pembeli || "Pelanggan";
+    const alasan = prompt(
+      `Alasan penolakan pesanan untuk ${nama}:`,
+      "Bukti transfer tidak valid / dana belum masuk ke GoPay apotek."
+    );
+    if (!alasan) return;
+
+    setProsesId(pembayaran.id);
+    setError("");
+    setPesanSukses("");
+
+    try {
+      const res = await api(`/pembayaran-online/${pembayaran.id}/tolak`, {
+        method: "POST",
+        body: JSON.stringify({ catatan: alasan }),
+      });
+      setPesanSukses(res.message || "Pesanan ditolak.");
+      muat();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setProsesId(null);
+    }
+  }
 
   async function tandaiSelesai(pembayaran) {
     const nama = pembayaran.penjualan?.nama_pembeli || "Pelanggan";
@@ -89,7 +137,7 @@ export default function PembayaranOnline() {
             <span>📦</span> Pesanan Toko Online
           </h1>
           <p className="halaman-sub">
-            Daftar pesanan obat dari web yang <strong>sudah lunas via Duitku</strong> &amp; siap disiapkan oleh apoteker/kasir.
+            Daftar pesanan obat dari web yang <strong>mengunggah bukti QRIS / terverifikasi</strong> &amp; siap disiapkan oleh apoteker/kasir.
           </p>
         </div>
       </div>
@@ -126,7 +174,7 @@ export default function PembayaranOnline() {
           <h3>
             {tabAktif === "perlu_disiapkan" && "Pesanan yang Harus Disiapkan"}
             {tabAktif === "selesai" && "Pesanan Selesai / Sudah Diambil"}
-            {tabAktif === "semua" && "Semua Pesanan Online Lunas"}
+            {tabAktif === "semua" && "Semua Pesanan Online"}
             {" "}({daftar.length})
           </h3>
           <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>
@@ -143,11 +191,11 @@ export default function PembayaranOnline() {
             </div>
             <strong>
               {tabAktif === "perlu_disiapkan"
-                ? "Semua pesanan lunas sudah selesai disiapkan!"
+                ? "Semua pesanan sudah selesai disiapkan!"
                 : "Belum ada riwayat pesanan dalam kategori ini."}
             </strong>
             <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>
-              Pesanan baru dari web akan otomatis muncul di sini begitu pembeli selesai bayar via Duitku.
+              Pesanan baru dari web akan otomatis muncul di sini begitu pembeli mengunggah bukti pembayaran QRIS.
             </p>
           </div>
         ) : (
@@ -198,18 +246,22 @@ export default function PembayaranOnline() {
                             fontWeight: 800,
                             padding: "3px 10px",
                             borderRadius: 100,
-                            background: "var(--green-tint)",
-                            color: "var(--green-dark)",
+                            background: p.status_pembayaran === "menunggu_verifikasi" ? "#FEF3C7" : "var(--green-tint)",
+                            color: p.status_pembayaran === "menunggu_verifikasi" ? "#B45309" : "var(--green-dark)",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 4,
                           }}
                         >
-                          ⚡ Lunas Otomatis (Duitku)
+                          {p.status_pembayaran === "menunggu_verifikasi" ? "⏳ Menunggu Verifikasi Bukti" : "✓ Lunas (QRIS Bima Farma)"}
                         </span>
                         {isSelesai ? (
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", background: "var(--bg)", padding: "3px 8px", borderRadius: 6 }}>
                             ✓ Sudah Diambil / Selesai
+                          </span>
+                        ) : p.status_pembayaran === "menunggu_verifikasi" ? (
+                          <span style={{ fontSize: 11.5, fontWeight: 800, color: "#D97706", background: "#FFFBEB", padding: "3px 8px", borderRadius: 6 }}>
+                            🔍 Periksa Bukti
                           </span>
                         ) : (
                           <span style={{ fontSize: 11.5, fontWeight: 800, color: "#9333EA", background: "#F3E8FF", padding: "3px 8px", borderRadius: 6 }}>
@@ -232,34 +284,109 @@ export default function PembayaranOnline() {
                       <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 4 }}>
                         Waktu Pesan: {new Date(p.created_at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
                       </div>
+
+                      {/* Tampilan Bukti Transfer QRIS Pelanggan */}
+                      {p.bukti_url && (
+                        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, background: "#FFFBEB", padding: "8px 12px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
+                          <img
+                            src={p.bukti_url}
+                            alt="Bukti Transfer"
+                            onClick={() => setPreviewBukti(p.bukti_url)}
+                            style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, cursor: "pointer", border: "1px solid #CBD5E1", flexShrink: 0 }}
+                            title="Klik untuk memperbesar bukti transfer"
+                          />
+                          <div style={{ flex: 1, fontSize: 12 }}>
+                            <div style={{ fontWeight: 700, color: "#92400E" }}>📸 Bukti Transfer QRIS Terlampir</div>
+                            <div style={{ color: "var(--ink-soft)", marginTop: 2 }}>
+                              Nominal klaim: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(p.nominal_klaim_customer || p.jumlah)}</strong>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPreviewBukti(p.bukti_url)}
+                              style={{ background: "none", border: "none", color: "var(--magenta-dark)", fontWeight: 700, padding: 0, marginTop: 2, cursor: "pointer", fontSize: 11.5 }}
+                            >
+                              🔍 Perbesar Foto Bukti
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Tombol Aksi Kanan */}
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      {/* Cetak Struk */}
-                      <button
-                        type="button"
-                        onClick={() => setStruk(p.penjualan)}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "8px 14px",
-                          borderRadius: 8,
-                          fontSize: 12.5,
-                          fontWeight: 700,
-                          background: "#fff",
-                          border: "1.5px solid var(--magenta)",
-                          color: "var(--magenta)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
-                          <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-                          <path d="M6 14h12v8H6z" />
-                        </svg>
-                        Cetak Struk
-                      </button>
+                      {/* Kasus 1: Menunggu Verifikasi Kasir */}
+                      {p.status_pembayaran === "menunggu_verifikasi" && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => prosesKonfirmasi(p)}
+                            disabled={prosesId === p.id}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "8px 16px",
+                              borderRadius: 8,
+                              fontSize: 12.5,
+                              fontWeight: 800,
+                              background: "linear-gradient(135deg, #10B981, #059669)",
+                              color: "#fff",
+                              border: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            ✓ Konfirmasi Lunas &amp; Siapkan
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => prosesTolak(p)}
+                            disabled={prosesId === p.id}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              padding: "8px 12px",
+                              borderRadius: 8,
+                              fontSize: 12.5,
+                              fontWeight: 700,
+                              background: "#FEF2F2",
+                              border: "1.5px solid #FCA5A5",
+                              color: "#DC2626",
+                              cursor: "pointer",
+                            }}
+                          >
+                            ✕ Tolak
+                          </button>
+                        </>
+                      )}
+
+                      {/* Cetak Struk (Tersedia jika sudah lunas/selesai) */}
+                      {(p.status_pembayaran === "sukses" || isSelesai) && (
+                        <button
+                          type="button"
+                          onClick={() => setStruk(p.penjualan)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "8px 14px",
+                            borderRadius: 8,
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            background: "#fff",
+                            border: "1.5px solid var(--magenta)",
+                            color: "var(--magenta)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 15, height: 15 }}>
+                            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                            <path d="M6 14h12v8H6z" />
+                          </svg>
+                          Cetak Struk
+                        </button>
+                      )}
 
                       {/* Chat WA */}
                       {p.penjualan?.telepon_pembeli && (
@@ -284,8 +411,8 @@ export default function PembayaranOnline() {
                         </button>
                       )}
 
-                      {/* Tandai Selesai */}
-                      {!isSelesai && (
+                      {/* Tandai Selesai jika sudah Lunas tapi belum selesai */}
+                      {p.status_pembayaran === "sukses" && !isSelesai && (
                         <button
                           type="button"
                           className="btn-tambah"
@@ -298,7 +425,7 @@ export default function PembayaranOnline() {
                             background: "linear-gradient(135deg, #10B981, #059669)",
                           }}
                         >
-                          {prosesId === p.id ? "Memproses..." : "✓ Tandai Obat Siap"}
+                          {prosesId === p.id ? "Memproses..." : "📦 Tandai Sudah Diambil"}
                         </button>
                       )}
                     </div>
@@ -356,6 +483,130 @@ export default function PembayaranOnline() {
 
       {/* Modal Cetak Struk */}
       <StrukModal data={struk} onClose={() => setStruk(null)} />
+
+      {/* Lightbox Modal Foto Bukti Transfer Pelanggan */}
+      {previewBukti && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.82)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 99999,
+            padding: 16,
+          }}
+          onClick={() => setPreviewBukti(null)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              maxWidth: 540,
+              width: "100%",
+              maxHeight: "92vh",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "14px 18px",
+                borderBottom: "1px solid var(--line)",
+                background: "#FAF5FF",
+              }}
+            >
+              <div>
+                <strong style={{ fontSize: 14, color: "var(--magenta-dark)" }}>
+                  📸 Foto Bukti Transfer QRIS
+                </strong>
+                <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>
+                  Cocokkan nominal dan nama pengirim dengan notifikasi GoPay apotek
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewBukti(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 20,
+                  cursor: "pointer",
+                  color: "var(--ink-soft)",
+                  padding: "0 4px",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div
+              style={{
+                padding: 16,
+                overflowY: "auto",
+                textAlign: "center",
+                background: "#0F172A",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 320,
+              }}
+            >
+              <img
+                src={previewBukti}
+                alt="Bukti Transfer Penuh"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                  objectFit: "contain",
+                  borderRadius: 8,
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                padding: "12px 18px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "#fff",
+                borderTop: "1px solid var(--line)",
+              }}
+            >
+              <a
+                href={previewBukti}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: "var(--magenta-dark)",
+                  textDecoration: "none",
+                }}
+              >
+                Buka Gambar di Tab Baru ↗
+              </a>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setPreviewBukti(null)}
+                style={{ padding: "6px 16px", fontSize: 12.5 }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </KasirShell>
   );
 }

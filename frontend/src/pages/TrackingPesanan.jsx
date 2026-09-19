@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { QRCodeSVG } from "qrcode.react";
 import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
-import { unduhQrisPng } from "../utils/qrisDownload";
+import KartuStrukDigital from "./komponen/KartuStrukDigital";
 import "./TrackingPesanan.css";
 
 export default function TrackingPesanan() {
@@ -25,10 +24,8 @@ export default function TrackingPesanan() {
   const [uploadPesan, setUploadPesan] = useState("");
   const fileInputRef = useRef(null);
 
-  // QRIS Lightbox
-  const [qrisBesar, setQrisBesar] = useState(false);
+  // QRIS Lightbox / salin
   const [salinTeks, setSalinTeks] = useState(false);
-  const [duitkuLoading, setDuitkuLoading] = useState(false);
 
   // 1. Muat data awal pesanan
   function muatDataAwal() {
@@ -47,22 +44,6 @@ export default function TrackingPesanan() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }
-
-  async function handleBayarDuitku() {
-    setDuitkuLoading(true);
-    try {
-      const res = await api(`/duitku/create/${kodeTracking}`, { method: "POST" });
-      if (res.payment_url) {
-        window.location.href = res.payment_url;
-      } else {
-        alert(res.message || "Gagal memuat pembayaran Duitku.");
-      }
-    } catch (err) {
-      alert(err.message || "Terjadi kesalahan saat memproses pembayaran Duitku.");
-    } finally {
-      setDuitkuLoading(false);
-    }
   }
 
   useEffect(() => {
@@ -345,11 +326,15 @@ export default function TrackingPesanan() {
             </div>
           </div>
 
-          {/* KOLOM KANAN: PEMBAYARAN ONLINE (DUITKU) */}
+          {/* KOLOM KANAN: PEMBAYARAN QRIS & STRUK DIGITAL */}
           <div className="tracking-card">
             <div className="tracking-card-head">
               <h3>
-                {statusPembayaran === "sukses" ? "Status Pembayaran" : "Pembayaran Online"}
+                {statusPembayaran === "sukses"
+                  ? "Struk & Status Pembayaran"
+                  : statusPembayaran === "menunggu_verifikasi"
+                  ? "Verifikasi Pembayaran"
+                  : "Pembayaran QRIS"}
               </h3>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--magenta-dark)" }}>
                 {statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
@@ -357,57 +342,238 @@ export default function TrackingPesanan() {
             </div>
 
             <div className="qris-payment-panel">
-              {statusPembayaran !== "sukses" ? (
-                <div style={{ background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)", border: "1.5px solid #C084FC", borderRadius: 16, padding: "24px 20px", textAlign: "center", boxShadow: "0 4px 16px rgba(168, 85, 247, 0.12)" }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: "50%", background: "#EDE9FE", marginBottom: 12 }}>
-                    <span style={{ fontSize: 26 }}>⚡</span>
+              {/* KONDISI 1: SUDAH LUNAS / TERKONFIRMASI */}
+              {statusPembayaran === "sukses" ? (
+                <div>
+                  <div style={{ textAlign: "center", padding: "18px 16px", background: "var(--green-tint)", borderRadius: 14, border: "1.5px solid #86EFAC", marginBottom: 14 }}>
+                    <div style={{ fontSize: 36, marginBottom: 6 }}>✅</div>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas &amp; Terverifikasi</h4>
+                    <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-soft)" }}>
+                      Pesanan Anda sedang disiapkan oleh tim apoteker Apotek Bima Farma. Silakan simpan struk digital di bawah untuk ditunjukkan saat pengambilan obat.
+                    </p>
                   </div>
-                  <h4 style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 800, color: "var(--magenta-dark)" }}>Pembayaran Otomatis Duitku</h4>
-                  <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: "0 0 16px", lineHeight: 1.5 }}>
-                    Mendukung <strong>QRIS (BCA, Mandiri, BRI, BNI, ShopeePay, GoPay, DANA, OVO)</strong>, Virtual Account &amp; E-Wallet.
-                  </p>
-
-                  <div style={{ background: "var(--green-tint)", color: "var(--green-dark)", padding: "10px 14px", borderRadius: 12, fontSize: 12.5, fontWeight: 700, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <span>✓</span> Konfirmasi otomatis instan — tanpa perlu upload struk!
+                  <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
+                </div>
+              ) : statusPembayaran === "menunggu_verifikasi" ? (
+                /* KONDISI 2: BUKTI SUDAH DIUNGGAH, MENUNGGU KASIR */
+                <div>
+                  <div style={{ textAlign: "center", padding: "18px 16px", background: "#FEF3C7", borderRadius: 14, border: "1.5px solid #FCD34D", marginBottom: 14 }}>
+                    <div style={{ fontSize: 36, marginBottom: 6 }}>⏳</div>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: "#92400E" }}>Bukti Transfer Sedang Diverifikasi</h4>
+                    <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#78350F" }}>
+                      Terima kasih! Bukti pembayaran Anda telah masuk ke dashboard kasir dan sedang dicocokkan dengan mutasi rekening GoPay apotek.
+                    </p>
+                    {buktiPreview && (
+                      <div style={{ marginTop: 8 }}>
+                        <a href={buktiPreview} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 700, color: "#B45309", textDecoration: "underline" }}>
+                          Lihat Foto Bukti yang Dikirim ↗
+                        </a>
+                      </div>
+                    )}
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleBayarDuitku}
-                    disabled={duitkuLoading}
-                    style={{
-                      width: "100%",
-                      padding: "14px 20px",
-                      fontSize: 15,
-                      fontWeight: 800,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      borderRadius: 12,
-                      background: "linear-gradient(135deg, #7C3AED, #A64BC7)",
-                      boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
-                      border: "none",
-                      color: "#fff",
-                      cursor: duitkuLoading ? "not-allowed" : "pointer",
-                      opacity: duitkuLoading ? 0.75 : 1,
-                      transition: "all 0.2s ease"
-                    }}
-                  >
-                    {duitkuLoading ? "Menghubungkan ke Duitku…" : `Bayar Sekarang ${rupiah(pesanan.total)} ➔`}
-                  </button>
-
-                  <p style={{ fontSize: 11.5, color: "var(--ink-soft)", margin: "14px 0 0", lineHeight: 1.4 }}>
-                    Begitu Anda menyelesaikan pembayaran di aplikasi m-Banking atau E-Wallet, status halaman ini akan otomatis langsung berubah menjadi LUNAS.
-                  </p>
+                  <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
                 </div>
               ) : (
-                <div style={{ textAlign: "center", padding: "28px 20px", background: "var(--green-tint)", borderRadius: 16, border: "1.5px solid #86EFAC" }}>
-                  <div style={{ fontSize: 42, marginBottom: 8 }}>✅</div>
-                  <h4 style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas &amp; Terverifikasi</h4>
-                  <p style={{ margin: 0, fontSize: 13, color: "var(--ink-soft)" }}>
-                    Terima kasih! Pembayaran Anda telah diterima dan pesanan sedang disiapkan oleh tim Apotek Bima Farma.
-                  </p>
+                /* KONDISI 3: BELUM BAYAR (PENDING / KURANG BAYAR) */
+                <div>
+                  {/* Kartu Gambar QRIS Apotek Bima Farma */}
+                  <div
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1.5px solid var(--line)",
+                      borderRadius: 16,
+                      padding: "16px",
+                      textAlign: "center",
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <div style={{ display: "inline-block", background: "#FAF5FF", padding: "6px 14px", borderRadius: 20, fontSize: 11.5, fontWeight: 800, color: "var(--magenta-dark)", marginBottom: 10 }}>
+                      NMID: ID1024357753648
+                    </div>
+
+                    <div style={{ maxWidth: 280, margin: "0 auto", padding: "8px", background: "#FFFFFF", borderRadius: 12, border: "1.5px solid #E2E8F0" }}>
+                      <img
+                        src="/qris-bima-farma.png"
+                        alt="QRIS Apotek Bima Farma"
+                        style={{ width: "100%", height: "auto", display: "block", borderRadius: 8 }}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Total yang Harus Ditransfer:</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: "var(--magenta-dark)", marginTop: 2 }}>
+                        {rupiah(pesanan.total)}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
+                      <a
+                        href="/qris-bima-farma.png"
+                        download="qris-apotek-bima-farma.png"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "8px 16px",
+                          borderRadius: 8,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          background: "#F3E8FF",
+                          color: "var(--magenta-dark)",
+                          textDecoration: "none",
+                          border: "1px solid #D8B4FE",
+                        }}
+                      >
+                        <span>📥</span> Unduh QRIS untuk Scan Galeri
+                      </a>
+                    </div>
+
+                    <div style={{ textAlign: "left", background: "#F8FAFC", borderRadius: 10, padding: "10px 14px", marginTop: 12, fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.5 }}>
+                      <strong>Cara Bayar:</strong>
+                      <ol style={{ margin: "4px 0 0", paddingLeft: 16 }}>
+                        <li>Buka GoPay, BCA, Livin, BRImo, DANA, OVO, ShopeePay, atau m-Banking lain.</li>
+                        <li>Pindai QR di atas atau pilih &apos;Scan dari Galeri&apos;.</li>
+                        <li>Masukkan nominal pas <strong>{rupiah(pesanan.total)}</strong> lalu konfirmasi bayar.</li>
+                        <li>Simpan tangkapan layar (screenshot) bukti transfer lalu unggah di bawah ini.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  {/* Form Unggah Bukti Pembayaran */}
+                  <form onSubmit={handleKirimBukti} style={{ background: "#FAF5FF", border: "1.5px solid #E9D5FF", borderRadius: 16, padding: "18px", marginBottom: 16 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--magenta-dark)", marginBottom: 4 }}>
+                      📤 Unggah Bukti Pembayaran
+                    </div>
+                    <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 0 12px" }}>
+                      Upload tangkapan layar atau foto resi transfer agar pesanan langsung masuk antrean verifikasi kasir.
+                    </p>
+
+                    {error && (
+                      <div style={{ padding: "8px 12px", background: "#FEE2E2", color: "#991B1B", borderRadius: 8, fontSize: 12, marginBottom: 10 }}>
+                        {error}
+                      </div>
+                    )}
+                    {uploadPesan && (
+                      <div style={{ padding: "8px 12px", background: "#DCFCE7", color: "#166534", borderRadius: 8, fontSize: 12, marginBottom: 10 }}>
+                        {uploadPesan}
+                      </div>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={pilihFileBukti}
+                      style={{ display: "none" }}
+                      id="input-file-tracking"
+                    />
+
+                    {buktiPreview ? (
+                      <div style={{ textAlign: "center", marginBottom: 12 }}>
+                        <div style={{ position: "relative", display: "inline-block" }}>
+                          <img
+                            src={buktiPreview}
+                            alt="Bukti Transfer"
+                            style={{ maxWidth: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 10, border: "1.5px solid #86EFAC" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBuktiBase64(null);
+                              setBuktiPreview(null);
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: 6,
+                              right: 6,
+                              background: "rgba(0,0,0,0.65)",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: 26,
+                              height: 26,
+                              cursor: "pointer",
+                              fontSize: 12,
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700, marginTop: 4 }}>
+                          ✓ Foto bukti siap dikirim
+                        </div>
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor="input-file-tracking"
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 6,
+                          padding: "20px 14px",
+                          background: "#fff",
+                          border: "2px dashed #C084FC",
+                          borderRadius: 12,
+                          cursor: "pointer",
+                          textAlign: "center",
+                          marginBottom: 12,
+                        }}
+                      >
+                        <span style={{ fontSize: 28 }}>📷</span>
+                        <strong style={{ fontSize: 13, color: "var(--magenta-dark)" }}>
+                          Pilih Foto / Screenshot Bukti Transfer
+                        </strong>
+                        <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                          Format JPG, PNG, atau WebP (Maks. 5MB)
+                        </span>
+                      </label>
+                    )}
+
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                        Nominal yang Ditransfer (Rp):
+                      </label>
+                      <input
+                        type="number"
+                        value={nominalKlaim}
+                        onChange={(e) => setNominalKlaim(e.target.value)}
+                        placeholder="Contoh: 50000"
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          borderRadius: 8,
+                          border: "1px solid #CBD5E1",
+                          fontSize: 13,
+                          outline: "none",
+                        }}
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={!buktiBase64 || uploading}
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        borderRadius: 10,
+                        fontSize: 13.5,
+                        fontWeight: 800,
+                        background: buktiBase64 && !uploading ? "linear-gradient(135deg, #10B981, #059669)" : "#CBD5E1",
+                        color: "#fff",
+                        border: "none",
+                        cursor: buktiBase64 && !uploading ? "pointer" : "not-allowed",
+                        boxShadow: buktiBase64 ? "0 4px 12px rgba(16, 185, 129, 0.25)" : "none",
+                      }}
+                    >
+                      {uploading ? "Mengunggah Bukti…" : "✓ Kirim Bukti Pembayaran ke Kasir"}
+                    </button>
+                  </form>
+
+                  {/* Struk Digital Preview */}
+                  <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
                 </div>
               )}
             </div>

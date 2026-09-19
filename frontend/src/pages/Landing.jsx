@@ -52,14 +52,14 @@ function Hero() {
           <h1>Apotek Bima Farma <em>Tanimulya</em></h1>
           <p className="lead">
             Bima Farma melayani penebusan resep dokter, obat bebas, vitamin,
-            hingga alat kesehatan dengan sistem pembayaran online otomatis terverifikasi Duitku.
+            hingga alat kesehatan dengan sistem pembayaran online resmi QRIS.
           </p>
           <div className="hero-cta">
             <Link to="/toko" className="btn btn-primary">Buka Toko Online</Link>
             <a href="#lokasi" className="btn btn-outline">Kontak &amp; Lokasi</a>
           </div>
           <div className="hero-meta">
-            <div><strong>Online</strong>Pesan &amp; bayar via Duitku</div>
+            <div><strong>Online</strong>Pesan &amp; bayar via QRIS</div>
             <div><strong>Setiap&nbsp;Hari</strong>Buka 07.00 - 22.00 WIB</div>
             <div><strong>Berizin</strong>Apoteker bersertifikat SIA/SIPA</div>
           </div>
@@ -69,7 +69,7 @@ function Hero() {
   );
 }
 
-/* ==================== KATALOG PRODUK UNGGULAN & DUITKU ==================== */
+/* ==================== KATALOG PRODUK UNGGULAN & TOKO ONLINE ==================== */
 const PRODUK_FALLBACK = [
   {
     id: 1,
@@ -156,7 +156,7 @@ function TokoPreview() {
           <h2>Produk Obat &amp; Kesehatan Terdaftar</h2>
           <p>
             Semua produk berizin resmi BPOM dan disimpan sesuai standar kefarmasian. Pesan online dari HP Anda,
-            pilih metode pembayaran otomatis via Duitku, dan pesanan langsung disiapkan untuk diambil.
+            pilih metode pembayaran QRIS, dan pesanan langsung disiapkan untuk diambil.
           </p>
         </div>
 
@@ -232,7 +232,7 @@ function Lokasi() {
 
         <div className="lokasi-grid">
           <div className="lokasi-card">
-            {/* Email Support Resmi Sesuai Duitku */}
+            {/* Email Support Resmi Apotek */}
             <div className="lokasi-row" style={{ background: "var(--magenta-tint, #FAF0F6)", borderRadius: 12, padding: "14px 12px", border: "1.5px solid var(--magenta)" }}>
               <div className="ic" style={{ background: "var(--magenta)", color: "#fff" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -246,7 +246,7 @@ function Lokasi() {
                     bimafarmaapotek2@gmail.com
                   </a>
                 </p>
-                <span style={{ fontSize: "11.5px", color: "var(--ink-soft)" }}>Email akun terdaftar merchant Duitku Payment Gateway</span>
+                <span style={{ fontSize: "11.5px", color: "var(--ink-soft)" }}>Layanan Pelanggan &amp; Konfirmasi Apotek Bima Farma</span>
               </div>
             </div>
 
@@ -318,7 +318,7 @@ function Footer({ onOpenCaraBayar }) {
             </a>
             <p>
               Apotek keluarga di Tanimulya, Ngamprah — melayani kebutuhan obat, resep dokter, dan kesehatan
-              warga Bandung Barat setiap hari dengan dukungan pembayaran resmi Duitku.
+              warga Bandung Barat setiap hari dengan dukungan pembayaran resmi QRIS.
             </p>
           </div>
 
@@ -462,9 +462,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">3</div>
               <div className="cb-step-content">
-                <h5>Scan QRIS &amp; Bayar Otomatis</h5>
+                <h5>Scan QRIS &amp; Unggah Bukti</h5>
                 <p>
-                  Klik bayar via <strong>Duitku</strong>, lalu scan barcode <strong>QRIS</strong> yang muncul di layar menggunakan aplikasi M-Banking (BCA, Mandiri, BRI, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay). Pembayaran terverifikasi otomatis dalam hitungan detik.
+                  Pindai barcode <strong>QRIS Apotek Bima Farma</strong> di layar atau unduh QRIS untuk di-scan dari galeri m-Banking (BCA, Mandiri, BRI, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay). Unggah bukti pembayaran, kasir akan segera memproses obat Anda.
                 </p>
               </div>
             </div>

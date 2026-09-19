@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
 import { unduhQrisPng } from "../utils/qrisDownload";
 import Navbar from "../components/Navbar";
+import KartuStrukDigital from "./komponen/KartuStrukDigital";
 import "./Landing.css";
 import "./Toko.css";
 
@@ -52,7 +53,6 @@ export default function Toko() {
   const [buktiBase64, setBuktiBase64] = useState(null);
   const [nominalKlaim, setNominalKlaim] = useState("");
   const [qrisBesar, setQrisBesar] = useState(false);
-  const [duitkuLoading, setDuitkuLoading] = useState(false);
 
   const [namaPembeli, setNamaPembeli] = useState("");
   const [teleponPembeli, setTeleponPembeli] = useState("");
@@ -247,23 +247,6 @@ export default function Toko() {
       setError(err.message);
     } finally {
       setLoadingCheckout(false);
-    }
-  }
-
-  async function handleBayarDuitku() {
-    if (!order?.kode_tracking) return;
-    setDuitkuLoading(true);
-    try {
-      const res = await api(`/duitku/create/${order.kode_tracking}`, { method: "POST" });
-      if (res.payment_url) {
-        window.location.href = res.payment_url;
-      } else {
-        alert(res.message || "Gagal memuat pembayaran Duitku.");
-      }
-    } catch (err) {
-      alert(err.message || "Terjadi kesalahan saat memproses pembayaran Duitku.");
-    } finally {
-      setDuitkuLoading(false);
     }
   }
 
@@ -626,9 +609,9 @@ export default function Toko() {
             </>
           )}
 
-          {/* ---- TAHAP 3: PEMBAYARAN ONLINE VIA DUITKU ---- */}
+          {/* ---- TAHAP 3: PEMBAYARAN QRIS RESMI APOTEK BIMA FARMA ---- */}
           {tahap === "qris" && order && (
-            <div className="qris-checkout-container">
+            <div className="qris-checkout-container" style={{ padding: "10px 0" }}>
               {/* 1. Header Tagihan */}
               <div className="qris-header-tagihan">
                 <span className="tagihan-label">TOTAL PEMBAYARAN</span>
@@ -637,52 +620,212 @@ export default function Toko() {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 13, height: 13 }}>
                     <path d="M20 6L9 17l-5-5" />
                   </svg>
-                  Nominal Pas &amp; Otomatis Terkunci
+                  Scan QRIS Langsung ke GoPay / Bank Apotek
                 </div>
               </div>
 
-              {/* Card Bayar Otomatis Duitku */}
-              <div style={{ background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)", border: "1.5px solid #C084FC", borderRadius: 16, padding: "24px 20px", margin: "16px 0", textAlign: "center", boxShadow: "0 4px 16px rgba(168, 85, 247, 0.12)" }}>
-                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 50, height: 50, borderRadius: "50%", background: "#EDE9FE", marginBottom: 12 }}>
-                  <span style={{ fontSize: 24 }}>⚡</span>
+              {/* Card QRIS Apotek Bima Farma */}
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  border: "1.5px solid var(--magenta, #C084FC)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  margin: "14px 0",
+                  textAlign: "center",
+                  boxShadow: "0 6px 20px rgba(112, 26, 117, 0.08)",
+                }}
+              >
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--magenta-dark, #701A75)", marginBottom: 2 }}>
+                  APOTEK BIMA FARMA, NGAMPRAH
                 </div>
-                <h4 style={{ margin: "0 0 6px", fontSize: 16.5, fontWeight: 800, color: "var(--magenta-dark)" }}>Pembayaran Otomatis Duitku</h4>
-                <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 16px", lineHeight: 1.45 }}>
-                  Mendukung <strong>QRIS (BCA, Mandiri, BRI, BNI, ShopeePay, GoPay, DANA, OVO)</strong>, Virtual Account &amp; E-Wallet.
+                <div style={{ fontSize: 11.5, color: "var(--ink-soft, #64748B)", marginBottom: 12 }}>
+                  NMID: <strong>ID1024357753648</strong> &middot; Satu QRIS untuk Semua Bank &amp; E-Wallet
+                </div>
+
+                {/* Gambar QRIS Resmi */}
+                <div
+                  style={{
+                    display: "inline-block",
+                    padding: 8,
+                    background: "#fff",
+                    borderRadius: 12,
+                    border: "1px solid #E2E8F0",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setQrisBesar(true)}
+                  title="Klik untuk memperbesar QRIS"
+                >
+                  <img
+                    src="/qris-bima-farma.png"
+                    alt="QRIS Apotek Bima Farma, Ngamprah"
+                    style={{ width: 220, height: "auto", display: "block", borderRadius: 8 }}
+                  />
+                  <div style={{ fontSize: 10.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
+                    🔍 Klik untuk Perbesar
+                  </div>
+                </div>
+
+                {/* Tombol Simpan QRIS ke Galeri HP */}
+                <div style={{ marginTop: 12 }}>
+                  <a
+                    href="/qris-bima-farma.png"
+                    download="QRIS-Apotek-Bima-Farma.png"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background: "#FAF5FF",
+                      color: "var(--magenta-dark)",
+                      border: "1px solid #D8B4FE",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <span>📥</span>
+                    <span>Simpan Gambar QRIS ke Galeri HP</span>
+                  </a>
+                </div>
+
+                {/* Panduan Singkat */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    marginTop: 14,
+                    fontSize: 11.5,
+                    color: "var(--ink-soft)",
+                    textAlign: "left",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <strong>Cara Bayar:</strong>
+                  <ol style={{ margin: "4px 0 0", paddingLeft: 16 }}>
+                    <li>Buka GoPay, BCA, Livin, BRI, BNI, DANA, OVO, atau ShopeePay.</li>
+                    <li>Scan QRIS di atas (atau scan dari galeri HP Anda).</li>
+                    <li>Masukkan nominal pas: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(order.total)}</strong>.</li>
+                    <li>Selesaikan pembayaran dan upload bukti transfer di bawah ini.</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Form Upload Bukti Transfer */}
+              <div
+                style={{
+                  background: "#F8FAFC",
+                  border: "1.5px solid var(--line)",
+                  borderRadius: 14,
+                  padding: "16px",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
+                  📤 Unggah Bukti Transfer
+                </div>
+                <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 0 12px", lineHeight: 1.4 }}>
+                  Lampirkan foto atau tangkapan layar bukti transfer GoPay / Bank Anda agar pesanan langsung masuk antrean kasir.
                 </p>
 
-                <div style={{ background: "var(--green-tint)", color: "var(--green-dark)", padding: "10px 12px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, marginBottom: 18 }}>
-                  ✓ Status otomatis LUNAS seketika tanpa perlu upload struk!
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={pilihFileBukti}
+                  style={{ display: "none" }}
+                  id="input-bukti-drawer"
+                />
+
+                {buktiPreview ? (
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                      <img
+                        src={buktiPreview}
+                        alt="Preview Bukti"
+                        style={{ maxWidth: "100%", maxHeight: 180, objectFit: "contain", borderRadius: 10, border: "1.5px solid #86EFAC" }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBuktiBase64(null);
+                          setBuktiPreview(null);
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: 6,
+                          right: 6,
+                          background: "rgba(0,0,0,0.65)",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: 26,
+                          height: 26,
+                          cursor: "pointer",
+                          fontSize: 12,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700, marginTop: 6 }}>
+                      ✓ Bukti foto siap dikirim
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="input-bukti-drawer"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      padding: "20px 14px",
+                      background: "#fff",
+                      border: "2px dashed #CBD5E1",
+                      borderRadius: 12,
+                      cursor: "pointer",
+                      textAlign: "center",
+                    }}
+                  >
+                    <span style={{ fontSize: 26 }}>📷</span>
+                    <strong style={{ fontSize: 13, color: "var(--magenta-dark)" }}>
+                      Klik untuk Memilih Foto Bukti Transfer
+                    </strong>
+                    <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                      Format JPG, PNG, atau tangkapan layar (Maks. 5MB)
+                    </span>
+                  </label>
+                )}
 
                 <button
                   type="button"
-                  onClick={handleBayarDuitku}
-                  disabled={duitkuLoading}
+                  onClick={kirimBukti}
+                  disabled={!buktiBase64 || loadingCheckout}
                   style={{
                     width: "100%",
-                    padding: "13px 18px",
-                    fontSize: 14.5,
+                    marginTop: 12,
+                    padding: "12px",
+                    borderRadius: 10,
+                    fontSize: 13.5,
                     fontWeight: 800,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    borderRadius: 12,
-                    background: "linear-gradient(135deg, #7C3AED, #A64BC7)",
-                    boxShadow: "0 4px 16px rgba(124, 58, 237, 0.3)",
-                    border: "none",
+                    background: buktiBase64 ? "linear-gradient(135deg, #10B981, #059669)" : "#CBD5E1",
                     color: "#fff",
-                    cursor: duitkuLoading ? "not-allowed" : "pointer",
-                    opacity: duitkuLoading ? 0.75 : 1,
+                    border: "none",
+                    cursor: buktiBase64 && !loadingCheckout ? "pointer" : "not-allowed",
                   }}
                 >
-                  {duitkuLoading ? "Menghubungkan ke Duitku…" : `Bayar Sekarang ${rupiah(order.total)} ➔`}
+                  {loadingCheckout ? "Mengirim Bukti…" : "✓ Kirim Bukti Pembayaran"}
                 </button>
               </div>
 
               {order.kode_tracking && (
-                <div style={{ textAlign: "center", marginTop: 10, padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
+                <div style={{ textAlign: "center", padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
                   <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Kode Tracking: </span>
                   <strong style={{ fontSize: 13, letterSpacing: "1px", color: "var(--magenta-dark)" }}>{order.kode_tracking}</strong>
                 </div>
@@ -690,31 +833,28 @@ export default function Toko() {
             </div>
           )}
 
-          {/* ---- TAHAP 4: SELESAI / MENUNGGU ---- */}
+          {/* ---- TAHAP 4: SELESAI & STRUK DIGITAL PEMBELI ---- */}
           {tahap === "selesai" && order && (
-            <div className="nota-wrap">
+            <div className="nota-wrap" style={{ padding: "10px 0" }}>
               <div className="nota-check">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
               </div>
-              <h3>Bukti Terkirim!</h3>
+              <h3>Bukti Pembayaran Terkirim!</h3>
               <p className="sub">Kode Tracking: <strong style={{ color: "var(--magenta-dark)", letterSpacing: "0.05em" }}>{order.kode_tracking}</strong></p>
-              <span className="status-pill">
-                {(statusPesanan === "pending" || statusPesanan === "menunggu_verifikasi") && "Menunggu Verifikasi Kasir"}
-                {statusPesanan === "sukses" && "✓ Lunas — Pesanan Diproses"}
-                {statusPesanan === "kurang_bayar" && "Nominal Kurang Bayar"}
-                {(statusPesanan === "gagal" || statusPesanan === "expired") && "Pesanan Dibatalkan"}
-              </span>
-              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 14 }}>
-                Kasir kami sedang memeriksa bukti transfer Anda. Anda bisa memantau status pesanan kapan saja melalui tautan tracking berikut:
+              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "8px 0 16px", lineHeight: 1.45 }}>
+                Pesanan Anda telah masuk ke sistem apotek Bima Farma. Berikut adalah struk digital resmi Anda:
               </p>
+
+              {/* Kartu Struk Digital Lengkap dengan Opsi Unduh PNG, Cetak PDF, & WA */}
+              <KartuStrukDigital pesanan={order} items={cart} />
 
               {order.kode_tracking && (
                 <a
                   href={`/pesanan/${order.kode_tracking}`}
                   className="btn-full"
-                  style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 16, padding: "12px" }}
+                  style={{ display: "block", textAlign: "center", textDecoration: "none", marginTop: 14, padding: "12px" }}
                 >
-                  Buka Halaman Tracking Pesanan →
+                  Buka Halaman Status &amp; Tracking Pesanan →
                 </a>
               )}
             </div>
@@ -730,13 +870,21 @@ export default function Toko() {
           )}
           {tahap === "checkout" && (
             <button className="btn-full" onClick={submitCheckout} disabled={loadingCheckout}>
-              {loadingCheckout ? "Memproses…" : "Lanjut ke Pembayaran"}
+              {loadingCheckout ? "Memproses…" : "Lanjut ke Pembayaran QRIS"}
             </button>
           )}
           {tahap === "qris" && (
             <>
-              <button className="btn-full" onClick={handleBayarDuitku} disabled={duitkuLoading}>
-                {duitkuLoading ? "Menghubungkan ke Duitku…" : `Bayar Sekarang ${rupiah(order?.total || 0)} ➔`}
+              <button
+                className="btn-full"
+                onClick={kirimBukti}
+                disabled={!buktiBase64 || loadingCheckout}
+                style={{
+                  background: buktiBase64 ? "linear-gradient(135deg, #10B981, #059669)" : "#94A3B8",
+                  cursor: buktiBase64 && !loadingCheckout ? "pointer" : "not-allowed",
+                }}
+              >
+                {loadingCheckout ? "Mengirim Bukti…" : (buktiBase64 ? "Kirim Bukti Pembayaran Sekarang" : "Pilih Bukti Transfer Dulu di Atas")}
               </button>
               {order?.kode_tracking && (
                 <a
@@ -751,7 +899,7 @@ export default function Toko() {
           )}
           {tahap === "selesai" && (
             <button className="btn-ghost" onClick={() => { setDrawerOpen(false); setTahap("keranjang"); }}>
-              Tutup
+              Selesai &amp; Tutup
             </button>
           )}
         </div>
