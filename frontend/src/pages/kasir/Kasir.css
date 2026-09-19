@@ -195,6 +195,54 @@
   }
 }
 
+/* KPI Grid 4 Kolom Berjajar */
+.kpi-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi-grid-4 .kpi-card {
+  padding: 16px 14px;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 14px;
+}
+.kpi-grid-4 .kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+.kpi-grid-4 .kpi-angka {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.kpi-grid-4 .kpi-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-top: 2px;
+  line-height: 1.25;
+}
+.kpi-grid-4 .kpi-sub {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+@media (max-width: 1080px) {
+  .kpi-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .kpi-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dashboard-2kolom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 .panel-kosong { padding: 28px 0; text-align: center; color: var(--ink-soft); font-size: 13px; }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Penerimaan;
 use App\Models\Pengeluaran;
+use App\Models\Penjualan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,17 @@ class PengeluaranController extends Controller
         } else {
             [$mulai, $selesai] = $this->rentangTanggal($periode, $dari, $sampai);
         }
+
+        // 0. Query Laba Kotor Penjualan (selisih Penjualan - HPP Modal Obat Terjual)
+        $queryPenjualan = Penjualan::whereIn('status', ['lunas', 'selesai'])->whereBetween('tanggal', [$mulai, $selesai]);
+        $totalPenjualan = (float) (clone $queryPenjualan)->sum('total');
+        $penjualanIds = (clone $queryPenjualan)->pluck('id');
+        $totalModal = (float) (DB::table('penjualan_item')
+            ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
+            ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
+            ->selectRaw('SUM(COALESCE(penjualan_item.harga_beli, obat_satuan.harga_beli, 0) * penjualan_item.qty) as modal')
+            ->value('modal') ?? 0);
+        $totalLabaPenjualan = (float) ($totalPenjualan - $totalModal);
 
         // 1. Query Pengeluaran Operasional
         $queryOperasional = Pengeluaran::whereBetween('tanggal', [$mulai, $selesai]);
@@ -58,6 +70,9 @@ class PengeluaranController extends Controller
 
         $breakdown = [];
         $totalGaji = (float) ($kategoriSummary['gaji']->total ?? 0);
+        $totalOperasionalNonGaji = max(0, $totalOperasional - $totalGaji);
+        // Pendapatan Bersih = Total Laba Kotor Penjualan - Beban Operasional (Gaji + Operasional lainnya)
+        $pendapatanBersih = (float) ($totalLabaPenjualan - $totalOperasional);
 
         $daftarKategori = [
             'pembelian_obat' => ['label' => 'Pembelian Obat (Supplier)', 'total' => $totalPembelianSupplier, 'warna' => '#1A56B8'],
@@ -89,9 +104,12 @@ class PengeluaranController extends Controller
             'periode' => $periode,
             'rentang' => ['mulai' => $mulai, 'selesai' => $selesai],
             'kpi' => [
-                'total_pengeluaran' => $totalPengeluaran,
-                'total_operasional' => $totalOperasional,
+                'total_laba_penjualan' => $totalLabaPenjualan,
                 'total_gaji' => $totalGaji,
+                'total_operasional' => $totalOperasional,
+                'total_operasional_non_gaji' => $totalOperasionalNonGaji,
+                'pendapatan_bersih' => $pendapatanBersih,
+                'total_pengeluaran' => $totalPengeluaran,
                 'total_pembelian_obat' => $totalPembelianSupplier,
                 'jumlah_catatan' => $daftarOperasional->count() + $fakturSupplier->count(),
             ],
