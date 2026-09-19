@@ -325,7 +325,7 @@ export default function Laporan() {
             </svg>
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 5 }}>
               <span className="kpi-angka" style={{ color: "var(--green-dark)" }}>
                 {loading ? "…" : rupiah(data.kpi.total_pendapatan)}
               </span>
@@ -336,7 +336,7 @@ export default function Laporan() {
               )}
             </div>
             <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Total Pendapatan (Laba)</div>
-            <div className="kpi-sub">Selisih Jual - Beli ({labelPeriode})</div>
+            <div className="kpi-sub">Selisih jual - beli</div>
           </div>
         </div>
 
@@ -350,7 +350,7 @@ export default function Laporan() {
           <div>
             <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.total_penjualan)}</div>
             <div className="kpi-label">Total Penjualan</div>
-            <div className="kpi-sub">Omzet kotor ({labelPeriode})</div>
+            <div className="kpi-sub">Omzet kotor</div>
           </div>
         </div>
 
@@ -378,7 +378,7 @@ export default function Laporan() {
           <div>
             <div className="kpi-angka">{loading ? "…" : data.kpi.jumlah_transaksi}</div>
             <div className="kpi-label">Jumlah Transaksi</div>
-            <div className="kpi-sub">{labelPeriode}</div>
+            <div className="kpi-sub">Total nota penjualan</div>
           </div>
         </div>
 
@@ -391,8 +391,8 @@ export default function Laporan() {
           </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.rata_rata)}</div>
-            <div className="kpi-label">Rata-rata per Transaksi</div>
-            <div className="kpi-sub">{labelPeriode}</div>
+            <div className="kpi-label">Rata-rata Transaksi</div>
+            <div className="kpi-sub">Per transaksi</div>
           </div>
         </div>
       </div>
