@@ -37,8 +37,12 @@ export default function TrackingPesanan() {
         setStatusPenjualan(data.status_penjualan || "pending");
         setCatatanVerifikasi(data.pembayaran?.catatan_verifikasi || null);
         setNominalKlaim(data.pembayaran?.nominal_klaim_customer || data.total);
-        if (data.pembayaran?.bukti_url) {
-          setBuktiPreview(data.pembayaran.bukti_url);
+        if (data.pembayaran?.bukti_url || data.pembayaran?.bukti_path) {
+          const pathClean = (data.pembayaran.bukti_path || "").replace(/^\/?(api\/)?storage\//, "");
+          const cleanUrl = pathClean
+            ? `/storage/${pathClean}`
+            : data.pembayaran.bukti_url.replace(/^https?:\/\/[^\/]+\/(api\/)?storage\//, "/storage/");
+          setBuktiPreview(cleanUrl);
         }
         setError("");
       })

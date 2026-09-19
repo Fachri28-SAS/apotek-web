@@ -4,6 +4,20 @@ import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
 import StrukModal from "./komponen/StrukModal";
 
+export function formatBuktiUrl(url, path) {
+  if (!url && !path) return null;
+  if (path) {
+    const clean = path.replace(/^\/?(api\/)?storage\//, "");
+    return `/storage/${clean}`;
+  }
+  if (typeof url === "string") {
+    if (url.startsWith("data:")) return url;
+    // Ganti host HTTP eksternal ke /storage/ agar di-proxy Vercel via HTTPS tanpa kena Mixed Content
+    return url.replace(/^https?:\/\/[^\/]+\/(api\/)?storage\//, "/storage/");
+  }
+  return url;
+}
+
 export default function PembayaranOnline() {
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -286,30 +300,42 @@ export default function PembayaranOnline() {
                       </div>
 
                       {/* Tampilan Bukti Transfer QRIS Pelanggan */}
-                      {p.bukti_url && (
-                        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, background: "#FFFBEB", padding: "8px 12px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
-                          <img
-                            src={p.bukti_url}
-                            alt="Bukti Transfer"
-                            onClick={() => setPreviewBukti(p.bukti_url)}
-                            style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 8, cursor: "pointer", border: "1px solid #CBD5E1", flexShrink: 0 }}
-                            title="Klik untuk memperbesar bukti transfer"
-                          />
-                          <div style={{ flex: 1, fontSize: 12 }}>
-                            <div style={{ fontWeight: 700, color: "#92400E" }}>📸 Bukti Transfer QRIS Terlampir</div>
-                            <div style={{ color: "var(--ink-soft)", marginTop: 2 }}>
-                              Nominal klaim: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(p.nominal_klaim_customer || p.jumlah)}</strong>
+                      {(p.bukti_url || p.bukti_path) && (() => {
+                        const urlBersih = formatBuktiUrl(p.bukti_url, p.bukti_path);
+                        return (
+                          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12, background: "#FFFBEB", padding: "8px 12px", borderRadius: 10, border: "1.5px solid #FDE68A" }}>
+                            <img
+                              src={urlBersih}
+                              alt="Bukti Transfer"
+                              onClick={() => setPreviewBukti(urlBersih)}
+                              onError={(e) => {
+                                if (!e.target.dataset.triedApi) {
+                                  e.target.dataset.triedApi = "true";
+                                  const pathClean = (p.bukti_path || "").replace(/^\/?(api\/)?storage\//, "");
+                                  if (pathClean) {
+                                    e.target.src = `/api/storage/${pathClean}`;
+                                  }
+                                }
+                              }}
+                              style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, cursor: "pointer", border: "1.5px solid #F59E0B", flexShrink: 0, background: "#fff" }}
+                              title="Klik untuk memperbesar bukti transfer"
+                            />
+                            <div style={{ flex: 1, fontSize: 12 }}>
+                              <div style={{ fontWeight: 700, color: "#92400E" }}>📸 Bukti Transfer QRIS Terlampir</div>
+                              <div style={{ color: "var(--ink-soft)", marginTop: 2 }}>
+                                Nominal klaim: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(p.nominal_klaim_customer || p.jumlah)}</strong>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewBukti(urlBersih)}
+                                style={{ background: "none", border: "none", color: "var(--magenta-dark)", fontWeight: 700, padding: 0, marginTop: 3, cursor: "pointer", fontSize: 11.5, textDecoration: "underline" }}
+                              >
+                                🔍 Perbesar Foto Bukti
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setPreviewBukti(p.bukti_url)}
-                              style={{ background: "none", border: "none", color: "var(--magenta-dark)", fontWeight: 700, padding: 0, marginTop: 2, cursor: "pointer", fontSize: 11.5 }}
-                            >
-                              🔍 Perbesar Foto Bukti
-                            </button>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
 
                     {/* Tombol Aksi Kanan */}
