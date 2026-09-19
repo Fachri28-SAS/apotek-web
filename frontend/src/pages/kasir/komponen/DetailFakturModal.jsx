@@ -139,13 +139,13 @@ export default function DetailFakturModal({ data, onClose }) {
             <table className="obat-table" style={{ width: "100%", fontSize: 12 }}>
               <thead>
                 <tr>
-                  <th style="text-align: left;">Obat</th>
-                  <th style="text-align: right;">Qty</th>
-                  <th style="text-align: right;">Kemasan</th>
-                  <th style="text-align: right;">Harga Satuan</th>
-                  <th style="text-align: right;">Diskon</th>
-                  <th style="text-align: center;">Batch</th>
-                  <th style="text-align: right;">Subtotal</th>
+                  <th style={{ textAlign: "left" }}>Obat</th>
+                  <th style={{ textAlign: "right" }}>Qty</th>
+                  <th style={{ textAlign: "right" }}>Kemasan</th>
+                  <th style={{ textAlign: "right" }}>Harga Satuan</th>
+                  <th style={{ textAlign: "right" }}>Diskon</th>
+                  <th style={{ textAlign: "center" }}>Batch</th>
+                  <th style={{ textAlign: "right" }}>Subtotal</th>
                 </tr>
               </thead>
               <tbody>
