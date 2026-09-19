@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { AreaChart, Area, XAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
@@ -69,64 +68,7 @@ function getPresetRange(key) {
 var LABEL_METODE = { tunai: "Tunai", qris: "QRIS", transfer: "Transfer" };
 var WARNA_METODE = { tunai: "#39A048", qris: "#A64BC7", transfer: "#1A56B8" };
 
-/**
- * Grafik kurva area halus pakai SVG murni — jauh lebih enak dilihat
- * dibanding batang kaku, apalagi kalau datanya sepi (banyak hari nol).
- */
-/**
- * Grafik pakai Recharts — library grafik yang matang, dipakai banyak
- * aplikasi. Kurva "monotone" otomatis halus TANPA overshoot aneh (beda
- * dengan Catmull-Rom manual sebelumnya), dan skala sumbu-nya otomatis
- * proporsional mengikuti data, bukan dipaksa 0-max secara kaku.
- */
-function TooltipKustom({ active, payload }) {
-  if (!active || !payload || !payload.length) return null;
-  var item = payload[0].payload;
-  var parts = item.label ? item.label.split(", ") : ["", ""];
-  return (
-    <div className="grafik-tooltip-kustom">
-      <div className="grafik-tooltip-hari">{parts[0]} · {parts[1]}</div>
-      <div className="grafik-tooltip-omzet">{rupiah(item.omzet)}</div>
-    </div>
-  );
-}
 
-function GrafikArea({ data }) {
-  var dataChart = data.map(function(d) {
-    var parts = d.label ? d.label.split(", ") : ["", ""];
-    return { ...d, hari: parts[0] };
-  });
-
-  return (
-    <ResponsiveContainer width="100%" height={260}>
-      <AreaChart data={dataChart} margin={{ top: 16, right: 12, left: 12, bottom: 0 }}>
-        <defs>
-          <linearGradient id="grafikGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#A64BC7" stopOpacity={0.35} />
-            <stop offset="95%" stopColor="#A64BC7" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid vertical={false} stroke="#E5E1D9" />
-        <XAxis
-          dataKey="hari"
-          tick={{ fontSize: 12, fontWeight: 700, fill: "#1D241F" }}
-          axisLine={{ stroke: "#E5E1D9" }}
-          tickLine={false}
-        />
-        <Tooltip content={<TooltipKustom />} />
-        <Area
-          type="monotone"
-          dataKey="omzet"
-          stroke="#A64BC7"
-          strokeWidth={2.5}
-          fill="url(#grafikGradient)"
-          dot={{ r: 4, fill: "#fff", stroke: "#A64BC7", strokeWidth: 2.5 }}
-          activeDot={{ r: 6 }}
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-}
 
 function exportCSV(transaksi) {
   var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total Penjualan,Total Modal (HPP),Total Pendapatan (Laba),Margin,Metode Bayar\n";
@@ -374,7 +316,7 @@ export default function Laporan() {
 
       {error && <div className="login-error">{error}</div>}
 
-      <div className="kpi-grid">
+      <div className="kpi-grid kpi-grid-5">
         {/* Total Pendapatan (Laba Kotor dari Selisih Harga Jual dan Beli) */}
         <div className="kpi-card hijau" style={{ border: "1.5px solid #86EFAC" }}>
           <div className="kpi-icon">
@@ -452,17 +394,6 @@ export default function Laporan() {
             <div className="kpi-label">Rata-rata per Transaksi</div>
             <div className="kpi-sub">{labelPeriode}</div>
           </div>
-        </div>
-      </div>
-
-      <div className="dashboard-2kolom">
-        <div className="panel" style={{ gridColumn: "1 / -1" }}>
-          <div className="panel-head"><h3>Penjualan 7 Hari Terakhir</h3></div>
-          {!loading && data && data.grafik_7_hari && data.grafik_7_hari.length ? (
-            <GrafikArea data={data.grafik_7_hari} />
-          ) : (
-            <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada data penjualan."}</div>
-          )}
         </div>
       </div>
 

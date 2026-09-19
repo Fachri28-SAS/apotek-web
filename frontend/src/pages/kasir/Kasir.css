@@ -137,6 +137,61 @@
   background: #FEF3C7; color: #B45309; border-color: #FDE68A;
 }
 
+/* KPI Grid 5 Kolom Berjajar */
+.kpi-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-grid-5 .kpi-card {
+  padding: 16px 12px;
+  gap: 12px;
+  min-width: 0;
+}
+.kpi-grid-5 .kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  flex-shrink: 0;
+}
+.kpi-grid-5 .kpi-angka {
+  font-size: 20px;
+  word-break: break-word;
+}
+.kpi-grid-5 .kpi-label {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi-grid-5 .kpi-sub {
+  font-size: 10.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kpi-grid-5 .kpi-margin-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+@media (max-width: 1100px) {
+  .kpi-grid-5 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .kpi-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 500px) {
+  .kpi-grid-5 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dashboard-2kolom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 .panel-kosong { padding: 28px 0; text-align: center; color: var(--ink-soft); font-size: 13px; }
