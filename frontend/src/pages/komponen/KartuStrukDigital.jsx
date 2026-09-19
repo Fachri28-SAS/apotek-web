@@ -30,6 +30,10 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
   const total = Number(pesanan.total || pesanan.subtotal || 0);
 
   function handleUnduh() {
+    if (!isLunas) {
+      alert("Struk resmi baru dapat diunduh setelah pembayaran diverifikasi dan dikonfirmasi lunas oleh kasir.");
+      return;
+    }
     setDownloading(true);
     try {
       unduhStrukDigitalPng(dataLengkap);
@@ -167,99 +171,170 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
           </span>
         </div>
 
-        {/* Kotak Petunjuk Pengambilan */}
-        <div
-          style={{
-            background: "#FAF5FF",
-            border: "1px solid #E9D5FF",
-            borderRadius: 10,
-            padding: "10px 14px",
-            fontSize: 11.5,
-            color: "#6B21A8",
-            lineHeight: 1.45,
-            marginBottom: 16,
-            textAlign: "center",
-          }}
-        >
-          💡 <strong>Petunjuk untuk Pembeli:</strong> Unduh atau simpan struk ini. Tunjukkan ke kasir Apotek Bima Farma saat mengambil obat untuk verifikasi instan.
-        </div>
-
-        {/* Tombol Aksi Pembeli */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {/* Tombol 1: Unduh Gambar PNG */}
-          <button
-            type="button"
-            onClick={handleUnduh}
-            disabled={downloading}
-            style={{
-              width: "100%",
-              padding: "11px 16px",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              background: "linear-gradient(135deg, #701A75 0%, #A21CAF 100%)",
-              color: "#FFFFFF",
-              border: "none",
-              cursor: downloading ? "wait" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              boxShadow: "0 4px 12px rgba(112, 26, 117, 0.25)",
-            }}
-          >
-            <span>📥</span>
-            <span>{downloading ? "Menyiapkan Gambar…" : "Simpan Gambar Struk ke Galeri HP"}</span>
-          </button>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {/* Tombol 2: Cetak / Simpan PDF */}
-            <button
-              type="button"
-              onClick={() => cetakStrukDigital(dataLengkap)}
+        {/* KONDISI 1: JIKA SUDAH DIKONFIRMASI KASIR (LUNAS) */}
+        {isLunas ? (
+          <>
+            <div
               style={{
-                padding: "9px 12px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                background: "#F8FAFC",
-                color: "#334155",
-                border: "1.5px solid #CBD5E1",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
+                background: "#F0FDF4",
+                border: "1.5px solid #86EFAC",
+                borderRadius: 10,
+                padding: "10px 14px",
+                fontSize: 11.5,
+                color: "#166534",
+                lineHeight: 1.45,
+                marginBottom: 16,
+                textAlign: "center",
               }}
             >
-              <span>🖨️</span>
-              <span>Cetak / PDF</span>
-            </button>
+              🎉 <strong>Pembayaran Dikonfirmasi Kasir!</strong> Simpan gambar struk ini atau tunjukkan ke kasir Apotek Bima Farma saat mengambil obat.
+            </div>
 
-            {/* Tombol 3: Chat WA Kasir */}
-            <button
-              type="button"
-              onClick={() => kirimStrukWhatsApp(dataLengkap)}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                type="button"
+                onClick={handleUnduh}
+                disabled={downloading}
+                style={{
+                  width: "100%",
+                  padding: "11px 16px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "linear-gradient(135deg, #701A75 0%, #A21CAF 100%)",
+                  color: "#FFFFFF",
+                  border: "none",
+                  cursor: downloading ? "wait" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  boxShadow: "0 4px 12px rgba(112, 26, 117, 0.25)",
+                }}
+              >
+                <span>📥</span>
+                <span>{downloading ? "Menyiapkan Gambar…" : "Simpan Gambar Struk ke Galeri HP"}</span>
+              </button>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => cetakStrukDigital(dataLengkap)}
+                  style={{
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: "#F8FAFC",
+                    color: "#334155",
+                    border: "1.5px solid #CBD5E1",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  <span>🖨️</span>
+                  <span>Cetak / PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => kirimStrukWhatsApp(dataLengkap)}
+                  style={{
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: "#ECFDF5",
+                    color: "#065F46",
+                    border: "1.5px solid #A7F3D0",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                  }}
+                >
+                  <span>📲</span>
+                  <span>Kirim ke WA Kasir</span>
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* KONDISI 2: JIKA MASIH MENUNGGU VERIFIKASI KASIR */
+          <div>
+            <div
               style={{
-                padding: "9px 12px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                background: "#ECFDF5",
-                color: "#065F46",
-                border: "1.5px solid #A7F3D0",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
+                background: "#FEF3C7",
+                border: "1.5px solid #FCD34D",
+                borderRadius: 12,
+                padding: "14px 16px",
+                textAlign: "center",
+                marginBottom: 14,
               }}
             >
-              <span>📲</span>
-              <span>Kirim ke WA Kasir</span>
-            </button>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>⏳</div>
+              <div style={{ fontWeight: 800, color: "#92400E", fontSize: 13.5 }}>
+                Menunggu Konfirmasi Kasir
+              </div>
+              <p style={{ margin: "4px 0 0", fontSize: 12, color: "#78350F", lineHeight: 1.45 }}>
+                Bukti pembayaran Anda sudah masuk ke antrean kasir. Tombol <strong>Simpan Struk Resmi</strong> akan otomatis aktif setelah kasir apotek memverifikasi dan mengonfirmasi lunas pembayaran Anda.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                type="button"
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "11px 16px",
+                  borderRadius: 10,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  background: "#F1F5F9",
+                  color: "#94A3B8",
+                  border: "1.5px dashed #CBD5E1",
+                  cursor: "not-allowed",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+                title="Struk resmi baru bisa diunduh setelah dikonfirmasi lunas oleh kasir apotek"
+              >
+                <span>🔒</span>
+                <span>Struk Resmi Tersedia Setelah Dikonfirmasi Kasir</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => kirimStrukWhatsApp(dataLengkap)}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: "#ECFDF5",
+                  color: "#065F46",
+                  border: "1.5px solid #A7F3D0",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <span>📲</span>
+                <span>Hubungi / Konfirmasi ke WA Kasir (0812-2360-4900)</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

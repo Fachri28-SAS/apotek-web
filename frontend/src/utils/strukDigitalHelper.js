@@ -6,6 +6,15 @@ import { rupiah } from "./format";
 export function unduhStrukDigitalPng(pesanan) {
   if (!pesanan) return;
 
+  const status = pesanan.pembayaran?.status || pesanan.status_pembayaran || "pending";
+  const statusPenjualan = pesanan.status_penjualan || pesanan.status || "pending";
+  const isLunas = status === "sukses" || statusPenjualan === "selesai" || pesanan.catatan_verifikasi === "selesai";
+
+  if (!isLunas) {
+    alert("Struk resmi baru dapat diunduh setelah pembayaran diverifikasi dan dikonfirmasi lunas oleh kasir apotek.");
+    return;
+  }
+
   const width = 600;
   const items = pesanan.items || [];
   // Hitung perkiraan tinggi canvas berdasarkan jumlah item
@@ -189,6 +198,15 @@ export function unduhStrukDigitalPng(pesanan) {
  */
 export function cetakStrukDigital(pesanan) {
   if (!pesanan) return;
+
+  const status = pesanan.pembayaran?.status || pesanan.status_pembayaran || "pending";
+  const statusPenjualan = pesanan.status_penjualan || pesanan.status || "pending";
+  const isLunas = status === "sukses" || statusPenjualan === "selesai" || pesanan.catatan_verifikasi === "selesai";
+
+  if (!isLunas) {
+    alert("Struk resmi baru dapat dicetak setelah pembayaran diverifikasi dan dikonfirmasi lunas oleh kasir apotek.");
+    return;
+  }
 
   const items = pesanan.items || [];
   const tglTeks = pesanan.created_at
