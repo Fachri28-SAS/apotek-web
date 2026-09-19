@@ -210,9 +210,9 @@ export default function Laporan() {
           <h1 style={{ fontSize: 24 }}>Laporan Penjualan</h1>
           <p className="halaman-sub">{labelPeriode} &middot; Ringkasan omzet, laba kotor, dan perputaran obat</p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Kalender Filter Tanggal */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+          <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
             <span>📅 Dari:</span>
             <input
               type="date"
@@ -232,7 +232,7 @@ export default function Laporan() {
             />
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+          <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
             <span>Sampai:</span>
             <input
               type="date"

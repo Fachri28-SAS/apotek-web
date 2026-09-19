@@ -191,7 +191,7 @@ export default function RiwayatPenerimaan() {
       {notif && <div style={{ background: "#ECFDF5", color: "#065F46", padding: "10px 16px", borderRadius: 10, marginBottom: 14, fontWeight: 600, fontSize: 13.5, border: "1px solid #A7F3D0" }}>{notif}</div>}
 
       {/* Ringkasan Besar Uang & Jatuh Tempo */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+      <div className="kpi-grid-4" style={{ marginBottom: 16 }}>
         <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 14, border: "1px solid var(--line)" }}>
           <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Faktur Masuk</div>
           <div style={{ fontSize: 19, fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>{daftarTampil.length} Faktur</div>
@@ -253,38 +253,40 @@ export default function RiwayatPenerimaan() {
 
           {/* Filter Rentang Tanggal, Status & Tombol Cetak */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-              <span>Dari:</span>
-              <input
-                type="date"
-                value={dariTanggal}
-                onChange={(e) => setDariTanggal(e.target.value)}
-                style={{
-                  padding: "7px 10px",
-                  borderRadius: 8,
-                  border: "1.5px solid var(--line)",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                }}
-              />
-            </div>
+            <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+                <span>Dari:</span>
+                <input
+                  type="date"
+                  value={dariTanggal}
+                  onChange={(e) => setDariTanggal(e.target.value)}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: "1.5px solid var(--line)",
+                    fontSize: 13,
+                    outline: "none",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-              <span>Sampai:</span>
-              <input
-                type="date"
-                value={sampaiTanggal}
-                onChange={(e) => setSampaiTanggal(e.target.value)}
-                style={{
-                  padding: "7px 10px",
-                  borderRadius: 8,
-                  border: "1.5px solid var(--line)",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                }}
-              />
+              <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+                <span>Sampai:</span>
+                <input
+                  type="date"
+                  value={sampaiTanggal}
+                  onChange={(e) => setSampaiTanggal(e.target.value)}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: "1.5px solid var(--line)",
+                    fontSize: 13,
+                    outline: "none",
+                    fontFamily: "inherit",
+                  }}
+                />
+              </div>
             </div>
 
             {/* Filter PT / Supplier */}

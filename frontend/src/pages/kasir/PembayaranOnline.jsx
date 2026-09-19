@@ -236,7 +236,7 @@ export default function PembayaranOnline() {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
                     {/* Info Kiri */}
-                    <div style={{ flex: 1, minWidth: 260 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
                         <strong style={{ fontSize: 15, color: "var(--ink)" }}>{p.penjualan?.no_struk}</strong>
                         {p.penjualan?.kode_tracking && (
@@ -339,7 +339,7 @@ export default function PembayaranOnline() {
                     </div>
 
                     {/* Tombol Aksi Kanan */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <div className="pesanan-online-actions" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       {/* Kasus 1: Menunggu Verifikasi Kasir */}
                       {p.status_pembayaran === "menunggu_verifikasi" && (
                         <>

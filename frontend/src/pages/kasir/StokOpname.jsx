@@ -313,8 +313,8 @@ export default function StokOpname() {
       <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
           <h3>Riwayat Penyesuaian</h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+          <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
               <span>📅 Dari:</span>
               <input
                 type="date"
@@ -332,7 +332,7 @@ export default function StokOpname() {
               />
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+            <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
               <span>Sampai:</span>
               <input
                 type="date"

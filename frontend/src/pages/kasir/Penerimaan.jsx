@@ -247,7 +247,7 @@ export default function Penerimaan() {
         {fakturTerbuka && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Baris 1: 4 Kolom di Desktop (Supplier, Nama Supplier, No. Faktur, Tanggal Terima) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 12px" }}>
+            <div className="penerimaan-baris-1">
               <div className="payment-field" style={{ margin: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
                   <label style={{ margin: 0, fontSize: 12, fontWeight: 700 }}>Supplier</label>
@@ -317,7 +317,7 @@ export default function Penerimaan() {
             </div>
 
             {/* Baris 2: Jatuh Tempo & PKP Supplier */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "8px 12px", alignItems: "end" }}>
+            <div className="penerimaan-baris-2">
               <div className="payment-field" style={{ margin: 0 }}>
                 <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Tanggal Jatuh Tempo</label>
                 <div className="tempo-row" style={{ gap: 4 }}>
@@ -494,7 +494,7 @@ export default function Penerimaan() {
             <div className="penerimaan-ringkasan">
               <div className="payment-row"><span>Subtotal</span><strong>{rupiah(subtotal)}</strong></div>
 
-              <div className="opname-ringkasan-info" style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+              <div className="opname-ringkasan-info" style={{ flexDirection: "row", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
                 <span>Diskon Faktur:</span>
                 <input type="number" min="0" className="cart-input-angka" style={{ width: 110 }} value={diskonFakturRp} onChange={(e) => setDiskonFakturRp(e.target.value)} placeholder="Rp" />
                 <input type="number" min="0" max="100" className="cart-input-angka" style={{ width: 80 }} value={diskonFakturPersen} onChange={(e) => setDiskonFakturPersen(e.target.value)} placeholder="%" />

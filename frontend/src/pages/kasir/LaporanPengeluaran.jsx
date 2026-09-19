@@ -340,40 +340,42 @@ export default function LaporanPengeluaran() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Kalender Filter Tanggal */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-            <span>📅 Dari:</span>
-            <input
-              type="date"
-              value={dariTanggal}
-              onChange={(e) => setDariTanggal(e.target.value)}
-              style={{
-                padding: "7px 10px",
-                borderRadius: 8,
-                border: "1.5px solid var(--line)",
-                fontSize: 13,
-                outline: "none",
-                fontFamily: "inherit",
-                background: "#fff",
-              }}
-            />
-          </div>
+          <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>📅 Dari:</span>
+              <input
+                type="date"
+                value={dariTanggal}
+                onChange={(e) => setDariTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-            <span>Sampai:</span>
-            <input
-              type="date"
-              value={sampaiTanggal}
-              onChange={(e) => setSampaiTanggal(e.target.value)}
-              style={{
-                padding: "7px 10px",
-                borderRadius: 8,
-                border: "1.5px solid var(--line)",
-                fontSize: 13,
-                outline: "none",
-                fontFamily: "inherit",
-                background: "#fff",
-              }}
-            />
+            <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Sampai:</span>
+              <input
+                type="date"
+                value={sampaiTanggal}
+                onChange={(e) => setSampaiTanggal(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: "#fff",
+                }}
+              />
+            </div>
           </div>
 
           <button
