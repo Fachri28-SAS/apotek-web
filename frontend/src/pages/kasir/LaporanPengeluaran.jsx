@@ -243,7 +243,14 @@ export default function LaporanPengeluaran() {
       ];
     } else {
       const isGaji = tabAktif === "gaji";
-      judul = isGaji ? "LAPORAN GAJI KARYAWAN" : "LAPORAN BIAYA OPERASIONAL";
+      const isBiayaOperasional = tabAktif === "biaya_operasional";
+      if (isGaji) {
+        judul = "LAPORAN GAJI KARYAWAN";
+      } else if (isBiayaOperasional) {
+        judul = "LAPORAN BIAYA OPERASIONAL";
+      } else {
+        judul = "LAPORAN SEMUA PENGELUARAN OPERASIONAL";
+      }
       keterangan = "";
 
       headers = [
@@ -259,6 +266,8 @@ export default function LaporanPengeluaran() {
 
       const listOperasional = isGaji
         ? (data.operasional || []).filter((o) => o.kategori === "gaji")
+        : isBiayaOperasional
+        ? (data.operasional || []).filter((o) => o.kategori !== "gaji")
         : (data.operasional || []);
 
       let totalNominal = 0;
@@ -539,6 +548,14 @@ export default function LaporanPengeluaran() {
             </button>
             <button
               type="button"
+              className={`periode-chip ${tabAktif === "biaya_operasional" ? "active" : ""}`}
+              onClick={() => setTabAktif("biaya_operasional")}
+              style={{ fontWeight: 700, padding: "7px 14px" }}
+            >
+              Biaya Operasional ({data?.operasional?.filter((o) => o.kategori !== "gaji").length || 0})
+            </button>
+            <button
+              type="button"
               className={`periode-chip ${tabAktif === "gaji" ? "active" : ""}`}
               onClick={() => setTabAktif("gaji")}
               style={{ fontWeight: 700, padding: "7px 14px" }}
@@ -562,12 +579,14 @@ export default function LaporanPengeluaran() {
           />
         </div>
 
-        {/* TAB 1: KAS OPERASIONAL & TAB KHUSUS GAJI */}
-        {(tabAktif === "operasional" || tabAktif === "gaji") && (
+        {/* TAB 1: KAS OPERASIONAL, BIAYA OPERASIONAL & TAB KHUSUS GAJI */}
+        {(tabAktif === "operasional" || tabAktif === "biaya_operasional" || tabAktif === "gaji") && (
           <>
             {(() => {
               const listTampil = tabAktif === "gaji"
                 ? (data?.operasional || []).filter((o) => o.kategori === "gaji")
+                : tabAktif === "biaya_operasional"
+                ? (data?.operasional || []).filter((o) => o.kategori !== "gaji")
                 : (data?.operasional || []);
 
               if (loading) return <div className="panel-kosong">Memuat data pengeluaran…</div>;
@@ -576,6 +595,8 @@ export default function LaporanPengeluaran() {
                   <div className="panel-kosong">
                     {tabAktif === "gaji"
                       ? "Belum ada catatan pembayaran gaji karyawan pada periode ini."
+                      : tabAktif === "biaya_operasional"
+                      ? "Belum ada catatan biaya operasional (listrik, air, atk, dll) pada periode ini."
                       : "Belum ada catatan pengeluaran operasional pada periode ini."}
                   </div>
                 );
