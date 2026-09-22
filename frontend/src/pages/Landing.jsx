@@ -51,8 +51,7 @@ function Hero() {
           <span className="eyebrow magenta">Apotek Keluarga · Tanimulya, Ngamprah</span>
           <h1>Apotek Bima Farma <em>Tanimulya</em></h1>
           <p className="lead">
-            Bima Farma melayani penebusan resep dokter, obat bebas, vitamin,
-            hingga alat kesehatan dengan sistem pembayaran online resmi QRIS.
+            Melayani resep dokter, obat bebas, vitamin, dan kebutuhan kesehatan keluarga Anda di Tanimulya, Ngamprah.
           </p>
           <div className="hero-cta">
             <Link to="/toko" className="btn btn-primary">Buka Toko Online</Link>
@@ -152,11 +151,10 @@ function TokoPreview() {
     <section className="toko" id="toko">
       <div className="wrap">
         <div className="section-head">
-          <span className="eyebrow">Katalog Produk Resmi</span>
-          <h2>Produk Obat &amp; Kesehatan Terdaftar</h2>
+          <span className="eyebrow">Katalog Pilihan</span>
+          <h2>Produk Obat &amp; Kesehatan</h2>
           <p>
-            Semua produk berizin resmi BPOM dan disimpan sesuai standar kefarmasian. Pesan online dari HP Anda,
-            pilih metode pembayaran QRIS, dan pesanan langsung disiapkan untuk diambil.
+            Produk obat asli dan berizin resmi. Pesan langsung secara online dengan pembayaran mudah via QRIS.
           </p>
         </div>
 
@@ -222,11 +220,10 @@ function Lokasi() {
     <section className="lokasi" id="lokasi">
       <div className="wrap">
         <div className="section-head">
-          <span className="eyebrow">Lokasi &amp; Kontak Support</span>
-          <h2>Kunjungi apotek kami &amp; Hubungi Support</h2>
+          <span className="eyebrow">Lokasi &amp; Kontak</span>
+          <h2>Lokasi Apotek &amp; Kontak</h2>
           <p>
-            Beralamat di Jalan Tanimulya Raya No. 1 (Haji Gofur), Ngamprah, Kabupaten Bandung Barat.
-            Untuk bantuan pemesanan atau pertanyaan verifikasi merchant, silakan hubungi kontak resmi kami di bawah ini.
+            Jl. Tanimulya Raya No. 1, Haji Gofur, Ngamprah, Kab. Bandung Barat. Hubungi kami untuk informasi obat dan layanan apotek.
           </p>
         </div>
 
@@ -240,13 +237,12 @@ function Lokasi() {
                 </svg>
               </div>
               <div>
-                <h4 style={{ color: "var(--magenta-dark)", fontWeight: 800 }}>Email Kontak Support Resmi</h4>
+                <h4 style={{ color: "var(--magenta-dark)", fontWeight: 800 }}>Email</h4>
                 <p style={{ margin: "2px 0 0" }}>
                   <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "var(--magenta-dark)", fontWeight: 800, fontSize: "15px", textDecoration: "underline" }}>
                     bimafarmaapotek2@gmail.com
                   </a>
                 </p>
-                <span style={{ fontSize: "11.5px", color: "var(--ink-soft)" }}>Layanan Pelanggan &amp; Konfirmasi Apotek Bima Farma</span>
               </div>
             </div>
 
@@ -339,12 +335,11 @@ function Footer({ onOpenCaraBayar }) {
               </li>
             </ul>
           </div>
-
-          <div>
-            <h5>Kontak &amp; Dukungan Support</h5>
+                   <div>
+            <h5>Kontak</h5>
             <ul>
-              <li><strong>Email Support:</strong> <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#F0A9D2", textDecoration: "underline" }}>bimafarmaapotek2@gmail.com</a></li>
-              <li><strong>Telepon / WA:</strong> 0812-2360-4900</li>
+              <li><strong>Email:</strong> <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#F0A9D2", textDecoration: "underline" }}>bimafarmaapotek2@gmail.com</a></li>
+              <li><strong>WhatsApp / Telp:</strong> 0812-2360-4900</li>
               <li><strong>Alamat:</strong> Jl. Tanimulya Raya No. 1, Haji Gofur, Ngamprah, Kab. Bandung Barat</li>
               <li><strong>Jam Buka:</strong> Setiap hari, 07.00–22.00 WIB</li>
             </ul>
@@ -353,7 +348,7 @@ function Footer({ onOpenCaraBayar }) {
 
         <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
           <span>
-            💳 Pembayaran Online Aman &amp; Terverifikasi via <strong>QRIS Universal</strong> (Semua Bank &amp; E-Wallet){" "}
+            💳 Pembayaran aman via <strong>QRIS</strong> (Semua Bank &amp; E-Wallet){" "}
             <button
               type="button"
               onClick={onOpenCaraBayar}
@@ -369,10 +364,10 @@ function Footer({ onOpenCaraBayar }) {
                 cursor: "pointer",
               }}
             >
-              Lihat Panduan
+              Cara Bayar
             </button>
           </span>
-          <span>Resmi Berizin SIA &amp; SIPA Apoteker</span>
+          <span>Apotek Resmi Berizin SIA &amp; SIPA</span>
         </div>
 
         <div className="foot-bottom" style={{ marginTop: 16 }}>
@@ -408,10 +403,10 @@ function ModalCaraBayar({ onClose }) {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 17.5, fontWeight: 800, color: "var(--ink)" }}>
-                Panduan &amp; Cara Pembayaran
+                Cara Pembayaran
               </h3>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-soft)" }}>
-                Alur belanja obat resmi dan pembayaran otomatis via QRIS di Apotek Bima Farma
+                Panduan praktis belanja dan bayar via QRIS
               </p>
             </div>
           </div>
@@ -427,13 +422,13 @@ function ModalCaraBayar({ onClose }) {
           {/* Highlight Metode Pembayaran */}
           <div className="cara-bayar-methods-box">
             <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "var(--magenta-dark)" }}>
-              💳 Metode Pembayaran Online Resmi:
+              💳 Metode Pembayaran:
             </h4>
             <div className="cara-bayar-pill-grid">
-              <span className="cb-pill">📱 QRIS Universal (Scan dari M-Banking &amp; E-Wallet apa saja)</span>
+              <span className="cb-pill">📱 QRIS (M-Banking &amp; E-Wallet)</span>
             </div>
             <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.4 }}>
-              Mendukung BCA Mobile, Livin' Mandiri, BRImo, BNI, CIMB, GoPay, OVO, DANA, ShopeePay, LinkAja, dll.
+              BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay, LinkAja, dll.
             </p>
           </div>
 
@@ -442,9 +437,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">1</div>
               <div className="cb-step-content">
-                <h5>Pilih Obat di Katalog / Toko</h5>
+                <h5>Pilih Obat</h5>
                 <p>
-                  Buka menu <strong>Toko Online</strong>, cari obat yang Anda butuhkan, dan klik tombol <strong>"Beli Online"</strong> untuk memasukkan ke keranjang belanja.
+                  Cari obat yang Anda butuhkan di katalog, lalu klik <strong>Beli</strong> untuk memasukkan ke keranjang.
                 </p>
               </div>
             </div>
@@ -452,9 +447,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">2</div>
               <div className="cb-step-content">
-                <h5>Lengkapi Data Pembeli</h5>
+                <h5>Isi Data Pemesan</h5>
                 <p>
-                  Buka keranjang, masukkan <strong>Nama Penerima</strong>, <strong>Nomor WhatsApp aktif</strong> (untuk menerima nota digital &amp; nomor resi pelacakan), dan <strong>Alamat</strong> pengantaran atau penjemputan.
+                  Tulis nama penerima, nomor WhatsApp aktif, dan alamat pengiriman / catatan ambil di apotek.
                 </p>
               </div>
             </div>
@@ -462,9 +457,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">3</div>
               <div className="cb-step-content">
-                <h5>Scan QRIS &amp; Unggah Bukti</h5>
+                <h5>Scan QRIS &amp; Upload Bukti</h5>
                 <p>
-                  Pindai barcode <strong>QRIS Apotek Bima Farma</strong> di layar atau unduh QRIS untuk di-scan dari galeri m-Banking (BCA, Mandiri, BRI, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay). Unggah bukti pembayaran, kasir akan segera memproses obat Anda.
+                  Pindai QRIS langsung atau simpan gambar ke galeri untuk di-scan dari aplikasi bank / e-wallet Anda. Setelah bayar, upload foto bukti transfer.
                 </p>
               </div>
             </div>
@@ -472,9 +467,9 @@ function ModalCaraBayar({ onClose }) {
             <div className="cb-step-item">
               <div className="cb-step-num">4</div>
               <div className="cb-step-content">
-                <h5>Dapatkan Kode Tracking &amp; Ambil Obat</h5>
+                <h5>Pantau Status Pesanan</h5>
                 <p>
-                  Setelah lunas, Anda akan mendapatkan <strong>Kode Tracking</strong> (contoh: <code>TRK-XXXXXX</code>) untuk memantau obat yang disiapkan oleh Apoteker hingga siap diambil di apotek atau dikirim ke lokasi Anda.
+                  Simpan kode tracking Anda (contoh: <code>TRK-XXXXXX</code>) untuk melihat status penyiapan obat oleh apoteker secara live.
                 </p>
               </div>
             </div>
@@ -482,15 +477,15 @@ function ModalCaraBayar({ onClose }) {
 
           {/* Alert Khusus Obat Resep */}
           <div className="cb-resep-notice">
-            <strong>⚠️ Khusus Obat Resep Dokter:</strong>
+            <strong>⚠️ Khusus Obat Keras / Resep:</strong>
             <p style={{ margin: "4px 0 0", fontSize: 11.5 }}>
-              Untuk obat golongan Keras / yang membutuhkan resep dokter, silakan kirimkan foto resep asli terlebih dahulu ke WhatsApp resmi apoteker kami untuk verifikasi dosis.
+              Harap kirimkan foto resep dokter ke WhatsApp kami untuk verifikasi apoteker sebelum pengambilan/pengiriman.
             </p>
           </div>
 
           {/* Kontak Bantuan */}
           <div className="cb-support-box">
-            <span>Butuh bantuan pemesanan atau pertanyaan pembayaran?</span>
+            <span>Butuh bantuan pemesanan?</span>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
               <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
                 💬 WhatsApp: 0812-2360-4900

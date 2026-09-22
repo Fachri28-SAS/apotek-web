@@ -8,23 +8,6 @@ import KartuStrukDigital from "./komponen/KartuStrukDigital";
 import "./Landing.css";
 import "./Toko.css";
 
-export function keteranganSatuan(namaSatuan) {
-  if (!namaSatuan) return "";
-  const s = namaSatuan.toLowerCase().trim();
-  if (s.includes("blister") || s.includes("blitser")) return "1 Lempeng Mika";
-  if (s.includes("strip")) return "1 Lempeng Foil";
-  if (s.includes("box") || s.includes("dus") || s.includes("kotak")) return "1 Kotak Utuh";
-  if (s.includes("botol") || s.includes("fls") || s.includes("btl")) return "1 Botol Cairan/Sirup";
-  if (s.includes("tube") || s.includes("tub")) return "1 Tube Salep/Krim";
-  if (s.includes("sachet") || s.includes("sch") || s.includes("sct")) return "1 Bungkus/Sachet";
-  if (s.includes("tablet") || s.includes("tab")) return "1 Butir Tablet";
-  if (s.includes("kapsul") || s.includes("kap")) return "1 Butir Kapsul";
-  if (s.includes("pcs") || s.includes("biji") || s.includes("buah")) return "1 Satuan/Pcs";
-  if (s.includes("ampul") || s.includes("vial")) return "1 Ampul Cair";
-  if (s.includes("supp")) return "1 Peluru Rektal";
-  return "";
-}
-
 export function getGambarObatUrl(itemOrObat) {
   if (!itemOrObat) return null;
   const src = itemOrObat.gambar_url || itemOrObat.gambar;
@@ -42,7 +25,6 @@ export default function Toko() {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]); // [{obat_satuan_id, obat_id, nama, satuan, harga, qty, perlu_resep}]
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [modalPanduan, setModalPanduan] = useState(false);
   const [tahap, setTahap] = useState("keranjang"); // keranjang | checkout | qris | selesai
   const [order, setOrder] = useState(null); // {penjualan_id, pembayaran_id, no_struk, total}
   const [statusPesanan, setStatusPesanan] = useState("pending");
@@ -268,25 +250,16 @@ export default function Toko() {
       <section className="shop-hero">
         <div className="wrap">
           <span className="eyebrow">Toko Online</span>
-          <h1>Belanja obat tanpa antri</h1>
-          <p>Cari, pesan, dan bayar langsung dari rumah — kami siapkan pesanan Anda begitu pembayaran terkonfirmasi.</p>
+          <h1>Katalog Obat &amp; Produk Kesehatan</h1>
+          <p>Pesan obat dan kebutuhan kesehatan Anda langsung dari apotek.</p>
         </div>
       </section>
 
       <div className="wrap toolbar-modern">
-        <div className="search-box">
+        <div className="search-box" style={{ maxWidth: 460 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" /></svg>
-          <input type="text" placeholder="Cari nama obat atau gejala…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input type="text" placeholder="Cari nama obat…" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        
-        <button
-          type="button"
-          className="panduan-chip-btn"
-          onClick={() => setModalPanduan(true)}
-        >
-          <span className="panduan-chip-icon">💡</span>
-          <span>Panduan Satuan: <strong>Blister, Strip, Box, dll</strong></span>
-        </button>
       </div>
 
       <section className="produk-section wrap" id="katalog-produk">
@@ -300,7 +273,6 @@ export default function Toko() {
             const satuan = obat.satuan?.[0];
             const stokTersedia = satuan?.faktor ? Math.floor(obat.stok / satuan.faktor) : Number(obat.stok || 0);
             const namaSatuan = satuan?.nama_satuan || obat.kemasan || obat.satuan_dasar || "Pcs";
-            const ketSatuan = keteranganSatuan(namaSatuan);
             const diKeranjang = cart.find((it) => it.obat_satuan_id === satuan?.id);
             const habis = stokTersedia <= 0;
 
@@ -350,9 +322,8 @@ export default function Toko() {
                         padding: "1.5px 7px",
                         borderRadius: 4,
                       }}
-                      title={ketSatuan || namaSatuan}
                     >
-                      {namaSatuan} {ketSatuan ? `(${ketSatuan})` : ""}
+                      {namaSatuan}
                     </span>
                     <span style={{ color: "var(--line)" }}>•</span>
                     {habis ? (
@@ -555,7 +526,7 @@ export default function Toko() {
                     <div className="info">
                       <h4>{it.nama}</h4>
                       <div className="harga">
-                        {it.satuan} {keteranganSatuan(it.satuan) ? `(${keteranganSatuan(it.satuan)})` : ""} · {rupiah(it.harga)}
+                        {it.satuan} · {rupiah(it.harga)}
                       </div>
                       <div className="qty-row" style={{ alignItems: "center" }}>
                         <button className="qty-btn" onClick={() => ubahQty(it.obat_satuan_id, -1)}>−</button>
@@ -612,91 +583,73 @@ export default function Toko() {
           {/* ---- TAHAP 3: PEMBAYARAN QRIS RESMI APOTEK BIMA FARMA ---- */}
           {tahap === "qris" && order && (
             <div className="qris-checkout-container" style={{ padding: "10px 0" }}>
-              {/* 1. Header Tagihan */}
+              {/* Header Tagihan */}
               <div className="qris-header-tagihan">
                 <span className="tagihan-label">TOTAL PEMBAYARAN</span>
                 <div className="tagihan-amount">{rupiah(order.total)}</div>
-                <div className="tagihan-badge">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 13, height: 13 }}>
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                  Scan QRIS Langsung ke GoPay / Bank Apotek
-                </div>
               </div>
 
-              {/* Card QRIS Apotek Bima Farma */}
+              {/* Card QRIS */}
               <div
                 style={{
                   background: "#FFFFFF",
                   border: "1.5px solid var(--magenta, #C084FC)",
                   borderRadius: 16,
-                  padding: "20px 16px",
+                  padding: "18px 16px",
                   margin: "14px 0",
                   textAlign: "center",
-                  boxShadow: "0 6px 20px rgba(112, 26, 117, 0.08)",
+                  boxShadow: "0 4px 14px rgba(112, 26, 117, 0.08)",
                 }}
               >
-                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--magenta-dark, #701A75)", marginBottom: 2 }}>
-                  APOTEK BIMA FARMA, NGAMPRAH
+                <div style={{ fontSize: 14.5, fontWeight: 800, color: "var(--ink)", marginBottom: 2 }}>
+                  APOTEK BIMA FARMA
                 </div>
-                <div style={{ fontSize: 11.5, color: "var(--ink-soft, #64748B)", marginBottom: 12 }}>
-                  NMID: <strong>ID1024357753648</strong> &middot; Satu QRIS untuk Semua Bank &amp; E-Wallet
+                <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+                  NMID: ID1024357753648
                 </div>
 
-                {/* Nominal Terkunci Otomatis */}
                 <div
                   style={{
-                    background: "linear-gradient(135deg, #ECFDF5, #F0FDF4)",
-                    border: "1.5px solid #6EE7B7",
-                    borderRadius: 12,
-                    padding: "10px 14px",
-                    marginBottom: 14,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 3,
+                    background: "#ECFDF5",
+                    border: "1px solid #A7F3D0",
+                    borderRadius: 10,
+                    padding: "7px 12px",
+                    marginBottom: 12,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#065F46",
                   }}
                 >
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#065F46", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                    ✓ Nominal Otomatis Terkunci di QR
-                  </div>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: "#047857" }}>
-                    {rupiah(order.total)}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#065F46", opacity: 0.9 }}>
-                    Saat scan dengan m-Banking / E-Wallet, nominal langsung terisi (tidak perlu ketik lagi)
-                  </div>
+                  ✓ Nominal otomatis terisi saat scan
                 </div>
 
                 {/* QR Code SVG Dinamis */}
                 <div
                   style={{
                     display: "inline-block",
-                    padding: 12,
+                    padding: 10,
                     background: "#fff",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     border: "1.5px solid #E2E8F0",
-                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.08)",
                     cursor: "pointer",
                   }}
                   onClick={() => setQrisBesar(true)}
-                  title="Klik untuk memperbesar QRIS"
+                  title="Klik untuk perbesar"
                 >
                   <QRCodeSVG
                     id="toko-qris-svg"
                     value={order.qris_dinamis || generateDynamicQris(order.total)}
-                    size={220}
+                    size={210}
                     level="M"
                     includeMargin={true}
-                    style={{ display: "block", borderRadius: 8 }}
+                    style={{ display: "block", borderRadius: 6 }}
                   />
-                  <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                    <span>🔍</span> Klik untuk Perbesar Layar Penuh
+                  <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
+                    🔍 Perbesar QR
                   </div>
                 </div>
 
-                {/* Tombol Simpan QRIS ke Galeri HP */}
-                <div style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 10 }}>
                   <button
                     type="button"
                     onClick={() =>
@@ -711,42 +664,38 @@ export default function Toko() {
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 6,
-                      padding: "9px 16px",
-                      borderRadius: 10,
-                      fontSize: 12.5,
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      fontSize: 12,
                       fontWeight: 700,
                       background: "#FAF5FF",
                       color: "var(--magenta-dark)",
-                      border: "1.5px solid #D8B4FE",
+                      border: "1px solid #D8B4FE",
                       cursor: "pointer",
-                      boxShadow: "0 2px 6px rgba(147, 51, 234, 0.1)",
                     }}
                   >
                     <span>📥</span>
-                    <span>Simpan Gambar QRIS ke Galeri HP</span>
+                    <span>Simpan Gambar QRIS</span>
                   </button>
                 </div>
 
-                {/* Panduan Singkat */}
                 <div
                   style={{
                     background: "#F8FAFC",
                     border: "1px solid #E2E8F0",
-                    borderRadius: 12,
-                    padding: "12px 14px",
-                    marginTop: 14,
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    marginTop: 12,
                     fontSize: 11.5,
                     color: "var(--ink-soft)",
                     textAlign: "left",
-                    lineHeight: 1.55,
+                    lineHeight: 1.5,
                   }}
                 >
-                  <strong style={{ color: "var(--ink)", display: "block", marginBottom: 4 }}>Cara Bayar Praktis:</strong>
-                  <ol style={{ margin: "0", paddingLeft: 18 }}>
-                    <li>Buka aplikasi m-Banking (BCA, Livin Mandiri, BRImo, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay).</li>
-                    <li>Pindai QR di atas, atau klik <em>&apos;Simpan Gambar QRIS&apos;</em> lalu pilih opsi <em>&apos;Scan dari Galeri&apos;</em> di aplikasi pembayaran.</li>
-                    <li>Nominal pembayaran <strong style={{ color: "#047857" }}>{rupiah(order.total)}</strong> otomatis muncul dan terkunci pas. Tinggal konfirmasi dan masukkan PIN.</li>
-                    <li>Selesaikan transaksi, simpan bukti bayar, lalu unggah fotonya di bawah ini.</li>
+                  <strong>Petunjuk Bayar:</strong>
+                  <ol style={{ margin: "4px 0 0", paddingLeft: 16 }}>
+                    <li>Scan QR di atas via m-Banking atau E-Wallet.</li>
+                    <li>Selesaikan pembayaran dan upload bukti transfer di bawah.</li>
                   </ol>
                 </div>
               </div>
@@ -757,16 +706,13 @@ export default function Toko() {
                   background: "#F8FAFC",
                   border: "1.5px solid var(--line)",
                   borderRadius: 14,
-                  padding: "16px",
+                  padding: "14px",
                   marginBottom: 14,
                 }}
               >
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: "var(--ink)", marginBottom: 4 }}>
-                  📤 Unggah Bukti Transfer
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)", marginBottom: 8 }}>
+                  Unggah Bukti Pembayaran
                 </div>
-                <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                  Lampirkan foto atau tangkapan layar bukti transfer GoPay / Bank Anda agar pesanan langsung masuk antrean kasir.
-                </p>
 
                 <input
                   type="file"
@@ -809,7 +755,7 @@ export default function Toko() {
                       </button>
                     </div>
                     <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700, marginTop: 6 }}>
-                      ✓ Bukti foto siap dikirim
+                      ✓ Foto bukti siap dikirim
                     </div>
                   </div>
                 ) : (
@@ -820,8 +766,8 @@ export default function Toko() {
                       flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 6,
-                      padding: "20px 14px",
+                      gap: 4,
+                      padding: "16px 14px",
                       background: "#fff",
                       border: "2px dashed #CBD5E1",
                       borderRadius: 12,
@@ -829,12 +775,12 @@ export default function Toko() {
                       textAlign: "center",
                     }}
                   >
-                    <span style={{ fontSize: 26 }}>📷</span>
-                    <strong style={{ fontSize: 13, color: "var(--magenta-dark)" }}>
-                      Klik untuk Memilih Foto Bukti Transfer
+                    <span style={{ fontSize: 24 }}>📷</span>
+                    <strong style={{ fontSize: 12.5, color: "var(--magenta-dark)" }}>
+                      Pilih Foto Bukti Transfer
                     </strong>
                     <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                      Format JPG, PNG, atau tangkapan layar (Maks. 5MB)
+                      Format JPG atau PNG
                     </span>
                   </label>
                 )}
@@ -845,10 +791,10 @@ export default function Toko() {
                   disabled={!buktiBase64 || loadingCheckout}
                   style={{
                     width: "100%",
-                    marginTop: 12,
-                    padding: "12px",
+                    marginTop: 10,
+                    padding: "11px",
                     borderRadius: 10,
-                    fontSize: 13.5,
+                    fontSize: 13,
                     fontWeight: 800,
                     background: buktiBase64 ? "linear-gradient(135deg, #10B981, #059669)" : "#CBD5E1",
                     color: "#fff",
@@ -856,7 +802,7 @@ export default function Toko() {
                     cursor: buktiBase64 && !loadingCheckout ? "pointer" : "not-allowed",
                   }}
                 >
-                  {loadingCheckout ? "Mengirim Bukti…" : "✓ Kirim Bukti Pembayaran"}
+                  {loadingCheckout ? "Mengirim..." : "Kirim Bukti Pembayaran"}
                 </button>
               </div>
 
@@ -877,11 +823,11 @@ export default function Toko() {
               </div>
               <h3>Bukti Pembayaran Terkirim!</h3>
               <p className="sub">Kode Tracking: <strong style={{ color: "var(--magenta-dark)", letterSpacing: "0.05em" }}>{order.kode_tracking}</strong></p>
-              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "8px 0 16px", lineHeight: 1.45 }}>
-                Pesanan Anda telah masuk ke sistem apotek Bima Farma. Berikut adalah struk digital resmi Anda:
+              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 14px" }}>
+                Pesanan Anda sedang diproses oleh apotek.
               </p>
 
-              {/* Kartu Struk Digital Lengkap dengan Opsi Unduh PNG, Cetak PDF, & WA */}
+              {/* Kartu Struk Digital */}
               <KartuStrukDigital pesanan={order} items={cart} />
 
               {order.kode_tracking && (
@@ -941,138 +887,6 @@ export default function Toko() {
         </div>
       </div>
 
-      {/* ---------- MODAL PANDUAN SATUAN & KEMASAN OBAT ---------- */}
-      {modalPanduan && (
-        <div className="panduan-modal-overlay" onClick={() => setModalPanduan(false)}>
-          <div
-            className="panduan-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="panduan-modal-header">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div className="panduan-modal-badge">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 18, height: 18 }}>
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Panduan Satuan &amp; Kemasan</h3>
-                  <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>Kenali arti kemasan obat sebelum membeli</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="drawer-close"
-                onClick={() => setModalPanduan(false)}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-              </button>
-            </div>
-
-            <div className="panduan-modal-body">
-              <div className="panduan-notice">
-                ℹ️ Agar tidak salah membeli jumlah obat, berikut penjelasan arti kemasan obat resmi di Apotek Bima Farma:
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="8" cy="8" r="2" /><circle cx="16" cy="8" r="2" /><circle cx="8" cy="16" r="2" /><circle cx="16" cy="16" r="2" />
-                      </svg>
-                    ),
-                    nama: "Blister / Blitser",
-                    desc: "1 Lempeng plastik mika kaku bergelembung + aluminium foil belakang (dikeluarkan dengan ditekan). Biasanya berisi 4–10 butir.",
-                    contoh: "Contoh: Panadol, Enzyplex, Mylanta tablet",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 9h16M4 15h16" />
-                      </svg>
-                    ),
-                    nama: "Strip",
-                    desc: "1 Lempeng bungkus foil lentur (dikeluarkan dengan disobek pinggirnya). Biasanya berisi 10 butir tablet.",
-                    contoh: "Contoh: Paracetamol generik, Amoxicillin",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" />
-                      </svg>
-                    ),
-                    nama: "Box / Dus / Kotak",
-                    desc: "1 Kotak kardus utuh dari pabrik (berisi 3–10 strip/blister). Cocok untuk stok obat di rumah.",
-                    contoh: "Contoh: 1 Box Tolak Angin, 1 Box Vitamin C",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <path d="M9 3h6M10 3v3h4V3M7 7h10a2 2 0 0 1 2 2v10a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" /><path d="M12 11v6M9 14h6" />
-                      </svg>
-                    ),
-                    nama: "Botol / Fls (Flask / Sirup)",
-                    desc: "1 Botol utuh obat cair sirup anak, tetes mata/telinga, atau larutan antiseptik.",
-                    contoh: "Contoh: Sanmol sirup, Betadine, Cendo Eyefresh, Curcuma Plus",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <path d="M5 19 19 5M16 3l5 5-2 2-5-5 2-2ZM3 21l3-1-2-2-1 3Z" />
-                      </svg>
-                    ),
-                    nama: "Tube / Salep",
-                    desc: "1 Tube salep, gel, atau krim kulit / obat luka.",
-                    contoh: "Contoh: Bioplacenton, Salep 88, Hydrocortisone",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <rect x="5" y="4" width="14" height="16" rx="2" /><path d="M5 8h14M10 12h4" />
-                      </svg>
-                    ),
-                    nama: "Sachet / Bungkus",
-                    desc: "1 Bungkus serbuk atau larutan cair siap minum.",
-                    contoh: "Contoh: Komix, Tolak Angin cair, Adem Sari, Promag cair",
-                  },
-                  {
-                    icon: (
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, color: "#9333EA" }}>
-                        <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M12 9v6" />
-                      </svg>
-                    ),
-                    nama: "Tablet / Kapsul / Pcs",
-                    desc: "1 Butir satuan terkecil obat.",
-                    contoh: "Harga yang tertera adalah harga per 1 butir obat",
-                  },
-                ].map((item, idx) => (
-                  <div key={idx} className="panduan-item-card">
-                    <div className="panduan-item-head">
-                      <span className="panduan-item-emoji">{item.icon}</span>
-                      <span className="panduan-item-nama">{item.nama}</span>
-                    </div>
-                    <div className="panduan-item-desc">{item.desc}</div>
-                    <div className="panduan-item-contoh">{item.contoh}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="panduan-modal-footer">
-              <button
-                type="button"
-                className="btn-full"
-                onClick={() => setModalPanduan(false)}
-                style={{ width: "100%", padding: "12px", borderRadius: 12 }}
-              >
-                Saya Mengerti
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Modal QRIS Layar Penuh (Zoom) */}
       {qrisBesar && order && (
         <div
@@ -1083,44 +897,44 @@ export default function Toko() {
           <div
             className="panduan-modal-content"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 380, width: "100%", padding: 22, textAlign: "center", borderRadius: 20 }}
+            style={{ maxWidth: 360, width: "100%", padding: 20, textAlign: "center", borderRadius: 16 }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--magenta-dark)" }}>
-                QRIS Pembayaran Resmi
+              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)" }}>
+                QRIS Pembayaran
               </div>
               <button
                 type="button"
                 onClick={() => setQrisBesar(false)}
-                style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontWeight: 700 }}
+                style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontWeight: 700 }}
               >
                 ✕
               </button>
             </div>
 
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
-              APOTEK BIMA FARMA, NGAMPRAH
+              APOTEK BIMA FARMA
             </div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 10 }}>
               NMID: ID1024357753648
             </div>
 
-            <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", padding: "8px 12px", borderRadius: 10, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: "#166534", fontWeight: 700 }}>✓ NOMINAL OTOMATIS TERKUNCI</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>{rupiah(order.total)}</div>
+            <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", padding: "6px 12px", borderRadius: 8, marginBottom: 12 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#065F46" }}>{rupiah(order.total)}</div>
+              <div style={{ fontSize: 11, color: "#047857" }}>✓ Nominal otomatis terisi</div>
             </div>
 
-            <div style={{ background: "#fff", padding: 12, borderRadius: 16, display: "inline-block", border: "1px solid #E2E8F0", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", padding: 10, borderRadius: 12, display: "inline-block", border: "1px solid #E2E8F0" }}>
               <QRCodeSVG
                 id="toko-qris-svg-modal"
                 value={order.qris_dinamis || generateDynamicQris(order.total)}
-                size={270}
+                size={250}
                 level="M"
                 includeMargin={true}
               />
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
               <button
                 type="button"
                 onClick={() =>
@@ -1133,9 +947,9 @@ export default function Toko() {
                 }
                 style={{
                   flex: 1,
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  fontSize: 12.5,
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  fontSize: 12,
                   fontWeight: 700,
                   background: "var(--magenta-dark)",
                   color: "#fff",
@@ -1143,15 +957,15 @@ export default function Toko() {
                   cursor: "pointer",
                 }}
               >
-                📥 Simpan ke HP
+                📥 Simpan Gambar
               </button>
               <button
                 type="button"
                 onClick={() => setQrisBesar(false)}
                 style={{
-                  padding: "10px 16px",
-                  borderRadius: 10,
-                  fontSize: 12.5,
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontSize: 12,
                   fontWeight: 700,
                   background: "#F1F5F9",
                   color: "var(--ink)",

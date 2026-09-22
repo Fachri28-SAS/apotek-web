@@ -31,7 +31,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
 
   function handleUnduh() {
     if (!isLunas) {
-      alert("Struk resmi baru dapat diunduh setelah pembayaran diverifikasi dan dikonfirmasi lunas oleh kasir.");
+      alert("Struk dapat diunduh setelah pembayaran dikonfirmasi oleh kasir.");
       return;
     }
     setDownloading(true);
@@ -39,7 +39,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
       unduhStrukDigitalPng(dataLengkap);
     } catch (err) {
       console.error("Gagal unduh struk:", err);
-      alert("Gagal mengunduh gambar struk. Anda dapat menggunakan opsi cetak.");
+      alert("Gagal mengunduh gambar struk. Silakan gunakan opsi cetak.");
     } finally {
       setTimeout(() => setDownloading(false), 500);
     }
@@ -96,10 +96,10 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
           <span>{isSelesai ? "🎉" : isLunas ? "✓" : "⏳"}</span>
           <span>
             {isSelesai
-              ? "Pesanan Selesai / Sudah Diserahkan"
+              ? "Pesanan Selesai"
               : isLunas
-              ? "Pembayaran Terkonfirmasi (QRIS Lunas)"
-              : "Bukti Terkirim — Menunggu Verifikasi Kasir"}
+              ? "Pembayaran Lunas"
+              : "Menunggu Verifikasi"}
           </span>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 textAlign: "center",
               }}
             >
-              🎉 <strong>Pembayaran Dikonfirmasi Kasir!</strong> Simpan gambar struk ini atau tunjukkan ke kasir Apotek Bima Farma saat mengambil obat.
+              🎉 <strong>Pembayaran Terkonfirmasi.</strong> Simpan struk ini untuk ditunjukkan saat pengambilan obat.
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -213,7 +213,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 }}
               >
                 <span>📥</span>
-                <span>{downloading ? "Menyiapkan Gambar…" : "Simpan Gambar Struk ke Galeri HP"}</span>
+                <span>{downloading ? "Menyiapkan Gambar…" : "Simpan Gambar Struk"}</span>
               </button>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -258,7 +258,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                   }}
                 >
                   <span>📲</span>
-                  <span>Kirim ke WA Kasir</span>
+                  <span>Kirim ke WhatsApp</span>
                 </button>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 Menunggu Konfirmasi Kasir
               </div>
               <p style={{ margin: "4px 0 0", fontSize: 12, color: "#78350F", lineHeight: 1.45 }}>
-                Bukti pembayaran Anda sudah masuk ke antrean kasir. Tombol <strong>Simpan Struk Resmi</strong> akan otomatis aktif setelah kasir apotek memverifikasi dan mengonfirmasi lunas pembayaran Anda.
+                Bukti pembayaran Anda sedang dicek oleh kasir. Struk dapat diunduh begitu pembayaran terkonfirmasi.
               </p>
             </div>
 
@@ -304,10 +304,10 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                   justifyContent: "center",
                   gap: 8,
                 }}
-                title="Struk resmi baru bisa diunduh setelah dikonfirmasi lunas oleh kasir apotek"
+                title="Struk dapat diunduh setelah dikonfirmasi lunas oleh kasir"
               >
                 <span>🔒</span>
-                <span>Struk Resmi Tersedia Setelah Dikonfirmasi Kasir</span>
+                <span>Struk Tersedia Setelah Konfirmasi Kasir</span>
               </button>
 
               <button
@@ -330,7 +330,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 }}
               >
                 <span>📲</span>
-                <span>Hubungi / Konfirmasi ke WA Kasir (0812-2360-4900)</span>
+                <span>Konfirmasi via WhatsApp</span>
               </button>
             </div>
           </div>

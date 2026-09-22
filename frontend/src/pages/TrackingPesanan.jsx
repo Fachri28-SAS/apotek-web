@@ -249,19 +249,19 @@ export default function TrackingPesanan() {
             </div>
 
             <div className="status-hero-title">
-              {statusPembayaran === "pending" && "Silakan Selesaikan Pembayaran QRIS"}
-              {statusPembayaran === "menunggu_verifikasi" && "Bukti Transfer Sedang Diperiksa Kasir"}
-              {statusPembayaran === "sukses" && "✓ Pembayaran Berhasil Dikonfirmasi!"}
-              {statusPembayaran === "kurang_bayar" && "Nominal Transfer Belum Sesuai"}
-              {(statusPembayaran === "gagal" || statusPembayaran === "expired") && "Pesanan Tidak Dapat Diproses"}
+              {statusPembayaran === "pending" && "Menunggu Pembayaran"}
+              {statusPembayaran === "menunggu_verifikasi" && "Menunggu Verifikasi Kasir"}
+              {statusPembayaran === "sukses" && "Pembayaran Lunas"}
+              {statusPembayaran === "kurang_bayar" && "Pembayaran Kurang"}
+              {(statusPembayaran === "gagal" || statusPembayaran === "expired") && "Pesanan Dibatalkan"}
             </div>
 
             <div className="status-hero-desc">
-              {statusPembayaran === "pending" && "Scan kode QRIS di samping dan kirimkan bukti transfer Anda agar pesanan dapat segera disiapkan."}
-              {statusPembayaran === "menunggu_verifikasi" && "Kasir kami sedang mencocokkan mutasi rekening dengan bukti yang Anda kirim. Halaman ini akan otomatis diperbarui begitu diverifikasi."}
-              {statusPembayaran === "sukses" && "Terima kasih! Pesanan Anda telah tercatat lunas dan sedang disiapkan oleh staf apotek Bima Farma."}
-              {statusPembayaran === "kurang_bayar" && "Kasir menandai nominal transfer Anda kurang dari total tagihan. Silakan cek catatan di bawah dan upload bukti transfer kekurangan."}
-              {(statusPembayaran === "gagal" || statusPembayaran === "expired") && "Pesanan ini telah dibatalkan. Silakan lakukan pemesanan ulang melalui Toko Online jika diperlukan."}
+              {statusPembayaran === "pending" && "Silakan scan QRIS dan unggah bukti transfer."}
+              {statusPembayaran === "menunggu_verifikasi" && "Bukti transfer diterima dan sedang diperiksa kasir."}
+              {statusPembayaran === "sukses" && "Pesanan Anda sedang disiapkan oleh staf apotek."}
+              {statusPembayaran === "kurang_bayar" && "Nominal transfer belum sesuai. Cek catatan kasir di bawah."}
+              {(statusPembayaran === "gagal" || statusPembayaran === "expired") && "Pesanan tidak dapat diproses."}
             </div>
 
             {catatanVerifikasi && (
@@ -352,11 +352,11 @@ export default function TrackingPesanan() {
               {/* KONDISI 1: SUDAH LUNAS / TERKONFIRMASI */}
               {statusPembayaran === "sukses" ? (
                 <div>
-                  <div style={{ textAlign: "center", padding: "18px 16px", background: "var(--green-tint)", borderRadius: 14, border: "1.5px solid #86EFAC", marginBottom: 14 }}>
-                    <div style={{ fontSize: 36, marginBottom: 6 }}>✅</div>
-                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas &amp; Terverifikasi</h4>
-                    <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-soft)" }}>
-                      Pesanan Anda sedang disiapkan oleh tim apoteker Apotek Bima Farma. Silakan simpan struk digital di bawah untuk ditunjukkan saat pengambilan obat.
+                  <div style={{ textAlign: "center", padding: "16px", background: "var(--green-tint)", borderRadius: 14, border: "1.5px solid #86EFAC", marginBottom: 14 }}>
+                    <div style={{ fontSize: 32, marginBottom: 4 }}>✅</div>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas</h4>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--ink-soft)" }}>
+                      Pesanan Anda sedang disiapkan. Tunjukkan struk ini saat mengambil obat di apotek.
                     </p>
                   </div>
                   <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
@@ -364,16 +364,16 @@ export default function TrackingPesanan() {
               ) : statusPembayaran === "menunggu_verifikasi" ? (
                 /* KONDISI 2: BUKTI SUDAH DIUNGGAH, MENUNGGU KASIR */
                 <div>
-                  <div style={{ textAlign: "center", padding: "18px 16px", background: "#FEF3C7", borderRadius: 14, border: "1.5px solid #FCD34D", marginBottom: 14 }}>
-                    <div style={{ fontSize: 36, marginBottom: 6 }}>⏳</div>
-                    <h4 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: "#92400E" }}>Bukti Transfer Sedang Diverifikasi</h4>
-                    <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#78350F" }}>
-                      Terima kasih! Bukti pembayaran Anda telah masuk ke dashboard kasir dan sedang dicocokkan dengan mutasi rekening GoPay apotek.
+                  <div style={{ textAlign: "center", padding: "16px", background: "#FEF3C7", borderRadius: 14, border: "1.5px solid #FCD34D", marginBottom: 14 }}>
+                    <div style={{ fontSize: 32, marginBottom: 4 }}>⏳</div>
+                    <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "#92400E" }}>Menunggu Verifikasi Kasir</h4>
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "#78350F" }}>
+                      Bukti pembayaran diterima dan sedang diverifikasi oleh kasir.
                     </p>
                     {buktiPreview && (
-                      <div style={{ marginTop: 8 }}>
+                      <div style={{ marginTop: 6 }}>
                         <a href={buktiPreview} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 700, color: "#B45309", textDecoration: "underline" }}>
-                          Lihat Foto Bukti yang Dikirim ↗
+                          Lihat Foto Bukti ↗
                         </a>
                       </div>
                     )}
@@ -389,73 +389,62 @@ export default function TrackingPesanan() {
                       background: "#FFFFFF",
                       border: "1.5px solid var(--line)",
                       borderRadius: 16,
-                      padding: "18px 16px",
+                      padding: "16px",
                       textAlign: "center",
                       boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
                       marginBottom: 16,
                     }}
                   >
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "var(--magenta-dark)", marginBottom: 2 }}>
-                      APOTEK BIMA FARMA, NGAMPRAH
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: "var(--ink)", marginBottom: 2 }}>
+                      APOTEK BIMA FARMA
                     </div>
-                    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 12 }}>
-                      NMID: <strong>ID1024357753648</strong> &middot; Satu QRIS untuk Semua Bank &amp; E-Wallet
+                    <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+                      NMID: ID1024357753648
                     </div>
 
-                    {/* Nominal Otomatis Terkunci */}
                     <div
                       style={{
-                        background: "linear-gradient(135deg, #ECFDF5, #F0FDF4)",
-                        border: "1.5px solid #6EE7B7",
-                        borderRadius: 12,
-                        padding: "10px 14px",
-                        marginBottom: 14,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 3,
+                        background: "#ECFDF5",
+                        border: "1px solid #A7F3D0",
+                        borderRadius: 10,
+                        padding: "7px 12px",
+                        marginBottom: 12,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "#065F46",
                       }}
                     >
-                      <div style={{ fontSize: 11, fontWeight: 800, color: "#065F46", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        ✓ Nominal Otomatis Terkunci di QR
-                      </div>
-                      <div style={{ fontSize: 22, fontWeight: 900, color: "#047857" }}>
-                        {rupiah(pesanan.total)}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#065F46", opacity: 0.9 }}>
-                        Saat scan dengan m-Banking / E-Wallet, nominal langsung terisi pas (tidak perlu ketik lagi)
-                      </div>
+                      ✓ Nominal otomatis terisi saat scan
                     </div>
 
                     {/* QR Code SVG Dinamis */}
                     <div
                       style={{
                         display: "inline-block",
-                        padding: 12,
+                        padding: 10,
                         background: "#FFFFFF",
-                        borderRadius: 14,
+                        borderRadius: 12,
                         border: "1.5px solid #E2E8F0",
-                        boxShadow: "0 6px 16px rgba(0, 0, 0, 0.08)",
                         cursor: "pointer",
                       }}
                       onClick={() => setQrisBesar(true)}
-                      title="Klik untuk memperbesar QRIS"
+                      title="Klik untuk perbesar"
                     >
                       <QRCodeSVG
                         id="tracking-qris-svg"
                         value={pesanan.pembayaran?.qris_dinamis || pesanan.qris_dinamis || generateDynamicQris(pesanan.total)}
-                        size={220}
+                        size={210}
                         level="M"
                         includeMargin={true}
-                        style={{ display: "block", borderRadius: 8 }}
+                        style={{ display: "block", borderRadius: 6 }}
                       />
-                      <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                        <span>🔍</span> Klik untuk Perbesar Layar Penuh
+                      <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
+                        🔍 Perbesar QR
                       </div>
                     </div>
 
                     {/* Tombol Simpan QRIS ke Galeri HP */}
-                    <div style={{ marginTop: 14 }}>
+                    <div style={{ marginTop: 10 }}>
                       <button
                         type="button"
                         onClick={() =>
@@ -470,52 +459,45 @@ export default function TrackingPesanan() {
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 6,
-                          padding: "9px 18px",
-                          borderRadius: 10,
-                          fontSize: 12.5,
+                          padding: "8px 14px",
+                          borderRadius: 8,
+                          fontSize: 12,
                           fontWeight: 700,
                           background: "#FAF5FF",
                           color: "var(--magenta-dark)",
-                          border: "1.5px solid #D8B4FE",
+                          border: "1px solid #D8B4FE",
                           cursor: "pointer",
-                          boxShadow: "0 2px 6px rgba(147, 51, 234, 0.1)",
                         }}
                       >
-                        <span>📥</span> Unduh QRIS untuk Scan Galeri HP
+                        <span>📥</span> Unduh QRIS
                       </button>
                     </div>
 
-                    {/* Panduan Singkat */}
                     <div
                       style={{
                         textAlign: "left",
                         background: "#F8FAFC",
-                        borderRadius: 12,
-                        padding: "12px 14px",
-                        marginTop: 14,
+                        borderRadius: 10,
+                        padding: "10px 12px",
+                        marginTop: 12,
                         fontSize: 11.5,
                         color: "var(--ink-soft)",
-                        lineHeight: 1.55,
+                        lineHeight: 1.5,
                       }}
                     >
-                      <strong style={{ color: "var(--ink)", display: "block", marginBottom: 4 }}>Cara Bayar Praktis:</strong>
-                      <ol style={{ margin: "0", paddingLeft: 18 }}>
-                        <li>Buka aplikasi m-Banking (BCA, Livin Mandiri, BRImo, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay).</li>
-                        <li>Pindai QR di atas, atau klik <em>&apos;Unduh QRIS&apos;</em> lalu pilih opsi <em>&apos;Scan dari Galeri&apos;</em> di aplikasi pembayaran.</li>
-                        <li>Nominal pembayaran <strong style={{ color: "#047857" }}>{rupiah(pesanan.total)}</strong> otomatis muncul dan terkunci pas. Anda tinggal konfirmasi bayar dan masukkan PIN.</li>
-                        <li>Simpan bukti transfer lalu unggah di formulir di bawah ini.</li>
+                      <strong>Petunjuk Bayar:</strong>
+                      <ol style={{ margin: "4px 0 0", paddingLeft: 16 }}>
+                        <li>Scan QR di atas via m-Banking atau E-Wallet.</li>
+                        <li>Selesaikan pembayaran dan upload bukti transfer di bawah.</li>
                       </ol>
                     </div>
                   </div>
 
                   {/* Form Unggah Bukti Pembayaran */}
-                  <form onSubmit={handleKirimBukti} style={{ background: "#FAF5FF", border: "1.5px solid #E9D5FF", borderRadius: 16, padding: "18px", marginBottom: 16 }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--magenta-dark)", marginBottom: 4 }}>
-                      📤 Unggah Bukti Pembayaran
+                  <form onSubmit={handleKirimBukti} style={{ background: "#FAF5FF", border: "1.5px solid #E9D5FF", borderRadius: 16, padding: "16px", marginBottom: 16 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 800, color: "var(--magenta-dark)", marginBottom: 8 }}>
+                      Unggah Bukti Pembayaran
                     </div>
-                    <p style={{ fontSize: 12, color: "var(--ink-soft)", margin: "0 0 12px" }}>
-                      Upload tangkapan layar atau foto resi transfer agar pesanan langsung masuk antrean verifikasi kasir.
-                    </p>
 
                     {error && (
                       <div style={{ padding: "8px 12px", background: "#FEE2E2", color: "#991B1B", borderRadius: 8, fontSize: 12, marginBottom: 10 }}>
@@ -651,7 +633,7 @@ export default function TrackingPesanan() {
         {/* Indikator auto-refresh polling */}
         <div className="polling-indicator">
           <span className="polling-dot" />
-          <span>Status pesanan diperbarui secara realtime otomatis setiap 5 detik</span>
+          <span>Live update status pesanan</span>
         </div>
       </div>
 
@@ -675,50 +657,50 @@ export default function TrackingPesanan() {
             onClick={(e) => e.stopPropagation()}
             style={{
               background: "#FFFFFF",
-              maxWidth: 380,
+              maxWidth: 360,
               width: "100%",
-              borderRadius: 20,
-              padding: 22,
+              borderRadius: 16,
+              padding: 20,
               textAlign: "center",
               boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--magenta-dark)" }}>
-                QRIS Pembayaran Resmi
+              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)" }}>
+                QRIS Pembayaran
               </div>
               <button
                 type="button"
                 onClick={() => setQrisBesar(false)}
-                style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontWeight: 700 }}
+                style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontWeight: 700 }}
               >
                 ✕
               </button>
             </div>
 
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
-              APOTEK BIMA FARMA, NGAMPRAH
+              APOTEK BIMA FARMA
             </div>
-            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 12 }}>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 10 }}>
               NMID: ID1024357753648
             </div>
 
-            <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", padding: "8px 12px", borderRadius: 10, marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: "#166534", fontWeight: 700 }}>✓ NOMINAL OTOMATIS TERKUNCI</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>{rupiah(pesanan.total)}</div>
+            <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", padding: "6px 12px", borderRadius: 8, marginBottom: 12 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#065F46" }}>{rupiah(pesanan.total)}</div>
+              <div style={{ fontSize: 11, color: "#047857" }}>✓ Nominal otomatis terisi</div>
             </div>
 
-            <div style={{ background: "#fff", padding: 12, borderRadius: 16, display: "inline-block", border: "1px solid #E2E8F0", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+            <div style={{ background: "#fff", padding: 10, borderRadius: 12, display: "inline-block", border: "1px solid #E2E8F0" }}>
               <QRCodeSVG
                 id="tracking-qris-svg-modal"
                 value={pesanan.pembayaran?.qris_dinamis || pesanan.qris_dinamis || generateDynamicQris(pesanan.total)}
-                size={270}
+                size={250}
                 level="M"
                 includeMargin={true}
               />
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
               <button
                 type="button"
                 onClick={() =>
@@ -731,9 +713,9 @@ export default function TrackingPesanan() {
                 }
                 style={{
                   flex: 1,
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  fontSize: 12.5,
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  fontSize: 12,
                   fontWeight: 700,
                   background: "var(--magenta-dark)",
                   color: "#fff",
@@ -741,15 +723,15 @@ export default function TrackingPesanan() {
                   cursor: "pointer",
                 }}
               >
-                📥 Simpan ke HP
+                📥 Simpan Gambar
               </button>
               <button
                 type="button"
                 onClick={() => setQrisBesar(false)}
                 style={{
-                  padding: "10px 16px",
-                  borderRadius: 10,
-                  fontSize: 12.5,
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontSize: 12,
                   fontWeight: 700,
                   background: "#F1F5F9",
                   color: "var(--ink)",
