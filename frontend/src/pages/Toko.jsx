@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
-import { unduhQrisPng } from "../utils/qrisDownload";
+import { unduhQrisPng, generateDynamicQris } from "../utils/qrisDownload";
 import Navbar from "../components/Navbar";
 import KartuStrukDigital from "./komponen/KartuStrukDigital";
 import "./Landing.css";
@@ -643,52 +643,88 @@ export default function Toko() {
                   NMID: <strong>ID1024357753648</strong> &middot; Satu QRIS untuk Semua Bank &amp; E-Wallet
                 </div>
 
-                {/* Gambar QRIS Resmi */}
+                {/* Nominal Terkunci Otomatis */}
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #ECFDF5, #F0FDF4)",
+                    border: "1.5px solid #6EE7B7",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    marginBottom: 14,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 3,
+                  }}
+                >
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#065F46", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    ✓ Nominal Otomatis Terkunci di QR
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#047857" }}>
+                    {rupiah(order.total)}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#065F46", opacity: 0.9 }}>
+                    Saat scan dengan m-Banking / E-Wallet, nominal langsung terisi (tidak perlu ketik lagi)
+                  </div>
+                </div>
+
+                {/* QR Code SVG Dinamis */}
                 <div
                   style={{
                     display: "inline-block",
-                    padding: 8,
+                    padding: 12,
                     background: "#fff",
-                    borderRadius: 12,
-                    border: "1px solid #E2E8F0",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+                    borderRadius: 14,
+                    border: "1.5px solid #E2E8F0",
+                    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.08)",
                     cursor: "pointer",
                   }}
                   onClick={() => setQrisBesar(true)}
                   title="Klik untuk memperbesar QRIS"
                 >
-                  <img
-                    src="/qris-bima-farma.png"
-                    alt="QRIS Apotek Bima Farma, Ngamprah"
-                    style={{ width: 220, height: "auto", display: "block", borderRadius: 8 }}
+                  <QRCodeSVG
+                    id="toko-qris-svg"
+                    value={order.qris_dinamis || generateDynamicQris(order.total)}
+                    size={220}
+                    level="M"
+                    includeMargin={true}
+                    style={{ display: "block", borderRadius: 8 }}
                   />
-                  <div style={{ fontSize: 10.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
-                    🔍 Klik untuk Perbesar
+                  <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                    <span>🔍</span> Klik untuk Perbesar Layar Penuh
                   </div>
                 </div>
 
                 {/* Tombol Simpan QRIS ke Galeri HP */}
                 <div style={{ marginTop: 12 }}>
-                  <a
-                    href="/qris-bima-farma.png"
-                    download="QRIS-Apotek-Bima-Farma.png"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      unduhQrisPng({
+                        svgId: "toko-qris-svg",
+                        namaFile: `QRIS-${order.kode_tracking || "BimaFarma"}.png`,
+                        judul: "APOTEK BIMA FARMA, NGAMPRAH",
+                        nominal: rupiah(order.total),
+                      })
+                    }
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 6,
-                      padding: "8px 14px",
-                      borderRadius: 8,
-                      fontSize: 12,
+                      padding: "9px 16px",
+                      borderRadius: 10,
+                      fontSize: 12.5,
                       fontWeight: 700,
                       background: "#FAF5FF",
                       color: "var(--magenta-dark)",
-                      border: "1px solid #D8B4FE",
-                      textDecoration: "none",
+                      border: "1.5px solid #D8B4FE",
+                      cursor: "pointer",
+                      boxShadow: "0 2px 6px rgba(147, 51, 234, 0.1)",
                     }}
                   >
                     <span>📥</span>
                     <span>Simpan Gambar QRIS ke Galeri HP</span>
-                  </a>
+                  </button>
                 </div>
 
                 {/* Panduan Singkat */}
@@ -696,21 +732,21 @@ export default function Toko() {
                   style={{
                     background: "#F8FAFC",
                     border: "1px solid #E2E8F0",
-                    borderRadius: 10,
-                    padding: "10px 12px",
+                    borderRadius: 12,
+                    padding: "12px 14px",
                     marginTop: 14,
                     fontSize: 11.5,
                     color: "var(--ink-soft)",
                     textAlign: "left",
-                    lineHeight: 1.5,
+                    lineHeight: 1.55,
                   }}
                 >
-                  <strong>Cara Bayar:</strong>
-                  <ol style={{ margin: "4px 0 0", paddingLeft: 16 }}>
-                    <li>Buka GoPay, BCA, Livin, BRI, BNI, DANA, OVO, atau ShopeePay.</li>
-                    <li>Scan QRIS di atas (atau scan dari galeri HP Anda).</li>
-                    <li>Masukkan nominal pas: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(order.total)}</strong>.</li>
-                    <li>Selesaikan pembayaran dan upload bukti transfer di bawah ini.</li>
+                  <strong style={{ color: "var(--ink)", display: "block", marginBottom: 4 }}>Cara Bayar Praktis:</strong>
+                  <ol style={{ margin: "0", paddingLeft: 18 }}>
+                    <li>Buka aplikasi m-Banking (BCA, Livin Mandiri, BRImo, BNI) atau E-Wallet (GoPay, OVO, DANA, ShopeePay).</li>
+                    <li>Pindai QR di atas, atau klik <em>&apos;Simpan Gambar QRIS&apos;</em> lalu pilih opsi <em>&apos;Scan dari Galeri&apos;</em> di aplikasi pembayaran.</li>
+                    <li>Nominal pembayaran <strong style={{ color: "#047857" }}>{rupiah(order.total)}</strong> otomatis muncul dan terkunci pas. Tinggal konfirmasi dan masukkan PIN.</li>
+                    <li>Selesaikan transaksi, simpan bukti bayar, lalu unggah fotonya di bawah ini.</li>
                   </ol>
                 </div>
               </div>
@@ -1031,6 +1067,99 @@ export default function Toko() {
                 style={{ width: "100%", padding: "12px", borderRadius: 12 }}
               >
                 Saya Mengerti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal QRIS Layar Penuh (Zoom) */}
+      {qrisBesar && order && (
+        <div
+          className="panduan-modal-overlay"
+          onClick={() => setQrisBesar(false)}
+          style={{ zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
+          <div
+            className="panduan-modal-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 380, width: "100%", padding: 22, textAlign: "center", borderRadius: 20 }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--magenta-dark)" }}>
+                QRIS Pembayaran Resmi
+              </div>
+              <button
+                type="button"
+                onClick={() => setQrisBesar(false)}
+                style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
+              APOTEK BIMA FARMA, NGAMPRAH
+            </div>
+            <div style={{ fontSize: 11, color: "var(--ink-soft)", marginBottom: 12 }}>
+              NMID: ID1024357753648
+            </div>
+
+            <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", padding: "8px 12px", borderRadius: 10, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: "#166534", fontWeight: 700 }}>✓ NOMINAL OTOMATIS TERKUNCI</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>{rupiah(order.total)}</div>
+            </div>
+
+            <div style={{ background: "#fff", padding: 12, borderRadius: 16, display: "inline-block", border: "1px solid #E2E8F0", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+              <QRCodeSVG
+                id="toko-qris-svg-modal"
+                value={order.qris_dinamis || generateDynamicQris(order.total)}
+                size={270}
+                level="M"
+                includeMargin={true}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button
+                type="button"
+                onClick={() =>
+                  unduhQrisPng({
+                    svgId: "toko-qris-svg-modal",
+                    namaFile: `QRIS-${order.kode_tracking || "BimaFarma"}.png`,
+                    judul: "APOTEK BIMA FARMA, NGAMPRAH",
+                    nominal: rupiah(order.total),
+                  })
+                }
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  background: "var(--magenta-dark)",
+                  color: "#fff",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                📥 Simpan ke HP
+              </button>
+              <button
+                type="button"
+                onClick={() => setQrisBesar(false)}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 10,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  background: "#F1F5F9",
+                  color: "var(--ink)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Tutup
               </button>
             </div>
           </div>
