@@ -248,6 +248,11 @@ class TokoController extends Controller
             abort(422, 'Format gambar tidak didukung (harus JPG, PNG, atau WEBP).');
         }
 
+        // Hapus file bukti lama jika customer mengunggah ulang agar tidak menumpuk di disk
+        if ($pembayaran->bukti_path && Storage::disk('public')->exists($pembayaran->bukti_path)) {
+            Storage::disk('public')->delete($pembayaran->bukti_path);
+        }
+
         $namaFile = 'bukti-' . $pembayaran->id . '-' . time() . '-' . Str::random(10) . '.' . $ekstensi;
         Storage::disk('public')->put('bukti-pembayaran/' . $namaFile, $isiFile);
 

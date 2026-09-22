@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { api } from "../lib/api";
 import { rupiah } from "../utils/format";
 import { unduhQrisPng, generateDynamicQris } from "../utils/qrisDownload";
+import { compressImage } from "../utils/imageCompressor";
 import KartuStrukDigital from "./komponen/KartuStrukDigital";
 import "./TrackingPesanan.css";
 
@@ -93,15 +94,22 @@ export default function TrackingPesanan() {
     }
   }
 
-  function pilihFileBukti(e) {
+  async function pilihFileBukti(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setBuktiBase64(reader.result);
-      setBuktiPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.8 });
+      setBuktiBase64(compressed);
+      setBuktiPreview(compressed);
+    } catch (err) {
+      console.warn("Gagal kompresi, fallback ke file asli:", err);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBuktiBase64(reader.result);
+        setBuktiPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   async function handleKirimBukti(e) {

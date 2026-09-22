@@ -5,6 +5,7 @@ import { rupiah } from "../utils/format";
 import { unduhQrisPng, generateDynamicQris } from "../utils/qrisDownload";
 import Navbar from "../components/Navbar";
 import KartuStrukDigital from "./komponen/KartuStrukDigital";
+import { compressImage } from "../utils/imageCompressor";
 import "./Landing.css";
 import "./Toko.css";
 
@@ -28,6 +29,7 @@ export default function Toko() {
   const [tahap, setTahap] = useState("keranjang"); // keranjang | checkout | qris | selesai
   const [order, setOrder] = useState(null); // {penjualan_id, pembayaran_id, no_struk, total}
   const [statusPesanan, setStatusPesanan] = useState("pending");
+  const [refreshingPesanan, setRefreshingPesanan] = useState(false);
   const [error, setError] = useState("");
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const fileInputRef = useRef(null);
@@ -203,15 +205,36 @@ export default function Toko() {
     }
   }
 
-  function pilihFileBukti(e) {
+  async function pilihFileBukti(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setBuktiBase64(reader.result);
-      setBuktiPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.8 });
+      setBuktiBase64(compressed);
+      setBuktiPreview(compressed);
+    } catch (err) {
+      console.warn("Gagal kompresi, fallback ke file asli:", err);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBuktiBase64(reader.result);
+        setBuktiPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function segarkanPesanan(silent = false) {
+    if (!order?.kode_tracking) return;
+    if (!silent) setRefreshingPesanan(true);
+    try {
+      const dataLengkap = await api(`/pesanan/${order.kode_tracking}`);
+      setOrder(dataLengkap);
+      setStatusPesanan(dataLengkap.pembayaran?.status || "pending");
+    } catch (err) {
+      console.error("Gagal menyegarkan status pesanan:", err);
+    } finally {
+      if (!silent) setRefreshingPesanan(false);
+    }
   }
 
   async function kirimBukti() {
@@ -223,6 +246,11 @@ export default function Toko() {
         method: "POST",
         body: JSON.stringify({ bukti_base64: buktiBase64, nominal_klaim: Number(nominalKlaim) }),
       });
+      // Segarkan pesanan lengkap dari backend agar order.items dan status terbaru masuk
+      const dataLengkap = await api(`/pesanan/${order.kode_tracking}`).catch(() => null);
+      if (dataLengkap) {
+        setOrder(dataLengkap);
+      }
       setTahap("selesai");
       setCart([]);
     } catch (err) {
@@ -232,16 +260,33 @@ export default function Toko() {
     }
   }
 
-  // Polling status setelah bukti terkirim — cek apakah kasir sudah konfirmasi
+  // Polling status setelah bukti terkirim — cek apakah kasir sudah konfirmasi secara realtime
   useEffect(() => {
     if (tahap !== "selesai" || !order?.kode_tracking) return;
+
+    // Jika sudah lunas dan status penjualan selesai, hentikan polling
+    const isLunas = order.pembayaran?.status === "sukses";
+    const isSelesai = order.status === "selesai" || order.status_penjualan === "selesai";
+    if (isLunas && isSelesai) return;
+
     const timer = setInterval(() => {
+      if (document.hidden) return;
       api(`/pesanan/${order.kode_tracking}/status`)
-        .then((d) => setStatusPesanan(d.status_pembayaran))
+        .then((d) => {
+          setStatusPesanan(d.status_pembayaran);
+          // Jika status di server berubah (misal lunas/sukses), segera muat data lengkap agar tombol download struk langsung aktif
+          if (
+            d.status_pembayaran !== order.pembayaran?.status ||
+            d.status_penjualan !== (order.status_penjualan || order.status)
+          ) {
+            segarkanPesanan(true);
+          }
+        })
         .catch(() => {});
-    }, 3500);
+    }, 3000);
+
     return () => clearInterval(timer);
-  }, [tahap, order]);
+  }, [tahap, order?.kode_tracking, order?.pembayaran?.status, order?.status_penjualan, order?.status]);
 
   return (
     <div className="toko-page">
@@ -823,12 +868,37 @@ export default function Toko() {
               </div>
               <h3>Bukti Pembayaran Terkirim!</h3>
               <p className="sub">Kode Tracking: <strong style={{ color: "var(--magenta-dark)", letterSpacing: "0.05em" }}>{order.kode_tracking}</strong></p>
-              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 14px" }}>
+              <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 10px" }}>
                 Pesanan Anda sedang diproses oleh apotek.
               </p>
 
+              {/* Bar Live Status & Tombol Refresh */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "10px 0 14px", padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
+                <span style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: (order.pembayaran?.status === "sukses" || order.status === "selesai") ? "#10B981" : "#F59E0B" }} />
+                  {(order.pembayaran?.status === "sukses" || order.status === "selesai") ? "Pembayaran Lunas ✓" : "Menunggu konfirmasi kasir…"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => segarkanPesanan(false)}
+                  disabled={refreshingPesanan}
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid var(--line)",
+                    borderRadius: 6,
+                    padding: "3px 9px",
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: "var(--ink)",
+                    cursor: refreshingPesanan ? "wait" : "pointer",
+                  }}
+                >
+                  {refreshingPesanan ? "Memeriksa…" : "🔄 Cek Status"}
+                </button>
+              </div>
+
               {/* Kartu Struk Digital */}
-              <KartuStrukDigital pesanan={order} items={cart} />
+              <KartuStrukDigital pesanan={order} items={order.items || cart} />
 
               {order.kode_tracking && (
                 <a
