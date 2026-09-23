@@ -137,7 +137,7 @@ export default function Penerimaan() {
           no_faktur: noFaktur,
           tanggal_terima: tanggalTerima,
           tanggal_jatuh_tempo: tanggalJatuhTempo || null,
-          tempo_label: null,
+          tempo_label: "custom",
           is_pkp: isPkp,
           diskon_faktur_rp: Number(diskonFakturRp || 0),
           diskon_faktur_persen: Number(diskonFakturPersen || 0),
@@ -285,11 +285,7 @@ export default function Penerimaan() {
                 <input
                   type="date"
                   value={tanggalTerima}
-                  onChange={(e) => {
-                    setTanggalTerima(e.target.value);
-                    const opsi = TEMPO_OPSI.find((o) => o.key === tempoLabel);
-                    if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(e.target.value, opsi.bulan));
-                  }}
+                  onChange={(e) => setTanggalTerima(e.target.value)}
                   style={{ padding: "6px 8px", fontSize: 12.5, borderRadius: 8 }}
                 />
               </div>
