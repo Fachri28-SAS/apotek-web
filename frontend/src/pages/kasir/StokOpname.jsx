@@ -23,6 +23,7 @@ export default function StokOpname() {
   const [error, setError] = useState("");
   const [sukses, setSukses] = useState("");
   const [modalBatchObat, setModalBatchObat] = useState(null);
+  const [sedangMenyimpanId, setSedangMenyimpanId] = useState(null);
 
   // Muat seluruh daftar obat dari sistem (urut abjad A-Z)
   function muatSemuaObat() {
@@ -136,6 +137,56 @@ export default function StokOpname() {
     if (filterTab === "selisih") return it.stok_fisik !== "" && Number(it.stok_fisik) !== it.stok_sistem;
     return true;
   });
+
+  // Simpan penyesuaian untuk 1 obat saja
+  async function handleSimpanSatu(it) {
+    if (it.stok_fisik === "") {
+      setError(`Isi kolom Stok Fisik untuk obat "${it.nama}" terlebih dahulu.`);
+      return;
+    }
+
+    setSedangMenyimpanId(it.obat_id);
+    setError("");
+    setSukses("");
+
+    try {
+      await api("/obat/opname", {
+        method: "POST",
+        body: JSON.stringify({
+          items: [
+            {
+              obat_id: it.obat_id,
+              stok_fisik: Number(it.stok_fisik),
+              keterangan: it.keterangan || null,
+              batches: it.batches || null,
+            },
+          ],
+        }),
+      });
+
+      const stokBaru = Number(it.stok_fisik);
+      setItems((prev) =>
+        prev.map((item) =>
+          item.obat_id === it.obat_id
+            ? {
+                ...item,
+                stok_sistem: stokBaru,
+                stok_fisik: "",
+                keterangan: "",
+                batches: null,
+              }
+            : item
+        )
+      );
+
+      setSukses(`✓ Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
+      muatRiwayat();
+    } catch (err) {
+      setError(err.message || `Gagal menyimpan penyesuaian stok "${it.nama}".`);
+    } finally {
+      setSedangMenyimpanId(null);
+    }
+  }
 
   async function simpan() {
     setError("");
@@ -325,6 +376,7 @@ export default function StokOpname() {
                     <th style={{ width: 130 }}>Stok Fisik (Riil)</th>
                     <th style={{ width: 110 }}>Selisih</th>
                     <th>Keterangan</th>
+                    <th style={{ width: 95, textAlign: "center" }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -439,6 +491,36 @@ export default function StokOpname() {
                             }
                             style={{ fontSize: 12 }}
                           />
+                        </td>
+                        <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
+                          <button
+                            type="button"
+                            onClick={() => handleSimpanSatu(it)}
+                            disabled={sedangMenyimpanId === it.obat_id || it.stok_fisik === ""}
+                            style={{
+                              background: it.stok_fisik !== "" ? "var(--magenta)" : "#F1F5F9",
+                              color: it.stok_fisik !== "" ? "#fff" : "#94A3B8",
+                              border: "none",
+                              borderRadius: 7,
+                              padding: "6px 12px",
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: it.stok_fisik !== "" ? "pointer" : "not-allowed",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              boxShadow: it.stok_fisik !== "" ? "0 2px 5px rgba(166, 75, 199, 0.28)" : "none",
+                              transition: "all 0.15s ease",
+                            }}
+                            title={
+                              it.stok_fisik !== ""
+                                ? `Simpan stok untuk ${it.nama}`
+                                : "Isi stok fisik dulu untuk simpan"
+                            }
+                          >
+                            <span>💾</span>
+                            <span>{sedangMenyimpanId === it.obat_id ? "…" : "Simpan"}</span>
+                          </button>
                         </td>
                       </tr>
                     );
