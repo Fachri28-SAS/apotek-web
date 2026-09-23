@@ -47,7 +47,24 @@ export default function CartTable({ items, onUbah, onHapus }) {
                 {/* Input Diskon Item di Mobile */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 700 }}>Diskon:</span>
-                  <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid var(--line)", borderRadius: 6, overflow: "hidden", background: "#fff" }}>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "stretch",
+                      border: "1px solid var(--line)",
+                      borderRadius: 6,
+                      overflow: "hidden",
+                      background: "#fff",
+                    }}
+                    onWheel={(e) => {
+                      e.preventDefault();
+                      const arah = e.deltaY < 0 ? 1 : -1;
+                      const step = (it.diskon_tipe || "rp") === "%" ? 1 : 500;
+                      const valLama = Number(it.diskon_nilai || 0);
+                      const max = (it.diskon_tipe || "rp") === "%" ? 100 : 999999999;
+                      onUbah(it.key, "diskon_nilai", Math.max(0, Math.min(max, valLama + arah * step)));
+                    }}
+                  >
                     <input
                       type="number"
                       placeholder="0"
@@ -58,8 +75,22 @@ export default function CartTable({ items, onUbah, onHapus }) {
                         const val = Math.max(0, parseFloat(e.target.value) || 0);
                         onUbah(it.key, "diskon_nilai", val);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          const step = (it.diskon_tipe || "rp") === "%" ? 1 : 500;
+                          const valLama = Number(it.diskon_nilai || 0);
+                          const max = (it.diskon_tipe || "rp") === "%" ? 100 : 999999999;
+                          onUbah(it.key, "diskon_nilai", Math.min(max, valLama + step));
+                        } else if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          const step = (it.diskon_tipe || "rp") === "%" ? 1 : 500;
+                          const valLama = Number(it.diskon_nilai || 0);
+                          onUbah(it.key, "diskon_nilai", Math.max(0, valLama - step));
+                        }
+                      }}
                       style={{
-                        width: 70,
+                        width: 60,
                         padding: "3px 6px",
                         fontSize: 12,
                         border: "none",
@@ -68,6 +99,33 @@ export default function CartTable({ items, onUbah, onHapus }) {
                         fontWeight: 700,
                       }}
                     />
+                    <div style={{ display: "flex", flexDirection: "column", width: 18, borderLeft: "1px solid var(--line)", background: "#F8FAFC" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const step = (it.diskon_tipe || "rp") === "%" ? 1 : 500;
+                          const valLama = Number(it.diskon_nilai || 0);
+                          const max = (it.diskon_tipe || "rp") === "%" ? 100 : 999999999;
+                          onUbah(it.key, "diskon_nilai", Math.min(max, valLama + step));
+                        }}
+                        style={{ flex: 1, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 8, color: "var(--ink)", lineHeight: 1 }}
+                        title="Tambah diskon (Bisa scroll mouse ke atas)"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const step = (it.diskon_tipe || "rp") === "%" ? 1 : 500;
+                          const valLama = Number(it.diskon_nilai || 0);
+                          onUbah(it.key, "diskon_nilai", Math.max(0, valLama - step));
+                        }}
+                        style={{ flex: 1, border: "none", borderTop: "1px solid var(--line)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 8, color: "var(--ink)", lineHeight: 1 }}
+                        title="Kurang diskon (Bisa scroll mouse ke bawah)"
+                      >
+                        ▼
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => onUbah(it.key, "diskon_tipe", (it.diskon_tipe || "rp") === "%" ? "rp" : "%")}
@@ -186,27 +244,98 @@ export default function CartTable({ items, onUbah, onHapus }) {
                   </td>
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                      <input
-                        type="number"
-                        className="cart-input-angka"
-                        style={{ width: "100%", textAlign: "right", paddingRight: 4 }}
-                        placeholder="0"
-                        min="0"
-                        max={tipeDiskon === "%" ? 100 : undefined}
-                        value={it.diskon_nilai === 0 || it.diskon_nilai === undefined ? "" : it.diskon_nilai}
-                        onChange={(e) => {
-                          const val = Math.max(0, parseFloat(e.target.value) || 0);
-                          onUbah(it.key, "diskon_nilai", val);
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "stretch",
+                          border: "1.5px solid var(--line)",
+                          borderRadius: 8,
+                          overflow: "hidden",
+                          background: "#fff",
+                          width: "100%",
+                          minWidth: 86,
                         }}
-                      />
+                        onWheel={(e) => {
+                          e.preventDefault();
+                          const arah = e.deltaY < 0 ? 1 : -1;
+                          const step = tipeDiskon === "%" ? 1 : 500;
+                          const valLama = Number(it.diskon_nilai || 0);
+                          const max = tipeDiskon === "%" ? 100 : 999999999;
+                          onUbah(it.key, "diskon_nilai", Math.max(0, Math.min(max, valLama + arah * step)));
+                        }}
+                      >
+                        <input
+                          type="number"
+                          style={{
+                            width: "100%",
+                            textAlign: "right",
+                            padding: "6px 6px",
+                            border: "none",
+                            outline: "none",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            fontFamily: "inherit",
+                          }}
+                          placeholder="0"
+                          min="0"
+                          max={tipeDiskon === "%" ? 100 : undefined}
+                          value={it.diskon_nilai === 0 || it.diskon_nilai === undefined ? "" : it.diskon_nilai}
+                          onChange={(e) => {
+                            const val = Math.max(0, parseFloat(e.target.value) || 0);
+                            onUbah(it.key, "diskon_nilai", val);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp") {
+                              e.preventDefault();
+                              const step = tipeDiskon === "%" ? 1 : 500;
+                              const valLama = Number(it.diskon_nilai || 0);
+                              const max = tipeDiskon === "%" ? 100 : 999999999;
+                              onUbah(it.key, "diskon_nilai", Math.min(max, valLama + step));
+                            } else if (e.key === "ArrowDown") {
+                              e.preventDefault();
+                              const step = tipeDiskon === "%" ? 1 : 500;
+                              const valLama = Number(it.diskon_nilai || 0);
+                              onUbah(it.key, "diskon_nilai", Math.max(0, valLama - step));
+                            }
+                          }}
+                          title="Bisa ketik angka, scroll mouse, atau klik tombol tanda panah"
+                        />
+                        <div style={{ display: "flex", flexDirection: "column", width: 18, borderLeft: "1px solid var(--line)", background: "#F8FAFC" }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const step = tipeDiskon === "%" ? 1 : 500;
+                              const valLama = Number(it.diskon_nilai || 0);
+                              const max = tipeDiskon === "%" ? 100 : 999999999;
+                              onUbah(it.key, "diskon_nilai", Math.min(max, valLama + step));
+                            }}
+                            style={{ flex: 1, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 8, color: "var(--ink)", lineHeight: 1 }}
+                            title="Tambah diskon (Bisa scroll mouse ke atas)"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const step = tipeDiskon === "%" ? 1 : 500;
+                              const valLama = Number(it.diskon_nilai || 0);
+                              onUbah(it.key, "diskon_nilai", Math.max(0, valLama - step));
+                            }}
+                            style={{ flex: 1, border: "none", borderTop: "1px solid var(--line)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 8, color: "var(--ink)", lineHeight: 1 }}
+                            title="Kurang diskon (Bisa scroll mouse ke bawah)"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => onUbah(it.key, "diskon_tipe", tipeDiskon === "%" ? "rp" : "%")}
                         style={{
-                          padding: "4px 6px",
+                          padding: "6px 8px",
                           fontSize: 10.5,
                           fontWeight: 700,
-                          borderRadius: 6,
+                          borderRadius: 8,
                           border: "1px solid var(--line)",
                           background: tipeDiskon === "%" ? "var(--magenta)" : "#F3F4F6",
                           color: tipeDiskon === "%" ? "#fff" : "var(--ink)",
