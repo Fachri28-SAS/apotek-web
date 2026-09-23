@@ -5,18 +5,9 @@ import KasirShell from "./KasirShell";
 import SearchObatPenerimaan from "./komponen/SearchObatPenerimaan";
 import TambahSupplierModal from "./komponen/TambahSupplierModal";
 
-const TEMPO_OPSI = [
-  { key: "1_bulan", label: "1 Bulan", bulan: 1 },
-  { key: "2_bulan", label: "2 Bulan", bulan: 2 },
-  { key: "3_bulan", label: "3 Bulan", bulan: 3 },
-  { key: "6_bulan", label: "6 Bulan", bulan: 6 },
-  { key: "1_tahun", label: "1 Tahun", bulan: 12 },
-  { key: "custom", label: "Custom", bulan: null },
-];
-
-function tambahBulan(tanggal, bulan) {
+function tambahHari(tanggal, hari = 30) {
   const d = new Date(tanggal);
-  d.setMonth(d.getMonth() + bulan);
+  d.setDate(d.getDate() + hari);
   return d.toISOString().slice(0, 10);
 }
 
@@ -36,8 +27,7 @@ export default function Penerimaan() {
   const [namaSupplier, setNamaSupplier] = useState("");
   const [noFaktur, setNoFaktur] = useState("");
   const [tanggalTerima, setTanggalTerima] = useState(new Date().toISOString().slice(0, 10));
-  const [tempoLabel, setTempoLabel] = useState("1_bulan");
-  const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahBulan(new Date(), 1));
+  const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahHari(new Date(), 30));
   const [isPkp, setIsPkp] = useState(false);
   const [modalSupplierOpen, setModalSupplierOpen] = useState(false);
   const [fakturTerbuka, setFakturTerbuka] = useState(true);
@@ -80,17 +70,6 @@ export default function Penerimaan() {
       setNamaSupplier("");
       setIsPkp(false);
     }
-  }
-
-  function ubahTempo(key) {
-    setTempoLabel(key);
-    const opsi = TEMPO_OPSI.find((o) => o.key === key);
-    if (opsi?.bulan) setTanggalJatuhTempo(tambahBulan(tanggalTerima, opsi.bulan));
-  }
-
-  function ubahTanggalTempoManual(val) {
-    setTanggalJatuhTempo(val);
-    setTempoLabel("custom"); // otomatis pindah ke Custom kalau diedit manual
   }
 
   function tambahItem(obat) {
@@ -158,7 +137,7 @@ export default function Penerimaan() {
           no_faktur: noFaktur,
           tanggal_terima: tanggalTerima,
           tanggal_jatuh_tempo: tanggalJatuhTempo || null,
-          tempo_label: tempoLabel,
+          tempo_label: null,
           is_pkp: isPkp,
           diskon_faktur_rp: Number(diskonFakturRp || 0),
           diskon_faktur_persen: Number(diskonFakturPersen || 0),
@@ -319,26 +298,20 @@ export default function Penerimaan() {
             {/* Baris 2: Jatuh Tempo & PKP Supplier */}
             <div className="penerimaan-baris-2">
               <div className="payment-field" style={{ margin: 0 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>Tanggal Jatuh Tempo</label>
-                <div className="tempo-row" style={{ gap: 4 }}>
-                  {TEMPO_OPSI.map((o) => (
-                    <button
-                      key={o.key}
-                      type="button"
-                      className={`periode-chip ${tempoLabel === o.key ? "active" : ""}`}
-                      onClick={() => ubahTempo(o.key)}
-                      style={{ padding: "4px 8px", fontSize: 11.5 }}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                  <input
-                    type="date"
-                    value={tanggalJatuhTempo}
-                    onChange={(e) => ubahTanggalTempoManual(e.target.value)}
-                    style={{ maxWidth: 140, padding: "5px 8px", fontSize: 12, borderRadius: 8 }}
-                  />
-                </div>
+                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>Tanggal Jatuh Tempo</label>
+                <input
+                  type="date"
+                  value={tanggalJatuhTempo}
+                  onChange={(e) => setTanggalJatuhTempo(e.target.value)}
+                  style={{
+                    maxWidth: 220,
+                    padding: "7px 10px",
+                    fontSize: 13,
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    background: "#fff",
+                  }}
+                />
               </div>
 
               <div className="payment-field" style={{ margin: 0 }}>

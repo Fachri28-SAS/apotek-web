@@ -64,6 +64,20 @@ export default function DataObat() {
 
   const daftarTampil = filterMarginTipis ? obatBermasalahMargin : daftar;
 
+  const totalNilaiKeseluruhan = daftar.reduce((acc, o) => {
+    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+    return acc + (Number(o.stok || 0) * Number(def?.harga_beli || 0));
+  }, 0);
+
+  const totalFisikKeseluruhan = daftar.reduce((acc, o) => acc + Number(o.stok || 0), 0);
+
+  function formatPersen(nilai, total) {
+    if (!total || total <= 0 || !nilai) return "0%";
+    const p = (nilai / total) * 100;
+    if (p > 0 && p < 0.01) return "< 0.01%";
+    return `${p.toFixed(1)}%`;
+  }
+
   function muatUlang() {
     setLoading(true);
     api(`/obat${search ? `?search=${encodeURIComponent(search)}` : ""}`)
@@ -197,11 +211,17 @@ export default function DataObat() {
       { label: "Harga Jual", align: "right" },
       { label: "Margin", align: "center" },
       { label: "Stok", align: "right" },
+      { label: "Total Nilai", align: "right" },
+      { label: "% Total", align: "center" },
       { label: "Expired", align: "center" },
     ];
 
-    let totalAsetStok = 0;
-    let totalFisikStok = 0;
+    const totalAsetStok = daftarTampil.reduce((acc, o) => {
+      const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+      return acc + (Number(o.stok || 0) * Number(def?.harga_beli || 0));
+    }, 0);
+
+    const totalFisikStok = daftarTampil.reduce((acc, o) => acc + Number(o.stok || 0), 0);
 
     const rows = daftarTampil.map((obat, idx) => {
       const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
@@ -220,8 +240,8 @@ export default function DataObat() {
 
       const stokNum = Number(obat.stok || 0);
       const beliNum = Number(def?.harga_beli || 0);
-      totalAsetStok += stokNum * beliNum;
-      totalFisikStok += stokNum;
+      const nilaiUang = stokNum * beliNum;
+      const persenStr = formatPersen(nilaiUang, totalAsetStok);
 
       return [
         idx + 1,
@@ -233,6 +253,8 @@ export default function DataObat() {
         hargaJual,
         mStat.label,
         `${stokNum} ${obat.satuan_dasar || ""}`,
+        rupiah(nilaiUang),
+        persenStr,
         expStr,
       ];
     });
@@ -240,8 +262,8 @@ export default function DataObat() {
     const footers = [
       [
         {
-          label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Estimasi Nilai Stok: ${rupiah(totalAsetStok)}`,
-          colspan: 10,
+          label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Total Besar Uang: ${rupiah(totalAsetStok)} (100%)`,
+          colspan: 12,
           align: "right",
         },
       ],
@@ -321,6 +343,62 @@ export default function DataObat() {
         </div>
       </div>
 
+      {/* Kartu Ringkasan Stok & Total Nilai Uang (Aset) */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        gap: 12,
+        marginBottom: 16,
+      }}>
+        <div style={{
+          background: "#fff",
+          border: "1px solid var(--line)",
+          borderRadius: 12,
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+        }}>
+          <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Obat Terdaftar</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
+            {daftar.length} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>jenis</small>
+          </span>
+        </div>
+
+        <div style={{
+          background: "#fff",
+          border: "1px solid var(--line)",
+          borderRadius: 12,
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+        }}>
+          <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Fisik Stok</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
+            {totalFisikKeseluruhan.toLocaleString("id-ID")} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>unit</small>
+          </span>
+        </div>
+
+        <div style={{
+          background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
+          border: "1px solid #E9D5FF",
+          borderRadius: 12,
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)"
+        }}>
+          <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>Total Besar Uang (Nilai Stok Keseluruhan)</span>
+          <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
+            {rupiah(totalNilaiKeseluruhan)}
+          </span>
+        </div>
+      </div>
+
       {/* Banner Alert Margin Tipis / Rugi */}
       {obatBermasalahMargin.length > 0 && (
         <div className="margin-alert-box">
@@ -386,6 +464,10 @@ export default function DataObat() {
             const stokMenipis = obat.stok <= (obat.stok_minimum || 0);
             const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
             const mStat = getStatusMargin(mNum);
+            const stokNum = Number(obat.stok || 0);
+            const beliNum = Number(def?.harga_beli || 0);
+            const nilaiUang = stokNum * beliNum;
+            const persenStr = formatPersen(nilaiUang, totalNilaiKeseluruhan);
 
             return (
               <div
@@ -429,6 +511,9 @@ export default function DataObat() {
                       </button>
                     )}
                   </div>
+                  <div style={{ fontSize: 11.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 3 }}>
+                    Nilai Stok: {rupiah(nilaiUang)} ({persenStr})
+                  </div>
                 </div>
                 <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
                   {obat.stok} {obat.satuan_dasar}
@@ -459,13 +544,14 @@ export default function DataObat() {
               <th>Harga Jual</th>
               <th>Margin %</th>
               <th>Stok</th>
+              <th style={{ textAlign: "right" }}>Total Nilai & %</th>
               <th>Kadaluwarsa</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={12} className="obat-table-info">Memuat…</td></tr>}
-            {!loading && daftarTampil.length === 0 && <tr><td colSpan={12} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
+            {loading && <tr><td colSpan={13} className="obat-table-info">Memuat…</td></tr>}
+            {!loading && daftarTampil.length === 0 && <tr><td colSpan={13} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
             {!loading && daftarTampil.map((obat) => {
               const def = obat.satuan?.find(s => s.is_default) || obat.satuan?.[0];
               const hari = daysUntil(obat.tanggal_exp);
@@ -478,6 +564,10 @@ export default function DataObat() {
                 : rupiah(def?.harga_jual);
               const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
               const mStat = getStatusMargin(mNum);
+              const stokNum = Number(obat.stok || 0);
+              const beliNum = Number(def?.harga_beli || 0);
+              const nilaiUang = stokNum * beliNum;
+              const persenStr = formatPersen(nilaiUang, totalNilaiKeseluruhan);
 
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
@@ -542,6 +632,24 @@ export default function DataObat() {
                   <td>
                     <span>{obat.stok} {obat.satuan_dasar}</span>
                     {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis">MENIPIS</div>}
+                  </td>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
+                      {rupiah(nilaiUang)}
+                    </div>
+                    <div style={{
+                      display: "inline-block",
+                      background: "#FAF5FF",
+                      border: "1px solid #E9D5FF",
+                      color: "var(--magenta-dark)",
+                      borderRadius: 6,
+                      padding: "1px 6px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      marginTop: 2
+                    }}>
+                      {persenStr}
+                    </div>
                   </td>
                   <td>
                     {obat.tanggal_exp ? (
