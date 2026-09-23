@@ -11,6 +11,13 @@ function getTglYmd(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function formatTglIndo(str) {
+  if (!str) return "";
+  const d = new Date(str);
+  if (isNaN(d.getTime())) return str;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}
+
 export default function Riwayat() {
   const tglSekarang = getTglYmd(new Date());
   const [daftar, setDaftar] = useState([]);
@@ -27,21 +34,22 @@ export default function Riwayat() {
     api("/users").then(setKasirList).catch(() => setKasirList([]));
   }, []);
 
-  useEffect(() => {
+  function muatUlang() {
     setLoading(true);
     const params = new URLSearchParams();
     if (dariTanggal) params.set("dari_tanggal", dariTanggal);
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (kasirId) params.set("kasir_id", kasirId);
     if (sumber) params.set("sumber", sumber);
-    if (dariTanggal === tglSekarang && sampaiTanggal === tglSekarang) {
-      params.set("periode", "hari-ini");
-    }
 
     api(`/penjualan?${params}`)
       .then((d) => { setDaftar(d); setError(""); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    muatUlang();
   }, [dariTanggal, sampaiTanggal, kasirId, sumber]);
 
   async function bukaStruk(id) {
@@ -54,6 +62,9 @@ export default function Riwayat() {
   }
 
   const totalOmzet = daftar.reduce((s, t) => s + Number(t.total), 0);
+  const labelRentang = dariTanggal === sampaiTanggal
+    ? formatTglIndo(dariTanggal)
+    : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`;
 
   return (
     <KasirShell>
@@ -61,7 +72,7 @@ export default function Riwayat() {
         <div>
           <h1 style={{ fontSize: 24 }}>Riwayat Penjualan</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${daftar.length} transaksi · total ${rupiah(totalOmzet)}`}
+            {loading ? "Memuat…" : `${labelRentang} · ${daftar.length} transaksi · total ${rupiah(totalOmzet)}`}
           </p>
         </div>
       </div>
@@ -178,6 +189,24 @@ export default function Riwayat() {
                 }}
               />
             </div>
+
+            <button
+              type="button"
+              onClick={() => { setDariTanggal(tglSekarang); setSampaiTanggal(tglSekarang); }}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                background: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+                color: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+              title="Klik untuk cepat kembali ke tanggal hari ini"
+            >
+              Hari Ini
+            </button>
           </div>
 
           <select className="filter-select" value={kasirId} onChange={(e) => setKasirId(e.target.value)}>
@@ -195,7 +224,7 @@ export default function Riwayat() {
         {loading ? (
           <div className="panel-kosong">Memuat…</div>
         ) : daftar.length === 0 ? (
-          <div className="panel-kosong">Belum ada transaksi pada periode ini.</div>
+          <div className="panel-kosong">Belum ada transaksi pada rentang tanggal ini.</div>
         ) : (
           <div className="obat-table-wrap">
             <table className="obat-table">

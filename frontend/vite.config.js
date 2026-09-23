@@ -57,8 +57,11 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Cache semua aset statis
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        // Cache aset statis selain html agar index.html selalu fresh dari server
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
         // Network-first untuk API calls (data selalu fresh dari server)
         runtimeCaching: [
           {
