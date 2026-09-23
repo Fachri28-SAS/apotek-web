@@ -995,11 +995,18 @@
 
 /* ---------- CETAK STRUK (thermal 58mm) ---------- */
 @media print {
+  @page {
+    margin: 0;
+    size: 58mm auto;
+  }
   body * { visibility: hidden; }
   .struk-cetak, .struk-cetak * { visibility: visible; }
   .struk-cetak {
     position: fixed; top: 0; left: 0;
-    width: 58mm; padding: 4mm; font-size: 11px;
+    width: 48mm !important; max-width: 48mm !important;
+    padding: 1.5mm 1mm !important; font-size: 10px !important;
+    font-family: 'Courier New', Courier, monospace, sans-serif !important;
+    box-sizing: border-box !important;
   }
   .struk-actions, .struk-overlay { position: static !important; }
   .struk-modal { box-shadow: none; border-radius: 0; }
