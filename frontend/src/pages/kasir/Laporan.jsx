@@ -6,13 +6,6 @@ import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokum
 import KasirShell from "./KasirShell";
 import TombolExportGroup from "./komponen/TombolExportGroup";
 
-function daysUntil(dateStr) {
-  if (!dateStr) return null;
-  var now = new Date(); now.setHours(0, 0, 0, 0);
-  var exp = new Date(dateStr); exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp - now) / 86400000);
-}
-
 function getTglYmd(d) {
   var yyyy = d.getFullYear();
   var mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -337,56 +330,30 @@ export default function Laporan() {
         </div>
       </div>
 
-      <div className="dashboard-2kolom">
-        <div className="panel">
-          <div className="panel-head"><h3>Metode Pembayaran ({labelPeriode})</h3></div>
-          {!loading && data && data.metode_breakdown && data.metode_breakdown.length ? (
-            <div className="metode-breakdown">
-              {data.metode_breakdown.map(function(m) {
-                return (
-                  <div className="metode-breakdown-row" key={m.metode}>
-                    <div className="metode-breakdown-head">
-                      <span>{LABEL_METODE[m.metode] || m.metode}</span>
-                      <span>{m.jumlah}x · {rupiah(m.total)}</span>
-                    </div>
-                    <div className="metode-breakdown-track">
-                      <div
-                        className="metode-breakdown-fill"
-                        style={{ width: m.persen + "%", background: WARNA_METODE[m.metode] || "var(--magenta)" }}
-                      />
-                    </div>
+      <div className="panel">
+        <div className="panel-head"><h3>Metode Pembayaran ({labelPeriode})</h3></div>
+        {!loading && data && data.metode_breakdown && data.metode_breakdown.length ? (
+          <div className="metode-breakdown">
+            {data.metode_breakdown.map(function(m) {
+              return (
+                <div className="metode-breakdown-row" key={m.metode}>
+                  <div className="metode-breakdown-head">
+                    <span>{LABEL_METODE[m.metode] || m.metode}</span>
+                    <span>{m.jumlah}x · {rupiah(m.total)}</span>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi."}</div>
-          )}
-        </div>
-
-        <div className="panel">
-          <div className="panel-head"><h3>Obat Mendekati Kadaluwarsa</h3></div>
-          {!loading && data && data.kadaluwarsa && data.kadaluwarsa.length ? (
-            <div className="list-ringkas">
-              {data.kadaluwarsa.slice(0, 6).map(function(o) {
-                var hari = daysUntil(o.tanggal_exp);
-                return (
-                  <div className="list-ringkas-row" key={o.id}>
-                    <div>
-                      <div className="list-nama">{o.nama}</div>
-                      <div className="list-sub">{o.nomor_batch ? "Batch " + o.nomor_batch : o.satuan_dasar}</div>
-                    </div>
-                    <span className={"exp-badge " + (hari <= 30 ? "merah" : "kuning")}>
-                      {hari <= 0 ? "EXPIRED" : hari + " hari"}
-                    </span>
+                  <div className="metode-breakdown-track">
+                    <div
+                      className="metode-breakdown-fill"
+                      style={{ width: m.persen + "%", background: WARNA_METODE[m.metode] || "var(--magenta)" }}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="panel-kosong">{loading ? "Memuat…" : "Tidak ada obat mendekati kadaluwarsa."}</div>
-          )}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi."}</div>
+        )}
       </div>
 
       <div className="panel">
