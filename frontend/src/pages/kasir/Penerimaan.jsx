@@ -11,6 +11,12 @@ function tambahHari(tanggal, hari = 30) {
   return d.toISOString().slice(0, 10);
 }
 
+function tambahBulan(tanggal, bulan) {
+  const d = new Date(tanggal);
+  d.setMonth(d.getMonth() + bulan);
+  return d.toISOString().slice(0, 10);
+}
+
 function badgeHarga(baru, sebelumnya) {
   if (!sebelumnya || sebelumnya === 0) return null;
   const selisih = baru - sebelumnya;
