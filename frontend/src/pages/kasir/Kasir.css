@@ -67,25 +67,112 @@
 }
 
 .kasir-sidebar-footer {
-  padding: 16px 20px; border-top: 1px solid var(--line);
-  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: #FAF8FB;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kasir-footer-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
 }
 .kasir-footer-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: var(--magenta-tint); color: var(--magenta-dark);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--magenta-tint);
+  color: var(--magenta-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(166, 75, 199, 0.25);
 }
-.kasir-footer-avatar svg { width: 17px; height: 17px; }
-.kasir-footer-who { line-height: 1.2; flex: 1; }
-.kasir-user-nama { font-size: 13px; font-weight: 700; }
-.kasir-user-role { font-size: 11.5px; color: var(--ink-soft); }
+.kasir-footer-avatar svg { width: 18px; height: 18px; }
+.kasir-footer-who {
+  line-height: 1.25;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+.kasir-user-nama {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kasir-user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.user-role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
 .kasir-logout-btn {
-  width: 34px; height: 34px; border-radius: 9px; border: 1px solid #FECACA;
-  background: #FEF2F2; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-family: inherit; color: #DC2626; transition: all 0.2s ease; flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #FECACA;
+  background: #FEF2F2;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  color: #DC2626;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 .kasir-logout-btn svg { width: 15px; height: 15px; }
-.kasir-logout-btn:hover { background: #DC2626; color: #fff; border-color: #DC2626; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
+.kasir-logout-btn:hover {
+  background: #DC2626;
+  color: #fff;
+  border-color: #DC2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+.kasir-ganti-sandi-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--magenta-dark);
+  background: #fff;
+  border: 1px solid #E9D5FF;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+.kasir-ganti-sandi-btn svg {
+  width: 13px;
+  height: 13px;
+  color: var(--magenta);
+}
+.kasir-ganti-sandi-btn:hover {
+  background: var(--magenta-tint);
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
+}
 
 /* ---------- TOP NAVBAR ---------- */
 .kasir-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
