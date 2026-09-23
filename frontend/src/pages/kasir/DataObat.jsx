@@ -212,7 +212,6 @@ export default function DataObat() {
       { label: "Margin", align: "center" },
       { label: "Stok", align: "right" },
       { label: "Total Nilai", align: "right" },
-      { label: "% Total", align: "center" },
       { label: "Expired", align: "center" },
     ];
 
@@ -241,7 +240,6 @@ export default function DataObat() {
       const stokNum = Number(obat.stok || 0);
       const beliNum = Number(def?.harga_beli || 0);
       const nilaiUang = stokNum * beliNum;
-      const persenStr = formatPersen(nilaiUang, totalAsetStok);
 
       return [
         idx + 1,
@@ -254,7 +252,6 @@ export default function DataObat() {
         mStat.label,
         `${stokNum} ${obat.satuan_dasar || ""}`,
         rupiah(nilaiUang),
-        persenStr,
         expStr,
       ];
     });
@@ -262,8 +259,8 @@ export default function DataObat() {
     const footers = [
       [
         {
-          label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Total Besar Uang: ${rupiah(totalAsetStok)} (100%)`,
-          colspan: 12,
+          label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Total Besar Uang: ${rupiah(totalAsetStok)}`,
+          colspan: 11,
           align: "right",
         },
       ],
@@ -512,7 +509,7 @@ export default function DataObat() {
                     )}
                   </div>
                   <div style={{ fontSize: 11.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 3 }}>
-                    Nilai Stok: {rupiah(nilaiUang)} ({persenStr})
+                    Nilai Stok: {rupiah(nilaiUang)} {mStat.status !== "kosong" ? `· ${mStat.label}` : ""}
                   </div>
                 </div>
                 <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
@@ -544,7 +541,7 @@ export default function DataObat() {
               <th>Harga Jual</th>
               <th>Margin %</th>
               <th>Stok</th>
-              <th style={{ textAlign: "right" }}>Total Nilai & %</th>
+              <th style={{ textAlign: "right" }}>Total Nilai</th>
               <th>Kadaluwarsa</th>
               <th>Aksi</th>
             </tr>
@@ -637,19 +634,21 @@ export default function DataObat() {
                     <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
                       {rupiah(nilaiUang)}
                     </div>
-                    <div style={{
-                      display: "inline-block",
-                      background: "#FAF5FF",
-                      border: "1px solid #E9D5FF",
-                      color: "var(--magenta-dark)",
-                      borderRadius: 6,
-                      padding: "1px 6px",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      marginTop: 2
-                    }}>
-                      {persenStr}
-                    </div>
+                    {mStat.status !== "kosong" && (
+                      <div style={{
+                        display: "inline-block",
+                        background: "#FAF5FF",
+                        border: "1px solid #E9D5FF",
+                        color: "var(--magenta-dark)",
+                        borderRadius: 6,
+                        padding: "1px 6px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        marginTop: 2
+                      }}>
+                        {mStat.label}
+                      </div>
+                    )}
                   </td>
                   <td>
                     {obat.tanggal_exp ? (
