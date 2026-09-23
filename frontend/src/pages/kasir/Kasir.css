@@ -587,7 +587,13 @@
 }
 
 /* ---------- TABLE ---------- */
-.obat-table-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; overflow-x: auto; }
+.obat-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 .obat-table { width: 100%; border-collapse: collapse; }
 .obat-table th {
   text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em;
@@ -635,15 +641,30 @@
 .toggle-pill.on .toggle-knob { transform: translateX(16px); }
 
 /* Ikon aksi (pensil/tong sampah) */
-.obat-aksi-icons { display: flex; gap: 6px; }
-.obat-aksi-icons button {
-  width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line);
-  background: #fff; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--ink-soft);
+.obat-aksi-icons {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-.obat-aksi-icons button svg { width: 14px; height: 14px; }
-.obat-aksi-icons button:hover { border-color: var(--magenta); color: var(--magenta-dark); }
-.obat-aksi-icons button.hapus:hover { border-color: #D64550; color: #D64550; }
+.obat-aksi-icons button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.obat-aksi-icons button svg { width: 14px; height: 14px; flex-shrink: 0; }
+.obat-aksi-icons button:hover { border-color: var(--magenta); color: var(--magenta-dark); background: #FAF5FF; }
+.obat-aksi-icons button.hapus:hover { border-color: #D64550; color: #D64550; background: #FBEAEC; }
 
 /* ---------- HEADER HALAMAN ---------- */
 .halaman-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }

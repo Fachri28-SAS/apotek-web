@@ -530,25 +530,25 @@ export default function DataObat() {
       </div>
 
       <div className="obat-table-wrap desktop-only">
-        <table className="obat-table">
+        <table className="obat-table" style={{ minWidth: 1140 }}>
           <thead>
             <tr>
-              <th>Nama Obat</th>
-              <th>Kemasan</th>
-              <th>Satuan</th>
-              <th>Batch</th>
-              <th>Harga Beli</th>
-              <th>Harga Jual</th>
-              <th>Margin %</th>
-              <th>Stok</th>
-              <th style={{ textAlign: "right" }}>Total Nilai</th>
-              <th>Kadaluwarsa</th>
-              <th>Aksi</th>
+              <th style={{ minWidth: 170 }}>Nama Obat</th>
+              <th style={{ width: 80, minWidth: 80 }}>Kemasan</th>
+              <th style={{ width: 80, minWidth: 80 }}>Satuan</th>
+              <th style={{ width: 90, minWidth: 90 }}>Batch</th>
+              <th style={{ minWidth: 110 }}>Harga Beli</th>
+              <th style={{ minWidth: 100 }}>Harga Jual</th>
+              <th style={{ width: 90, minWidth: 90 }}>Margin %</th>
+              <th style={{ width: 85, minWidth: 85 }}>Stok</th>
+              <th style={{ minWidth: 125, textAlign: "right" }}>Total Nilai</th>
+              <th style={{ width: 110, minWidth: 110 }}>Kadaluwarsa</th>
+              <th style={{ width: 130, minWidth: 130, textAlign: "center" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={13} className="obat-table-info">Memuat…</td></tr>}
-            {!loading && daftarTampil.length === 0 && <tr><td colSpan={13} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
+            {loading && <tr><td colSpan={11} className="obat-table-info">Memuat…</td></tr>}
+            {!loading && daftarTampil.length === 0 && <tr><td colSpan={11} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
             {!loading && daftarTampil.map((obat) => {
               const def = obat.satuan?.find(s => s.is_default) || obat.satuan?.[0];
               const hari = daysUntil(obat.tanggal_exp);
@@ -688,8 +688,8 @@ export default function DataObat() {
                     </button>
                   </td>
                   */}
-                  <td>
-                    <div className="obat-aksi-icons">
+                  <td style={{ width: 130, minWidth: 130, textAlign: "center", whiteSpace: "nowrap" }}>
+                    <div className="obat-aksi-icons" style={{ justifyContent: "center" }}>
                       <button
                         type="button"
                         onClick={() => setRiwayatObat(obat)}
@@ -697,13 +697,16 @@ export default function DataObat() {
                         style={{
                           background: "#FAF5FF",
                           border: "1px solid var(--magenta)",
-                          borderRadius: 7,
-                          padding: "5px 7px",
+                          borderRadius: 8,
+                          padding: 0,
+                          width: 32,
+                          height: 32,
                           color: "var(--magenta-dark)",
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          flexShrink: 0,
                         }}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 14, height: 14 }}>
@@ -714,12 +717,12 @@ export default function DataObat() {
                           <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                       </button>
-                      <button onClick={() => bukaEdit(obat)} title="Edit">
+                      <button onClick={() => bukaEdit(obat)} title="Edit" style={{ flexShrink: 0 }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                           <path d="M17 3l4 4L7 21H3v-4L17 3z" />
                         </svg>
                       </button>
-                      <button className="hapus" onClick={() => hapusObat(obat)} title="Hapus">
+                      <button className="hapus" onClick={() => hapusObat(obat)} title="Hapus" style={{ flexShrink: 0 }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                           <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
                         </svg>
