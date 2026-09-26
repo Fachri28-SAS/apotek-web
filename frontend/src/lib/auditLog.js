@@ -4,38 +4,68 @@ const STORAGE_KEY = "bima_audit_log_perubahan";
 export function getRiwayatPerubahan() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return getDefaultDummyLogs();
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : getDefaultDummyLogs();
+    if (!Array.isArray(parsed)) return [];
+
+    // Filter otomatis: hapus data dummy/palsu lama jika masih ada di cache browser
+    const realLogs = parsed.filter(
+      (item) =>
+        item &&
+        !String(item.id).startsWith("LOG-INIT") &&
+        !String(item.id).startsWith("SRV-PEN") &&
+        item.petugas !== "Sistem Apotek" &&
+        item.nama_akun !== "Sistem Apotek" &&
+        item.petugas !== "Petugas Gudang" &&
+        item.nama_akun !== "Petugas Gudang"
+    );
+
+    if (realLogs.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(realLogs));
+    }
+
+    return realLogs;
   } catch {
-    return getDefaultDummyLogs();
+    return [];
   }
 }
 
 export function tambahLogPerubahan({
-  kategori = "Umum", // "Ganti Harga Obat", "Faktur Penerimaan", "PPN & Pengaturan", "Stok Opname", "Pengeluaran", "Penjualan"
-  aksi = "Ubah", // "Tambah", "Ubah", "Hapus", "Bayar", "Sesuaikan"
-  judul = "",
-  detailLama = null,
-  detailBaru = null,
+  nama_akun,
+  role_akun,
+  kategori = "Umum",
+  aksi = "Ubah",
+  judul,
+  item,
+  sebelum,
+  detailLama,
+  sesudah,
+  detailBaru,
   keterangan = "",
-  petugas = "Admin",
+  oleh,
+  petugas,
 }) {
   try {
     const list = getRiwayatPerubahan();
+    const namaAkunFinal = nama_akun || oleh || petugas || "Admin";
+    const itemFinal = judul || item || "-";
+    const sebelumFinal = sebelum !== undefined && sebelum !== null ? String(sebelum) : (detailLama !== undefined && detailLama !== null ? String(detailLama) : "-");
+    const sesudahFinal = sesudah !== undefined && sesudah !== null ? String(sesudah) : (detailBaru !== undefined && detailBaru !== null ? String(detailBaru) : "-");
+
     const itemBaru = {
       id: "LOG-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
       waktu: new Date().toISOString(),
+      nama_akun: namaAkunFinal,
+      role_akun: role_akun || "kasir",
       kategori,
       aksi,
-      judul,
-      detailLama,
-      detailBaru,
+      judul: itemFinal,
+      detailLama: sebelumFinal,
+      detailBaru: sesudahFinal,
       keterangan,
-      petugas,
     };
 
-    const updated = [itemBaru, ...list].slice(0, 1000); // Simpan hingga 1000 log terbaru
+    const updated = [itemBaru, ...list].slice(0, 1000); // Simpan hingga 1000 log riwayat terbaru
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return itemBaru;
   } catch (e) {
@@ -46,31 +76,4 @@ export function tambahLogPerubahan({
 
 export function hapusSemuaLog() {
   localStorage.removeItem(STORAGE_KEY);
-}
-
-function getDefaultDummyLogs() {
-  return [
-    {
-      id: "LOG-INIT-1",
-      waktu: new Date(Date.now() - 3600000 * 2).toISOString(),
-      kategori: "PPN & Pengaturan",
-      aksi: "Inisialisasi",
-      judul: "Tarif Default PPN 11%",
-      detailLama: null,
-      detailBaru: "11%",
-      keterangan: "Sistem menerapkan tarif standar PPN 11% untuk faktur supplier PKP",
-      petugas: "Sistem Apotek",
-    },
-    {
-      id: "LOG-INIT-2",
-      waktu: new Date(Date.now() - 3600000 * 5).toISOString(),
-      kategori: "Ganti Harga Obat",
-      aksi: "Ubah",
-      judul: "AMOXICILLIN 500MG (Strip)",
-      detailLama: "Rp 6.000",
-      detailBaru: "Rp 7.500",
-      keterangan: "Penyesuaian margin laba mengikuti kenaikan harga beli distributor",
-      petugas: "Admin Bima Farma",
-    },
-  ];
 }

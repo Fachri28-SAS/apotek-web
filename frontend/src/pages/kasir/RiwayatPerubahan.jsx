@@ -29,54 +29,32 @@ export default function RiwayatPerubahan() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
 
-  // Ambil log lokal dan sinkronkan dengan riwayat sistem (penerimaan, stok mutasi, penjualan)
+  // Ambil log riwayat murni dari sistem tanpa mock/dummy data
   useEffect(() => {
     muatLog();
   }, []);
 
-  async function muatLog() {
+  function muatLog() {
     setLoading(true);
     try {
-      const localLogs = getRiwayatPerubahan();
-
-      // Sinkronisasi faktur penerimaan terbaru dari database jika tersedia
-      let serverLogs = [];
-      try {
-        const resPenerimaan = await api("/penerimaan");
-        if (Array.isArray(resPenerimaan)) {
-          serverLogs = resPenerimaan.slice(0, 30).map((p) => ({
-            id: `SRV-PEN-${p.id}`,
-            waktu: p.created_at || p.tanggal_terima || new Date().toISOString(),
-            kategori: "Faktur Penerimaan",
-            aksi: p.status_bayar === "lunas" ? "Lunas" : "Faktur Masuk",
-            judul: `Faktur ${p.no_faktur || `#${p.id}`} (${p.nama_supplier || "Supplier"})`,
-            detailLama: null,
-            detailBaru: `Rp ${Number(p.total_tagihan || 0).toLocaleString("id-ID")}`,
-            keterangan: `${p.items_count || (p.items ? p.items.length : 0)} obat · Status: ${p.status_bayar === "lunas" ? "LUNAS" : "BELUM LUNAS"} · Jatuh Tempo: ${p.tanggal_jatuh_tempo || "-"}`,
-            petugas: p.user?.nama || "Petugas Gudang",
-          }));
-        }
-      } catch {}
-
-      // Gabungkan & urutkan descending (terbaru di atas)
-      const gabung = [...localLogs, ...serverLogs].sort(
+      const realLogs = getRiwayatPerubahan();
+      const sorted = [...realLogs].sort(
         (a, b) => new Date(b.waktu).getTime() - new Date(a.waktu).getTime()
       );
-
-      // Hilangkan duplikasi id
-      const uniqueMap = new Map();
-      gabung.forEach((item) => {
-        if (!uniqueMap.has(item.id)) {
-          uniqueMap.set(item.id, item);
-        }
-      });
-
-      setLogs(Array.from(uniqueMap.values()));
+      setLogs(sorted);
     } catch (e) {
       console.error("Gagal memuat audit log:", e);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleBersihkanLog() {
+    if (!window.confirm("Bersihkan seluruh catatan riwayat perubahan saat ini? Tindakan ini tidak dapat dibatalkan.")) {
+      return;
+    }
+    hapusSemuaLog();
+    setLogs([]);
   }
 
   // Filter logs
@@ -116,9 +94,9 @@ export default function RiwayatPerubahan() {
         const s = search.toLowerCase();
         const matchJudul = log.judul?.toLowerCase().includes(s);
         const matchKet = log.keterangan?.toLowerCase().includes(s);
-        const matchPetugas = log.petugas?.toLowerCase().includes(s);
+        const matchAkun = (log.nama_akun || log.petugas)?.toLowerCase().includes(s);
         const matchKategori = log.kategori?.toLowerCase().includes(s);
-        if (!matchJudul && !matchKet && !matchPetugas && !matchKategori) {
+        if (!matchJudul && !matchKet && !matchAkun && !matchKategori) {
           return false;
         }
       }
@@ -145,7 +123,7 @@ export default function RiwayatPerubahan() {
     const headers = [
       { label: "NO", align: "center", width: "40px" },
       { label: "WAKTU", align: "center", width: "130px" },
-      { label: "PETUGAS", align: "left", width: "110px" },
+      { label: "NAMA AKUN", align: "left", width: "120px" },
       { label: "KATEGORI", align: "left", width: "120px" },
       { label: "AKSI", align: "center", width: "80px" },
       { label: "JUDUL / OBJEK", align: "left" },
@@ -166,7 +144,7 @@ export default function RiwayatPerubahan() {
       return [
         idx + 1,
         tgl,
-        log.petugas || "-",
+        log.nama_akun || log.petugas || "-",
         log.kategori || "-",
         log.aksi || "-",
         log.judul || "-",
@@ -289,6 +267,26 @@ export default function RiwayatPerubahan() {
           >
             🔄 Segarkan Log
           </button>
+
+          {logs.length > 0 && (
+            <button
+              type="button"
+              onClick={handleBersihkanLog}
+              style={{
+                background: "#FEF2F2",
+                color: "#DC2626",
+                border: "1.5px solid #FECACA",
+                borderRadius: 8,
+                padding: "7px 12px",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+              title="Bersihkan riwayat log perubahan"
+            >
+              🗑️ Bersihkan Riwayat
+            </button>
+          )}
 
           <TombolExportGroup
             onCetakPdf={handleCetak}
@@ -415,7 +413,7 @@ export default function RiwayatPerubahan() {
             </svg>
             <input
               type="text"
-              placeholder="Cari obat, no faktur, petugas…"
+              placeholder="Cari obat, no faktur, nama akun…"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -451,7 +449,7 @@ export default function RiwayatPerubahan() {
             <tr>
               <th style={{ width: 40, textAlign: "center", padding: "8px 5px" }}>NO</th>
               <th style={{ width: 140, textAlign: "center", padding: "8px 6px" }}>Waktu & Tanggal</th>
-              <th style={{ width: 110, padding: "8px 8px" }}>Petugas</th>
+              <th style={{ width: 130, padding: "8px 8px" }}>Nama Akun</th>
               <th style={{ width: 130, padding: "8px 8px" }}>Kategori</th>
               <th style={{ width: 85, textAlign: "center", padding: "8px 6px" }}>Aksi</th>
               <th style={{ minWidth: 180, padding: "8px 8px" }}>Judul / Objek</th>
@@ -471,10 +469,16 @@ export default function RiwayatPerubahan() {
               </tr>
             ) : logsHalaman.length === 0 ? (
               <tr>
-                <td colSpan={9} className="obat-table-info" style={{ padding: "32px 16px" }}>
-                  {search
-                    ? `Tidak ada log riwayat yang cocok dengan kata kunci "${search}".`
-                    : "Belum ada catatan riwayat perubahan pada kategori ini."}
+                <td colSpan={9} className="obat-table-info" style={{ padding: "36px 16px", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>📝</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)", marginBottom: 4 }}>
+                    {search ? `Tidak ada log yang cocok dengan "${search}"` : "Belum Ada Riwayat Perubahan"}
+                  </div>
+                  <div style={{ color: "var(--ink-soft)", fontSize: 12, maxWidth: 500, margin: "0 auto" }}>
+                    {search
+                      ? "Silakan coba kata kunci pencarian yang lain."
+                      : "Semua perubahan seperti edit harga jual obat (oleh kasir/admin), input faktur supplier, atau penyesuaian stok opname akan otomatis tercatat di sini secara real-time."}
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -490,8 +494,15 @@ export default function RiwayatPerubahan() {
                     <td style={{ textAlign: "center", whiteSpace: "nowrap", padding: "7px 6px", fontSize: 12 }}>
                       {formatWaktu(log.waktu)}
                     </td>
-                    <td style={{ fontWeight: 700, color: "var(--ink)", padding: "7px 8px" }}>
-                      {log.petugas || "Admin"}
+                    <td style={{ padding: "7px 8px" }}>
+                      <div style={{ fontWeight: 700, color: "var(--ink)", fontSize: 12.5 }}>
+                        {log.nama_akun || log.petugas || "Admin"}
+                      </div>
+                      {log.role_akun && (
+                        <div style={{ fontSize: 10.5, color: "var(--ink-soft)", textTransform: "capitalize", fontWeight: 600 }}>
+                          {log.role_akun === "admin" ? "🛡️ Admin" : "👤 Kasir"}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: "7px 8px" }}>
                       <span

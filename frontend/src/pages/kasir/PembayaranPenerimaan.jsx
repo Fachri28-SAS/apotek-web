@@ -87,14 +87,16 @@ export default function PembayaranPenerimaan() {
       const statusBaru = res.penerimaan.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
       const statusLama = konfirmasiBayar.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
 
+      const namaAkun = user?.nama || user?.username || "Admin";
       tambahLogPerubahan({
-        kategori: "Penerimaan Barang",
+        nama_akun: namaAkun,
+        role_akun: user?.role || "admin",
+        kategori: "Faktur Penerimaan",
         aksi: "Ubah Status Bayar",
-        item: `Faktur ${konfirmasiBayar.no_faktur}`,
+        judul: `Faktur ${konfirmasiBayar.no_faktur} (${konfirmasiBayar.nama_supplier})`,
         sebelum: statusLama,
         sesudah: statusBaru,
-        keterangan: `Supplier: ${konfirmasiBayar.nama_supplier}, Total: ${rupiah(konfirmasiBayar.total)}`,
-        oleh: user?.nama || user?.username || "Admin",
+        keterangan: `Total tagihan: ${rupiah(konfirmasiBayar.total)}`,
       });
 
       setDaftar((prev) =>

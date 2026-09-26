@@ -175,15 +175,17 @@ export default function Penerimaan() {
         }),
       });
 
-      // Catat ke riwayat perubahan (Audit Log)
+      // Catat ke riwayat perubahan (Audit Log) dengan Nama Akun yang Login
+      const namaAkun = user?.nama || user?.username || "Admin";
       tambahLogPerubahan({
-        kategori: "Penerimaan Barang",
+        nama_akun: namaAkun,
+        role_akun: user?.role || "admin",
+        kategori: "Faktur Penerimaan",
         aksi: "Input Faktur",
-        item: `Faktur ${noFaktur}`,
+        judul: `Faktur ${noFaktur} (${namaSupplier})`,
         sebelum: "-",
-        sesudah: `Total: ${rupiah(totalTagihan)} (PPN ${isPkp ? `${persenPpn}%` : "0%"} = ${rupiah(ppn)})`,
-        keterangan: `Supplier: ${namaSupplier}, ${items.length} item obat diterima.`,
-        oleh: user?.nama || user?.username || "Admin",
+        sesudah: rupiah(totalTagihan),
+        keterangan: `Supplier: ${namaSupplier}, ${items.length} item obat diterima (PPN ${isPkp ? `${persenPpn}%` : "0%"})`,
       });
 
       setSukses(`Faktur ${noFaktur} berhasil disimpan. Stok & harga obat sudah diperbarui.`);

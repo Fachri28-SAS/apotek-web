@@ -182,14 +182,16 @@ export default function StokOpname() {
         )
       );
 
+      const namaAkunSatu = user?.nama || user?.username || "Admin";
       tambahLogPerubahan({
+        nama_akun: namaAkunSatu,
+        role_akun: user?.role || "admin",
         kategori: "Stok Opname",
         aksi: "Penyesuaian Stok",
-        item: it.nama,
-        sebelum: `Stok: ${it.stok_sistem} ${it.satuan_dasar}`,
-        sesudah: `Stok: ${stokBaru} ${it.satuan_dasar}`,
+        judul: it.nama,
+        sebelum: `${it.stok_sistem} ${it.satuan_dasar}`,
+        sesudah: `${stokBaru} ${it.satuan_dasar}`,
         keterangan: it.keterangan || "Penyesuaian stok fisik",
-        oleh: user?.nama || user?.username || "Admin",
       });
 
       setSukses(`✓ Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
@@ -224,14 +226,16 @@ export default function StokOpname() {
         }),
       });
 
+      const namaAkunSemua = user?.nama || user?.username || "Admin";
       tambahLogPerubahan({
+        nama_akun: namaAkunSemua,
+        role_akun: user?.role || "admin",
         kategori: "Stok Opname",
         aksi: "Penyesuaian Massal",
-        item: `${itemTerisi.length} Obat`,
-        sebelum: "Stok sebelumnya",
+        judul: `${itemTerisi.length} Macam Obat`,
+        sebelum: "Stok sistem",
         sesudah: "Stok fisik disesuaikan",
-        keterangan: `Stok opname massal ${itemTerisi.length} item`,
-        oleh: user?.nama || user?.username || "Admin",
+        keterangan: `Stok opname massal ${itemTerisi.length} item obat`,
       });
 
       setSukses(
