@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
-import { cetakLaporanPenerimaan } from "../../utils/cetakLaporanPenerimaan";
-import { exportExcel, exportWord, cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../utils/exportDokumen";
+import { cetakBukuBarangMasuk } from "../../utils/cetakLaporanPenerimaan";
+import { exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
 import TombolExportGroup from "./komponen/TombolExportGroup";
-import RekapHutangModal from "./komponen/RekapHutangModal";
 
 function getTglYmd(d) {
   const yyyy = d.getFullYear();
@@ -23,16 +23,12 @@ export default function RiwayatPenerimaan() {
   const [daftar, setDaftar] = useState([]);
   const [dariTanggal, setDariTanggal] = useState(awalBulanDefault);
   const [sampaiTanggal, setSampaiTanggal] = useState(hariIniDefault);
-  const [filterStatus, setFilterStatus] = useState("semua"); // "semua" | "belum" | "lunas"
   const [filterSupplier, setFilterSupplier] = useState("semua"); // "semua" | nama PT
   const [daftarSupplierList, setDaftarSupplierList] = useState([]);
-  const [modalHutangSupplier, setModalHutangSupplier] = useState(null); // string nama PT atau null
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
-  const [modalCetakFaktur, setModalCetakFaktur] = useState(null);
   const [error, setError] = useState("");
-  const [notif, setNotif] = useState("");
 
   // Ambil daftar supplier aktif
   useEffect(() => {
@@ -44,6 +40,7 @@ export default function RiwayatPenerimaan() {
       .catch(() => {});
   }, []);
 
+  // Ambil data faktur penerimaan
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -51,44 +48,21 @@ export default function RiwayatPenerimaan() {
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (search.trim()) params.set("search", search.trim());
     if (filterSupplier && filterSupplier !== "semua") params.set("nama_supplier", filterSupplier);
-    if (filterStatus && filterStatus !== "semua") params.set("status_bayar", filterStatus);
 
     const timer = setTimeout(() => {
       api(`/penerimaan?${params}`)
-        .then((d) => { setDaftar(d || []); setError(""); })
+        .then((d) => {
+          setDaftar(d || []);
+          setError("");
+        })
         .catch((e) => setError(e.message))
         .finally(() => setLoading(false));
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [dariTanggal, sampaiTanggal, search, filterSupplier, filterStatus]);
+  }, [dariTanggal, sampaiTanggal, search, filterSupplier]);
 
-  const [konfirmasiBayar, setKonfirmasiBayar] = useState(null);
-  const [loadingToggle, setLoadingToggle] = useState(false);
-
-  function bukaDetail(faktur) {
-    setDetail(faktur);
-  }
-
-  async function prosesToggleBayar() {
-    if (!konfirmasiBayar) return;
-    setLoadingToggle(true);
-    try {
-      const res = await api(`/penerimaan/${konfirmasiBayar.id}/toggle-bayar`, { method: "PUT" });
-      setDaftar((prev) =>
-        prev.map((it) => (it.id === konfirmasiBayar.id ? { ...it, status_bayar: res.penerimaan.status_bayar, tanggal_bayar: res.penerimaan.tanggal_bayar } : it))
-      );
-      setNotif(res.message);
-      setTimeout(() => setNotif(""), 4000);
-      setKonfirmasiBayar(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoadingToggle(false);
-    }
-  }
-
-  // Daftar semua nama supplier unik dari database dan dari data transaksi faktur
+  // Daftar nama supplier unik
   const supplierOptions = Array.from(
     new Set([
       ...daftarSupplierList.map((s) => s.nama).filter(Boolean),
@@ -96,50 +70,134 @@ export default function RiwayatPenerimaan() {
     ])
   ).sort((a, b) => a.localeCompare(b));
 
-  // Filter berdasarkan supplier dan status bayar jika dipilih
+  // Filter berdasarkan supplier jika dipilih
   const daftarTampil = daftar.filter((p) => {
     if (filterSupplier !== "semua" && p.nama_supplier !== filterSupplier) return false;
-    if (filterStatus === "belum") return p.status_bayar === "belum";
-    if (filterStatus === "lunas") return p.status_bayar === "lunas";
     return true;
   });
 
-  const totalTagihan = daftarTampil.reduce((s, p) => s + Number(p.total || 0), 0);
-  const totalLunas = daftarTampil.filter((p) => p.status_bayar === "lunas").reduce((s, p) => s + Number(p.total || 0), 0);
-  const totalBelumLunas = daftarTampil.filter((p) => p.status_bayar === "belum").reduce((s, p) => s + Number(p.total || 0), 0);
+  // Flatten faktur menjadi deretan baris per-item (sesuai Foto 1 Buku Penerimaan Barang Fisik)
+  // Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN 11%
+  const barisItem = [];
+  let noUrut = 1;
+
+  daftarTampil.forEach((p) => {
+    const items = p.items || [];
+    if (items.length === 0) {
+      const jmlRp = Number(p.total || 0);
+      const jmlPpn = p.is_pkp ? Math.round(jmlRp * 1.11) : jmlRp;
+      barisItem.push({
+        no: noUrut++,
+        fakturId: p.id,
+        faktur: p,
+        tanggal: p.tanggal_terima,
+        noFaktur: p.no_faktur,
+        pbf: p.nama_supplier,
+        namaBarang: "(Faktur Tanpa Rincian Item)",
+        jumlah: 1,
+        satuan: "Faktur",
+        exp: p.tanggal_jatuh_tempo,
+        noBatch: "—",
+        hargaSatuan: jmlRp,
+        jumlahRp: jmlRp,
+        jumlahPpnRp: jmlPpn,
+        isPkp: p.is_pkp,
+      });
+    } else {
+      items.forEach((it) => {
+        const qty = Number(it.qty || 0);
+        const hargaBeli = Number(it.harga_beli || 0);
+        const subtotalItem = Number(it.subtotal ?? (qty * hargaBeli - Number(it.diskon || 0)));
+        const subtotalPpn = p.is_pkp ? Math.round(subtotalItem * 1.11) : subtotalItem;
+
+        barisItem.push({
+          no: noUrut++,
+          fakturId: p.id,
+          faktur: p,
+          tanggal: p.tanggal_terima,
+          noFaktur: p.no_faktur,
+          pbf: p.nama_supplier,
+          namaBarang: it.nama_obat || "—",
+          jumlah: qty,
+          satuan: it.nama_satuan || "—",
+          exp: it.tanggal_exp,
+          noBatch: it.nomor_batch || "—",
+          hargaSatuan: hargaBeli,
+          jumlahRp: subtotalItem,
+          jumlahPpnRp: subtotalPpn,
+          isPkp: p.is_pkp,
+          rawItem: it,
+        });
+      });
+    }
+  });
+
+  // Pencarian lokal jika user mencari di baris item
+  const barisItemTampil = search.trim()
+    ? barisItem.filter((b) => {
+        const term = search.toLowerCase();
+        return (
+          b.namaBarang.toLowerCase().includes(term) ||
+          b.noFaktur.toLowerCase().includes(term) ||
+          b.pbf.toLowerCase().includes(term) ||
+          b.noBatch.toLowerCase().includes(term)
+        );
+      })
+    : barisItem;
+
+  // Akumulasi KPI
+  const totalJumlahSemua = barisItemTampil.reduce((s, b) => s + Number(b.jumlahRp || 0), 0);
+  const totalJumlahPpnSemua = barisItemTampil.reduce((s, b) => s + Number(b.jumlahPpnRp || 0), 0);
+  const totalFakturUnik = new Set(barisItemTampil.map((b) => b.fakturId)).size;
+
+  // Format tanggal singkat (misal: 25.11.24 atau 25/11/2024)
+  function formatTgl(tglStr) {
+    if (!tglStr) return "—";
+    const d = new Date(tglStr);
+    if (isNaN(d.getTime())) return tglStr;
+    return d.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    });
+  }
 
   function siapkanDataExportPenerimaan() {
     const headers = [
-      { label: "No.", align: "center", width: "35px" },
-      { label: "Tgl Terima", align: "center" },
-      { label: "Nama Supplier", align: "left" },
-      { label: "No. Faktur", align: "left" },
-      { label: "Jatuh Tempo", align: "center" },
-      { label: "Total Faktur", align: "right" },
-      { label: "Status Bayar", align: "center" },
-      { label: "Jumlah Item", align: "center" },
+      { label: "NO", align: "center", width: "35px" },
+      { label: "Tanggal", align: "center" },
+      { label: "No Faktur", align: "left" },
+      { label: "PBF", align: "left" },
+      { label: "Nama Barang", align: "left" },
+      { label: "Jumlah", align: "center" },
+      { label: "Satuan", align: "center" },
+      { label: "EXP", align: "center" },
+      { label: "No Batch", align: "center" },
+      { label: "Harga Satuan (Rp)", align: "right" },
+      { label: "Jumlah (Rp)", align: "right" },
+      { label: "Jumlah + PPN 11%", align: "right" },
     ];
 
-    let grandTotal = 0;
-    const rows = daftarTampil.map((p, idx) => {
-      grandTotal += Number(p.total || 0);
-      return [
-        idx + 1,
-        p.tanggal_terima ? new Date(p.tanggal_terima).toLocaleDateString("id-ID") : "-",
-        p.nama_supplier || "-",
-        p.no_faktur || "-",
-        p.tanggal_jatuh_tempo ? new Date(p.tanggal_jatuh_tempo).toLocaleDateString("id-ID") : "-",
-        rupiah(p.total),
-        p.status_bayar === "lunas" ? "LUNAS" : "BELUM LUNAS",
-        p.items?.length || 0,
-      ];
-    });
+    const rows = barisItemTampil.map((b, idx) => [
+      idx + 1,
+      formatTgl(b.tanggal),
+      b.noFaktur || "—",
+      b.pbf || "—",
+      b.namaBarang || "—",
+      b.jumlah,
+      b.satuan || "—",
+      b.exp ? formatTgl(b.exp) : "—",
+      b.noBatch || "—",
+      rupiah(b.hargaSatuan),
+      rupiah(b.jumlahRp),
+      rupiah(b.jumlahPpnRp),
+    ]);
 
     const footers = [
       [
-        { label: `Total (${rows.length} Faktur) :`, colspan: 5, align: "right" },
-        { label: rupiah(grandTotal), align: "right" },
-        { label: "-", align: "center", colspan: 2 },
+        { label: `TOTAL (${rows.length} ITEM) :`, colspan: 10, align: "right" },
+        { label: rupiah(totalJumlahSemua), align: "right" },
+        { label: rupiah(totalJumlahPpnSemua), align: "right" },
       ],
     ];
 
@@ -148,26 +206,26 @@ export default function RiwayatPenerimaan() {
     return { headers, rows, footers, periodeTeks };
   }
 
-  function handleExcelPenerimaan() {
+  function handleExcel() {
     const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
     exportExcel({
-      filename: `laporan-penerimaan-faktur`,
-      judul: "LAPORAN PENERIMAAN BARANG",
+      filename: `buku-penerimaan-barang-fisik`,
+      judul: "BUKU PENERIMAAN BARANG FISIK",
       periode: periodeTeks,
-      keterangan: `Rekapitulasi Faktur Penerimaan Barang / Kulakan`,
+      keterangan: `Rekapitulasi Fisik Barang Masuk per Item`,
       headers,
       rows,
       footers,
     });
   }
 
-  function handleWordPenerimaan() {
+  function handleWord() {
     const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
     exportWord({
-      filename: `laporan-penerimaan-faktur`,
-      judul: "LAPORAN PENERIMAAN BARANG",
+      filename: `buku-penerimaan-barang-fisik`,
+      judul: "BUKU PENERIMAAN BARANG FISIK",
       periode: periodeTeks,
-      keterangan: `Rekapitulasi Faktur Penerimaan Barang / Kulakan`,
+      keterangan: `Rekapitulasi Fisik Barang Masuk per Item`,
       headers,
       rows,
       footers,
@@ -178,68 +236,100 @@ export default function RiwayatPenerimaan() {
 
   return (
     <KasirShell>
+      {/* Switcher Tab Navigasi: Buku Barang Masuk & Buku Bayar Faktur */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+        <Link
+          to="/kasir/riwayat-penerimaan"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "9px 18px",
+            borderRadius: 10,
+            fontSize: 13.5,
+            fontWeight: 700,
+            background: "var(--magenta)",
+            color: "#fff",
+            textDecoration: "none",
+            boxShadow: "0 2px 5px rgba(147, 51, 234, 0.25)",
+          }}
+        >
+          <span>📦</span>
+          <span>Buku Barang Masuk (Per Item)</span>
+        </Link>
+        <Link
+          to="/kasir/pembayaran-penerimaan"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "9px 18px",
+            borderRadius: 10,
+            fontSize: 13.5,
+            fontWeight: 700,
+            background: "#fff",
+            color: "var(--ink)",
+            border: "1.5px solid var(--line)",
+            textDecoration: "none",
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span>💳</span>
+          <span>Buku Bayar Faktur PBF</span>
+        </Link>
+      </div>
+
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Laporan Penerimaan Barang</h1>
+          <h1 style={{ fontSize: 24 }}>Buku Penerimaan Barang Fisik</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${daftarTampil.length} faktur tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
+            {loading
+              ? "Memuat data obat masuk…"
+              : `${barisItemTampil.length} baris barang · ${totalFakturUnik} faktur · Total Nilai: ${rupiah(totalJumlahSemua)}`}
           </p>
         </div>
       </div>
 
       {error && <div className="login-error">{error}</div>}
-      {notif && <div style={{ background: "#ECFDF5", color: "#065F46", padding: "10px 16px", borderRadius: 10, marginBottom: 14, fontWeight: 600, fontSize: 13.5, border: "1px solid #A7F3D0" }}>{notif}</div>}
 
-      {/* Ringkasan Besar Uang & Jatuh Tempo */}
+      {/* Ringkasan KPI Barang Masuk */}
       <div className="kpi-grid-4" style={{ marginBottom: 16 }}>
         <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 14, border: "1px solid var(--line)" }}>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Faktur Masuk</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>{daftarTampil.length} Faktur</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Item Masuk</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>
+            {barisItemTampil.length} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>Barang</span>
+          </div>
         </div>
         <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 14, border: "1px solid var(--line)" }}>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Besar Uang</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "var(--magenta-dark)", marginTop: 4 }}>{rupiah(totalTagihan)}</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Faktur Masuk</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--magenta-dark)", marginTop: 4 }}>
+            {totalFakturUnik} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>Faktur</span>
+          </div>
         </div>
         <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 14, border: "1px solid #BBF7D0" }}>
-          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}>✓ Sudah Dibayar (Lunas)</div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "#15803D", marginTop: 4 }}>{rupiah(totalLunas)}</div>
-        </div>
-        <div style={{ background: "#FEF2F2", padding: "14px 18px", borderRadius: 14, border: "1px solid #FECACA" }}>
-          <div style={{ fontSize: 12, color: "#991B1B", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>○ {filterSupplier !== "semua" ? `Hutang ${filterSupplier}` : "Belum Dibayar (Tempo)"}</span>
-            {filterSupplier !== "semua" && (
-              <button
-                type="button"
-                onClick={() => setModalHutangSupplier(filterSupplier)}
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#DC2626",
-                  background: "#fff",
-                  border: "1px solid #FCA5A5",
-                  borderRadius: 6,
-                  padding: "2px 7px",
-                  cursor: "pointer",
-                }}
-              >
-                Rincian ➔
-              </button>
-            )}
+          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}>Total Jumlah (Rp)</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#15803D", marginTop: 4 }}>
+            {rupiah(totalJumlahSemua)}
           </div>
-          <div style={{ fontSize: 19, fontWeight: 800, color: "#DC2626", marginTop: 4 }}>{rupiah(totalBelumLunas)}</div>
+        </div>
+        <div style={{ background: "#FAF5FF", padding: "14px 18px", borderRadius: 14, border: "1px solid #E9D5FF" }}>
+          <div style={{ fontSize: 12, color: "#6B21A8", fontWeight: 600 }}>Total Jumlah + PPN 11%</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#7E22CE", marginTop: 4 }}>
+            {rupiah(totalJumlahPpnSemua)}
+          </div>
         </div>
       </div>
 
       <div className="panel">
         <div className="panel-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
           {/* Kotak Pencarian */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 240, maxWidth: 340, background: "var(--surface)", border: "1.5px solid var(--line)", borderRadius: 12, padding: "8px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 240, maxWidth: 360, background: "var(--surface)", border: "1.5px solid var(--line)", borderRadius: 12, padding: "8px 14px" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 17, height: 17, color: "var(--ink-soft)" }}>
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
             </svg>
             <input
               type="text"
-              placeholder="Cari nama PBF, no. faktur, obat…"
+              placeholder="Cari nama barang, PBF, no. faktur, batch…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ border: "none", outline: "none", background: "transparent", fontSize: 13.5, width: "100%", color: "var(--ink)" }}
@@ -251,7 +341,7 @@ export default function RiwayatPenerimaan() {
             )}
           </div>
 
-          {/* Filter Rentang Tanggal, Status & Tombol Cetak */}
+          {/* Filter Rentang Tanggal, Supplier & Tombol Cetak */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
               <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
@@ -291,7 +381,7 @@ export default function RiwayatPenerimaan() {
 
             {/* Filter PT / Supplier */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-              <span>Supplier / PT:</span>
+              <span>PBF:</span>
               <select
                 value={filterSupplier}
                 onChange={(e) => setFilterSupplier(e.target.value)}
@@ -309,7 +399,7 @@ export default function RiwayatPenerimaan() {
                   cursor: "pointer",
                 }}
               >
-                <option value="semua">Semua Supplier / PT</option>
+                <option value="semua">Semua PBF / Supplier</option>
                 {supplierOptions.map((sup) => (
                   <option key={sup} value={sup}>
                     {sup}
@@ -318,477 +408,153 @@ export default function RiwayatPenerimaan() {
               </select>
             </div>
 
-            <div className="periode-chips" style={{ margin: 0 }}>
-              <button type="button" className={`periode-chip ${filterStatus === "semua" ? "active" : ""}`} onClick={() => setFilterStatus("semua")}>Semua Status</button>
-              <button type="button" className={`periode-chip ${filterStatus === "belum" ? "active" : ""}`} onClick={() => setFilterStatus("belum")}>○ Belum Lunas</button>
-              <button type="button" className={`periode-chip ${filterStatus === "lunas" ? "active" : ""}`} onClick={() => setFilterStatus("lunas")}>✓ Lunas</button>
-            </div>
-
-            {/* Tombol Khusus Rekap Hutang per PT */}
-            <button
-              type="button"
-              onClick={() => setModalHutangSupplier(filterSupplier !== "semua" ? filterSupplier : (supplierOptions[0] || ""))}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 13px",
-                borderRadius: 8,
-                border: "1.5px solid #FCA5A5",
-                background: "#FEF2F2",
-                color: "#B91C1C",
-                fontSize: 12.5,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-              title="Buka panel khusus rekapitulasi hutang per PT / Supplier berdasarkan rentang tanggal"
-            >
-              <span>🏢</span>
-              <span>Rekap Hutang PT</span>
-            </button>
-
             <TombolExportGroup
-              onCetakPdf={() => cetakLaporanPenerimaan(daftarTampil, { dariTanggal, sampaiTanggal })}
-              onExportExcel={handleExcelPenerimaan}
-              onExportWord={handleWordPenerimaan}
-              disabled={daftarTampil.length === 0}
+              onCetakPdf={() => cetakBukuBarangMasuk(barisItemTampil, { dariTanggal, sampaiTanggal })}
+              onExportExcel={handleExcel}
+              onExportWord={handleWord}
+              disabled={barisItemTampil.length === 0}
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="panel-kosong">Memuat laporan penerimaan…</div>
-        ) : daftarTampil.length === 0 ? (
+          <div className="panel-kosong">Memuat buku penerimaan barang…</div>
+        ) : barisItemTampil.length === 0 ? (
           <div className="panel-kosong">
-            {search ? `Tidak ditemukan faktur untuk pencarian "${search}".` : "Belum ada faktur penerimaan pada periode tanggal ini."}
+            {search ? `Tidak ditemukan barang untuk pencarian "${search}".` : "Belum ada data barang masuk pada periode tanggal ini."}
           </div>
         ) : (
           <div className="obat-table-wrap">
-            <table className="obat-table" style={{ minWidth: 760 }}>
+            {/* Tabel 12 Kolom Sesuai Buku Catatan Fisik Foto 1 */}
+            <table className="obat-table" style={{ minWidth: 1050, fontSize: 13 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 44, textAlign: "center" }}>No</th>
-                  <th style={{ width: 95 }}>Tgl</th>
-                  <th>Nama PBF</th>
-                  <th>Nomor Faktur</th>
-                  <th style={{ textAlign: "right", width: 140 }}>Besar Uang</th>
-                  <th style={{ width: 120 }}>Tgl Bayar</th>
-                  <th style={{ width: 150, textAlign: "center" }}>Status Bayar</th>
-                  <th style={{ width: 130, textAlign: "center" }}>Aksi</th>
+                  <th style={{ width: 44, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 85, textAlign: "center" }}>Tanggal</th>
+                  <th style={{ width: 110 }}>No Faktur</th>
+                  <th style={{ width: 130 }}>PBF</th>
+                  <th style={{ minWidth: 180 }}>Nama Barang</th>
+                  <th style={{ width: 65, textAlign: "center" }}>Jumlah</th>
+                  <th style={{ width: 70, textAlign: "center" }}>Satuan</th>
+                  <th style={{ width: 85, textAlign: "center" }}>EXP</th>
+                  <th style={{ width: 95, textAlign: "center" }}>No Batch</th>
+                  <th style={{ width: 120, textAlign: "right" }}>Harga Satuan (Rp)</th>
+                  <th style={{ width: 125, textAlign: "right" }}>Jumlah (Rp)</th>
+                  <th style={{ width: 140, textAlign: "right" }}>Jumlah + PPN 11%</th>
                 </tr>
               </thead>
               <tbody>
-                {daftarTampil.map((p, idx) => {
-                  const tglTerima = new Date(p.tanggal_terima).toLocaleDateString("id-ID", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  });
-                  const isLunas = p.status_bayar === "lunas";
-                  const tglBayarOrTempo = isLunas
-                    ? p.tanggal_bayar
-                      ? new Date(p.tanggal_bayar).toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "2-digit" })
-                      : "Lunas"
-                    : p.tanggal_jatuh_tempo
-                    ? new Date(p.tanggal_jatuh_tempo).toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "2-digit" })
-                    : "—";
+                {barisItemTampil.map((b) => (
+                  <tr
+                    key={`${b.fakturId}_${b.no}`}
+                    className="baris-klik"
+                    onClick={() => setDetail(b.faktur)}
+                    title="Klik baris untuk melihat rincian faktur lengkap"
+                  >
+                    {/* 1. NO */}
+                    <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
+                      {b.no}
+                    </td>
 
-                  return (
-                    <tr key={p.id} className="baris-klik" onClick={() => bukaDetail(p)}>
-                      {/* 1. No Urut */}
-                      <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
-                        {idx + 1}
-                      </td>
+                    {/* 2. Tanggal */}
+                    <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap" }}>
+                      {formatTgl(b.tanggal)}
+                    </td>
 
-                      {/* 2. Tanggal Terima */}
-                      <td style={{ fontWeight: 600 }}>
-                        {tglTerima}
-                      </td>
+                    {/* 3. No Faktur */}
+                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                      {b.noFaktur}
+                    </td>
 
-                      {/* 3. Nama PBF */}
-                      <td>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13.5 }}>
-                            {p.nama_supplier}
+                    {/* 4. PBF */}
+                    <td style={{ fontWeight: 700, color: "var(--ink)" }}>
+                      {b.pbf}
+                    </td>
+
+                    {/* 5. Nama Barang */}
+                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>
+                      {b.namaBarang}
+                    </td>
+
+                    {/* 6. Jumlah */}
+                    <td style={{ textAlign: "center", fontWeight: 700 }}>
+                      {b.jumlah}
+                    </td>
+
+                    {/* 7. Satuan */}
+                    <td style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+                      {b.satuan}
+                    </td>
+
+                    {/* 8. EXP */}
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 12 }}>
+                      {b.exp ? formatTgl(b.exp) : "—"}
+                    </td>
+
+                    {/* 9. No Batch */}
+                    <td style={{ textAlign: "center", fontSize: 12, fontFamily: "monospace", color: "var(--ink-soft)" }}>
+                      {b.noBatch}
+                    </td>
+
+                    {/* 10. Harga Satuan (Rp) */}
+                    <td style={{ textAlign: "right" }}>
+                      {rupiah(b.hargaSatuan)}
+                    </td>
+
+                    {/* 11. Jumlah (Rp) */}
+                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)" }}>
+                      {rupiah(b.jumlahRp)}
+                    </td>
+
+                    {/* 12. Jumlah + PPN 11% */}
+                    <td style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 5, justifyContent: "flex-end" }}>
+                        <span>{rupiah(b.jumlahPpnRp)}</span>
+                        {!b.isPkp && (
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              padding: "1px 4px",
+                              borderRadius: 4,
+                              background: "#F1F5F9",
+                              color: "#64748B",
+                              fontWeight: 600,
+                            }}
+                            title="Faktur ini bertipe Non-PKP"
+                          >
+                            Non-PKP
                           </span>
-                          {p.nama_supplier && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setModalHutangSupplier(p.nama_supplier);
-                              }}
-                              title={`Lihat rekapitulasi semua hutang dari ${p.nama_supplier}`}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 3,
-                                padding: "2px 7px",
-                                borderRadius: 6,
-                                fontSize: 10.5,
-                                fontWeight: 700,
-                                background: "#FEF2F2",
-                                color: "#DC2626",
-                                border: "1px solid #FECACA",
-                                cursor: "pointer",
-                              }}
-                            >
-                              💳 Hutang
-                            </button>
-                          )}
-                        </div>
-                        {p.items_count > 0 && (
-                          <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 2 }}>
-                            {p.items_count} item obat masuk
-                          </div>
                         )}
-                      </td>
-
-                      {/* 4. Nomor Faktur */}
-                      <td className="obat-batch-cell" style={{ fontWeight: 600 }}>
-                        {p.no_faktur}
-                      </td>
-
-                      {/* 5. Besar Uang */}
-                      <td style={{ textAlign: "right", fontWeight: 800, color: "var(--ink)", fontSize: 13.5 }}>
-                        {rupiah(p.total)}
-                      </td>
-
-                      {/* 6. Tgl Bayar / Jatuh Tempo */}
-                      <td>
-                        <div style={{ fontWeight: 600, color: isLunas ? "#15803D" : "#B91C1C", fontSize: 12.5 }}>
-                          {tglBayarOrTempo}
-                        </div>
-                        <div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>
-                          {isLunas ? "Tgl pelunasan" : "Jatuh tempo"}
-                        </div>
-                      </td>
-
-                      {/* 7. Status Checklist Lunas / Belum */}
-                      <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setKonfirmasiBayar(p);
-                          }}
-                          title="Klik untuk mengubah status pembayaran"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            padding: "5px 12px",
-                            borderRadius: 20,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            border: isLunas ? "1px solid #86EFAC" : "1px solid #FCA5A5",
-                            background: isLunas ? "#DCFCE7" : "#FEF2F2",
-                            color: isLunas ? "#15803D" : "#DC2626",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          {isLunas ? "✓ Lunas" : "○ Belum Lunas"}
-                        </button>
-                      </td>
-
-                      {/* 8. Aksi: Lihat & Cetak */}
-                      <td style={{ textAlign: "center" }}>
-                        <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              bukaDetail(p);
-                            }}
-                            title="Lihat rincian faktur"
-                            style={{
-                              padding: "4px 8px",
-                              borderRadius: 6,
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              border: "1px solid var(--line)",
-                              background: "#fff",
-                              color: "var(--magenta-dark)",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Lihat
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setModalCetakFaktur(p);
-                            }}
-                            title="Pilih format cetak atau unduh faktur ini"
-                            style={{
-                              padding: "4px 8px",
-                              borderRadius: 6,
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              border: "1px solid var(--magenta)",
-                              background: "#FAF5FF",
-                              color: "var(--magenta-dark)",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
-                              <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-                              <path d="M6 14h12v8H6z" />
-                            </svg>
-                            Cetak
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
+              <tfoot>
+                <tr style={{ background: "#FAF5FF", fontWeight: 800, borderTop: "2px solid #E9D5FF" }}>
+                  <td colSpan={10} style={{ textAlign: "right", padding: "10px 14px", color: "var(--ink)" }}>
+                    TOTAL KESELURUHAN ({barisItemTampil.length} Item) :
+                  </td>
+                  <td style={{ textAlign: "right", padding: "10px 14px", color: "#15803D", fontSize: 14 }}>
+                    {rupiah(totalJumlahSemua)}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "10px 14px", color: "#6B21A8", fontSize: 14 }}>
+                    {rupiah(totalJumlahPpnSemua)}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </div>
 
-      {/* Modal Konfirmasi Pembayaran Faktur */}
-      {konfirmasiBayar && (
-        <div className="struk-overlay" onClick={() => !loadingToggle && setKonfirmasiBayar(null)}>
-          <div className="struk-modal" style={{ maxWidth: 440, padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 38, marginBottom: 10 }}>
-              {konfirmasiBayar.status_bayar === "lunas" ? "↩️" : "✅"}
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-              {konfirmasiBayar.status_bayar === "lunas"
-                ? "Ubah Status Jadi Belum Lunas?"
-                : "Tandai Faktur Sudah Lunas?"}
-            </h3>
-            <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 20 }}>
-              Faktur <strong>{konfirmasiBayar.no_faktur}</strong> dari <strong>{konfirmasiBayar.nama_supplier}</strong> senilai <strong>{rupiah(konfirmasiBayar.total)}</strong> akan diubah statusnya menjadi{" "}
-              <strong style={{ color: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D" }}>
-                {konfirmasiBayar.status_bayar === "lunas" ? "○ Belum Lunas (Tempo)" : "✓ Lunas (Sudah Dibayar)"}
-              </strong>.
-            </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={loadingToggle}
-                onClick={() => setKonfirmasiBayar(null)}
-                style={{ padding: "8px 18px", fontSize: 13.5 }}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={loadingToggle}
-                onClick={prosesToggleBayar}
-                style={{
-                  padding: "8px 18px",
-                  fontSize: 13.5,
-                  background: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D",
-                  borderColor: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D",
-                }}
-              >
-                {loadingToggle ? "Menyimpan…" : (konfirmasiBayar.status_bayar === "lunas" ? "Ya, Ubah Jadi Tempo" : "Ya, Tandai Sudah Lunas")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Detail Rincian Faktur */}
+      {/* Modal Detail Faktur */}
       {detail && (
         <DetailFakturModal
           data={detail}
           onClose={() => setDetail(null)}
-          onLihatHutangSupplier={(sup) => {
-            setDetail(null);
-            setModalHutangSupplier(sup);
-          }}
+          onLihatHutangSupplier={() => {}}
         />
-      )}
-
-      {/* Modal Rekapitulasi Hutang Per PT / Supplier */}
-      {modalHutangSupplier !== null && (
-        <RekapHutangModal
-          supplierName={modalHutangSupplier}
-          daftarSupplierList={supplierOptions}
-          initialDariTanggal={dariTanggal}
-          initialSampaiTanggal={sampaiTanggal}
-          onClose={() => setModalHutangSupplier(null)}
-          onLihatFaktur={(faktur) => {
-            setModalHutangSupplier(null);
-            setDetail(faktur);
-          }}
-          onStatusUpdated={() => {
-            // Segarkan data faktur penerimaan
-            const params = new URLSearchParams();
-            if (dariTanggal) params.set("dari_tanggal", dariTanggal);
-            if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
-            if (search.trim()) params.set("search", search.trim());
-            if (filterSupplier && filterSupplier !== "semua") params.set("nama_supplier", filterSupplier);
-            if (filterStatus && filterStatus !== "semua") params.set("status_bayar", filterStatus);
-            api(`/penerimaan?${params}`)
-              .then((d) => setDaftar(d || []))
-              .catch(() => {});
-          }}
-        />
-      )}
-
-      {/* Modal Opsi Cetak & Unduh 1 Faktur */}
-      {modalCetakFaktur && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(15, 23, 42, 0.65)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: 16,
-          }}
-          onClick={() => setModalCetakFaktur(null)}
-        >
-          <div
-            style={{
-              background: "#fff",
-              borderRadius: 16,
-              width: "100%",
-              maxWidth: 420,
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
-              padding: 24,
-              textAlign: "center",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ fontSize: 36, marginBottom: 6 }}>📄</div>
-            <h3 style={{ fontSize: 17, fontWeight: 800, color: "#1E293B", margin: "0 0 6px" }}>
-              Cetak / Ekspor Faktur
-            </h3>
-            <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 18px", lineHeight: 1.5 }}>
-              Faktur <strong>{modalCetakFaktur.no_faktur}</strong> &middot; {modalCetakFaktur.nama_supplier}
-              <br />
-              Total Tagihan: <strong style={{ color: "#0F172A" }}>{rupiah(modalCetakFaktur.total)}</strong>
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
-              {/* Opsi 1: Cetak A4 / PDF */}
-              <button
-                type="button"
-                onClick={() => {
-                  cetakSatuFakturA4(modalCetakFaktur);
-                  setModalCetakFaktur(null);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  padding: "11px 16px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  background: "#FAF5FF",
-                  color: "#6B21A8",
-                  border: "1.5px solid #D8B4FE",
-                  cursor: "pointer",
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
-                  <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
-                  <path d="M6 14h12v8H6z" />
-                </svg>
-                🖨️ Cetak / Simpan PDF (Format A4 Resmi)
-              </button>
-
-              {/* Opsi 2: Unduh Excel */}
-              <button
-                type="button"
-                onClick={() => {
-                  exportSatuFakturExcel(modalCetakFaktur);
-                  setModalCetakFaktur(null);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  padding: "11px 16px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  background: "#ECFDF5",
-                  color: "#065F46",
-                  border: "1.5px solid #A7F3D0",
-                  cursor: "pointer",
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="8" y1="13" x2="16" y2="13" />
-                  <line x1="8" y1="17" x2="16" y2="17" />
-                </svg>
-                📊 Unduh Format Excel (.xls)
-              </button>
-
-              {/* Opsi 3: Unduh Word */}
-              <button
-                type="button"
-                onClick={() => {
-                  exportSatuFakturWord(modalCetakFaktur);
-                  setModalCetakFaktur(null);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  padding: "11px 16px",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  background: "#EFF6FF",
-                  color: "#1E40AF",
-                  border: "1.5px solid #BFDBFE",
-                  cursor: "pointer",
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 17, height: 17 }}>
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                📝 Unduh Format Word (.doc)
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setModalCetakFaktur(null)}
-              style={{
-                width: "100%",
-                padding: "9px",
-                borderRadius: 8,
-                background: "#F1F5F9",
-                border: "none",
-                color: "#475569",
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              Batal
-            </button>
-          </div>
-        </div>
       )}
     </KasirShell>
   );

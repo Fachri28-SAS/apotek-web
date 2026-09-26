@@ -15,6 +15,7 @@ import StokOpname from "./pages/kasir/StokOpname";
 import Riwayat from "./pages/kasir/Riwayat";
 import Penerimaan from "./pages/kasir/Penerimaan";
 import RiwayatPenerimaan from "./pages/kasir/RiwayatPenerimaan";
+import PembayaranPenerimaan from "./pages/kasir/PembayaranPenerimaan";
 import PembayaranOnline from "./pages/kasir/PembayaranOnline";
 import Laporan from "./pages/kasir/Laporan";
 import LaporanPengeluaran from "./pages/kasir/LaporanPengeluaran";
@@ -47,6 +48,7 @@ function App() {
             <Route path="/kasir/riwayat" element={<RutePrivat><Riwayat /></RutePrivat>} />
             <Route path="/kasir/penerimaan" element={<RutePrivat><Penerimaan /></RutePrivat>} />
             <Route path="/kasir/riwayat-penerimaan" element={<RutePrivat><RiwayatPenerimaan /></RutePrivat>} />
+            <Route path="/kasir/pembayaran-penerimaan" element={<RutePrivat><PembayaranPenerimaan /></RutePrivat>} />
             <Route path="/kasir/pembayaran-online" element={<RutePrivat><PembayaranOnline /></RutePrivat>} />
 
             {/* ---- Wajib login DAN khusus admin ---- */}
