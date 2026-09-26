@@ -35,10 +35,23 @@ function badgeHargaBeli(satuan) {
   return { warna: "biru", teks: `▼ ${persen}%` };
 }
 
+const CACHE_KEY = "bimafarma_obat_cache";
+
+function getCachedObat() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY) || localStorage.getItem(CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function DataObat() {
   const { user } = useAuth();
-  const [daftar, setDaftar] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [daftar, setDaftar] = useState(getCachedObat);
+  const [loading, setLoading] = useState(() => getCachedObat().length === 0);
+  const [errorMsg, setErrorMsg] = useState(null);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [obatEdit, setObatEdit] = useState(null);
@@ -111,13 +124,31 @@ export default function DataObat() {
 
   function muatUlang() {
     setLoading(true);
+    setErrorMsg(null);
     api(`/obat${search ? `?search=${encodeURIComponent(search)}` : ""}`)
-      .then(setDaftar)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setDaftar(data);
+          setErrorMsg(null);
+          if (!search) {
+            try {
+              sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+              localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch {
+              // ignore
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Gagal memuat katalog obat:", err);
+        setErrorMsg(err.message || "Gagal menghubungi server database.");
+      })
       .finally(() => setLoading(false));
   }
 
   useEffect(() => {
-    const timer = setTimeout(muatUlang, 300);
+    const timer = setTimeout(muatUlang, search ? 300 : 0);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -356,10 +387,30 @@ export default function DataObat() {
           <p className="halaman-sub">
             {filterMarginTipis
               ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 20%)`
-              : `${daftar.length} obat terdaftar`}
+              : loading && daftar.length === 0
+              ? "Menghubungkan ke database apotek…"
+              : `${daftar.length} obat terdaftar ${loading ? "· (Menyinkronkan…)" : ""}`}
           </p>
         </div>
         <div className="halaman-header-aksi" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {errorMsg && (
+            <button
+              type="button"
+              onClick={muatUlang}
+              style={{
+                background: "#DC2626",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "8px 14px",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer"
+              }}
+            >
+              🔄 Muat Ulang
+            </button>
+          )}
           <TombolExportGroup
             onCetakPdf={handleCetakDataObat}
             onExportExcel={handleExcelDataObat}
@@ -370,6 +421,55 @@ export default function DataObat() {
           <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
         </div>
       </div>
+
+      {/* Banner Notifikasi Error / Timeout */}
+      {errorMsg && (
+        <div style={{
+          background: "#FEF2F2",
+          border: "1px solid #FCA5A5",
+          borderRadius: 12,
+          padding: "12px 16px",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          color: "#991B1B"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 20 }}>⚠️</span>
+            <div>
+              <strong>Kendala Koneksi Server:</strong> {errorMsg}
+              {daftar.length > 0 ? (
+                <div style={{ fontSize: 12, marginTop: 2, color: "#7F1D1D" }}>
+                  Sistem menampilkan cadangan terakhir ({daftar.length} obat). Klik tombol muat ulang untuk mencoba menyinkronkan kembali.
+                </div>
+              ) : (
+                <div style={{ fontSize: 12, marginTop: 2, color: "#7F1D1D" }}>
+                  Server sedang merespons lambat saat mengambil 1.500+ katalog obat. Silakan coba klik Muat Ulang.
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={muatUlang}
+            style={{
+              background: "#DC2626",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "7px 14px",
+              fontWeight: 700,
+              fontSize: 12,
+              cursor: "pointer",
+              whiteSpace: "nowrap"
+            }}
+          >
+            🔄 Coba Lagi
+          </button>
+        </div>
+      )}
 
       {/* Kartu Ringkasan Stok & Total Nilai Uang (Aset) */}
       <div style={{
@@ -538,8 +638,10 @@ export default function DataObat() {
           />
         </div>
 
-        {loading ? (
-          <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Memuat obat…</div>
+        {loading && daftar.length === 0 ? (
+          <div className="panel-kosong" style={{ padding: 24, borderRadius: 14 }}>
+            <div style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>Sedang memuat katalog obat dari server…</div>
+          </div>
         ) : daftarTampil.length === 0 ? (
           <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Tidak ada obat yang cocok.</div>
         ) : (
@@ -634,9 +736,22 @@ export default function DataObat() {
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={11} className="obat-table-info">Memuat…</td></tr>}
-            {!loading && daftarTampil.length === 0 && <tr><td colSpan={11} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>}
-            {!loading && daftarTampil.map((obat) => {
+            {loading && daftar.length === 0 && (
+              <tr>
+                <td colSpan={11} className="obat-table-info" style={{ padding: "36px 16px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontWeight: 700, color: "var(--magenta-dark)", fontSize: 14 }}>
+                      Sedang menyinkronkan data katalog obat dari server apotek…
+                    </div>
+                    <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Memuat seluruh data 1.500+ obat dan harga satuan...</span>
+                  </div>
+                </td>
+              </tr>
+            )}
+            {!loading && daftarTampil.length === 0 && (
+              <tr><td colSpan={11} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>
+            )}
+            {daftarTampil.map((obat) => {
               const def = obat.satuan?.find(s => s.is_default) || obat.satuan?.[0];
               const hari = daysUntil(obat.tanggal_exp);
               const satuanNames = obat.satuan?.map(s => s.nama_satuan).join(" / ");

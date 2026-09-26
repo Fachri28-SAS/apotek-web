@@ -6,25 +6,40 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getToken() {
-  // Hanya ambil dari sessionStorage agar saat browser/tab ditutup, sesi otomatis musnah
-  return sessionStorage.getItem("bimafarma_token");
+  if (typeof window === "undefined") return null;
+  let token = sessionStorage.getItem("bimafarma_token");
+  if (!token) {
+    token = localStorage.getItem("bimafarma_token");
+    if (token) {
+      try {
+        sessionStorage.setItem("bimafarma_token", token);
+      } catch {
+        // ignore
+      }
+    }
+  }
+  return token;
 }
 
-function setToken(token) {
-  // Bersihkan sisa token di localStorage agar tidak ada sesi tertinggal
-  try {
-    localStorage.removeItem("bimafarma_token");
-  } catch {
-    // ignore
-  }
-
+function setToken(token, ingat = true) {
   if (!token) {
     sessionStorage.removeItem("bimafarma_token");
+    try {
+      localStorage.removeItem("bimafarma_token");
+    } catch {
+      // ignore
+    }
     return;
   }
 
-  // Sesi HANYA disimpan di sessionStorage (musnah otomatis saat tab/browser di-close)
   sessionStorage.setItem("bimafarma_token", token);
+  if (ingat) {
+    try {
+      localStorage.setItem("bimafarma_token", token);
+    } catch {
+      // ignore
+    }
+  }
 }
 
 /**
@@ -34,7 +49,10 @@ function setToken(token) {
 async function api(path, options = {}) {
   const token = getToken();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+  // Alokasikan batas timeout lebih longgar (75s untuk katalog obat & laporan besar, 45s untuk aksi lain)
+  const isKatalog = path.startsWith("/obat") || path.startsWith("/laporan") || path.startsWith("/stok");
+  const timeoutMs = options.timeout || (isKatalog ? 75000 : 45000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
@@ -68,7 +86,7 @@ async function api(path, options = {}) {
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === "AbortError") {
-      throw new Error("Koneksi ke server lambat / timeout. Coba periksa koneksi database.");
+      throw new Error("Koneksi ke server lambat / timeout. Sedang mencoba menghubungkan ulang...");
     }
     throw err;
   }

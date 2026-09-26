@@ -3,8 +3,8 @@ import { AuthContext } from "./auth-context";
 import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken } from "../lib/api";
 
 function getCachedUser() {
-  // Hanya ambil dari sessionStorage agar saat browser/tab ditutup, sesi langsung musnah
-  const raw = sessionStorage.getItem("bimafarma_user");
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem("bimafarma_user") || localStorage.getItem("bimafarma_user");
   try {
     return raw ? JSON.parse(raw) : null;
   } catch {
@@ -13,16 +13,6 @@ function getCachedUser() {
 }
 
 export function AuthProvider({ children }) {
-  // Bersihkan sisa token/user lama yang mungkin pernah tersimpan di localStorage
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.removeItem("bimafarma_token");
-      localStorage.removeItem("bimafarma_user");
-    } catch {
-      // ignore
-    }
-  }
-
   // Ambil snapshot user dari cache agar render instan tanpa jeda blank screen
   const [user, setUser] = useState(getCachedUser);
   const [loading, setLoading] = useState(() => isLoggedIn() && !getCachedUser());
@@ -34,18 +24,28 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Sinkronisasi sesi dengan server di latar belakang jika ada token aktif di sessionStorage
+    // Sinkronisasi sesi dengan server di latar belakang jika ada token aktif
     getMe()
       .then((u) => {
         setUser(u);
-        sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+        try {
+          sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+          localStorage.setItem("bimafarma_user", JSON.stringify(u));
+        } catch {
+          // ignore
+        }
       })
       .catch((err) => {
         // HANYA hapus sesi jika server memberikan 401 eksplisit (token invalid/expired di database).
         if (err?.status === 401) {
           setUser(null);
           setToken(null);
-          sessionStorage.removeItem("bimafarma_user");
+          try {
+            sessionStorage.removeItem("bimafarma_user");
+            localStorage.removeItem("bimafarma_user");
+          } catch {
+            // ignore
+          }
         } else {
           console.warn("Sinkronisasi profil ditunda:", err?.message);
         }
@@ -56,7 +56,12 @@ export function AuthProvider({ children }) {
   async function login(username, password) {
     const u = await apiLogin(username, password);
     setUser(u);
-    sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+    try {
+      sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+      localStorage.setItem("bimafarma_user", JSON.stringify(u));
+    } catch {
+      // ignore
+    }
     setLoading(false);
     return u;
   }
@@ -67,8 +72,8 @@ export function AuthProvider({ children }) {
     } finally {
       setUser(null);
       setToken(null);
-      sessionStorage.removeItem("bimafarma_user");
       try {
+        sessionStorage.removeItem("bimafarma_user");
         localStorage.removeItem("bimafarma_user");
         localStorage.removeItem("bimafarma_token");
       } catch {
