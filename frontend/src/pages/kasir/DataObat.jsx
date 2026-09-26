@@ -57,36 +57,23 @@ export default function DataObat() {
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
-  // Kontrol ON / OFF visibilitas kolom margin di tabel (Admin yang mengontrol)
-  const [tampilkanMargin, setTampilkanMargin] = useState(() => {
-    const saved = localStorage.getItem("bima_tampilkan_margin_tabel");
-    // Default tampil (true) kecuali jika secara eksplisit diset false
-    return saved !== "false";
+  // Kontrol Sembunyikan: ON (Hilang) / OFF (Tampil) untuk Kasir & Admin
+  const [sembunyikan, setSembunyikan] = useState(() => {
+    const saved = localStorage.getItem("bima_mode_sembunyikan");
+    if (saved !== null) return saved === "true";
+    return false; // Default: OFF (tidak disembunyikan / kolom tampil)
   });
 
-  // Sinkronisasi status margin dari server database agar komputer kasir selalu sinkron dengan admin
-  useEffect(() => {
-    api("/pengaturan-margin")
-      .then((res) => {
-        if (res && typeof res.tampilkan_margin === "boolean") {
-          setTampilkanMargin(res.tampilkan_margin);
-          localStorage.setItem("bima_tampilkan_margin_tabel", res.tampilkan_margin ? "true" : "false");
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  function toggleMargin() {
-    if (!isAdmin) return; // HANYA ADMIN YANG DAPAT MENGONTROL MARGIN
-    const baru = !tampilkanMargin;
-    setTampilkanMargin(baru);
-    localStorage.setItem("bima_tampilkan_margin_tabel", baru ? "true" : "false");
-    // Simpan ke backend server agar semua perangkat kasir otomatis mengikuti
-    api("/pengaturan-margin", {
-      method: "POST",
-      body: JSON.stringify({ tampilkan_margin: baru }),
-    }).catch(() => {});
+  function toggleSembunyikan() {
+    setSembunyikan((prev) => {
+      const baru = !prev;
+      localStorage.setItem("bima_mode_sembunyikan", baru ? "true" : "false");
+      return baru;
+    });
   }
+
+  // Kolom margin tampil saat mode sembunyikan tidak aktif
+  const tampilkanMargin = !sembunyikan;
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -619,51 +606,46 @@ export default function DataObat() {
             </button>
           </div>
 
-          {/* Tombol Kontrol Margin ON / OFF - HANYA ADMIN YANG DAPAT MELIHAT & MENGONTROL */}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={toggleMargin}
-              title={
-                tampilkanMargin
-                  ? "Status: Margin ON (Tampil di tabel kasir & admin). Klik untuk MENYEMBUNYIKAN kolom Margin dari Kasir (OFF)"
-                  : "Status: Margin OFF (Disembunyikan dari tabel). Klik untuk MENAMPILKAN kembali kolom Margin (ON)"
-              }
+          {/* Tombol Kontrol: Sembunyikan (Bisa digunakan oleh Kasir maupun Admin, aman & tidak vulgar) */}
+          <button
+            type="button"
+            onClick={toggleSembunyikan}
+            title={
+              sembunyikan
+                ? "Mode Sembunyikan aktif (kolom disembunyikan). Klik untuk MENAMPILKAN kembali (OFF)"
+                : "Klik untuk MENYEMBUNYIKAN kolom (ON)"
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: sembunyikan ? "#F1F5F9" : "var(--surface)",
+              border: sembunyikan ? "1.5px solid #64748B" : "1.5px solid var(--line)",
+              color: sembunyikan ? "#1E293B" : "var(--ink)",
+              padding: "4px 10px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <span style={{ fontSize: 13 }}>{sembunyikan ? "🙈" : "👁️"}</span>
+            <span style={{ fontSize: 11.5 }}>Sembunyikan:</span>
+            <span
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: tampilkanMargin ? "#ECFDF5" : "#FEF2F2",
-                border: tampilkanMargin ? "1.5px solid #10B981" : "1.5px solid #EF4444",
-                color: tampilkanMargin ? "#065F46" : "#991B1B",
-                padding: "4px 10px",
+                background: sembunyikan ? "#475569" : "#E2E8F0",
+                color: sembunyikan ? "#fff" : "#475569",
+                padding: "1px 6px",
                 borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                boxShadow: tampilkanMargin
-                  ? "0 1px 2px rgba(16, 185, 129, 0.15)"
-                  : "0 1px 2px rgba(239, 68, 68, 0.15)",
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: 0.3,
               }}
             >
-              <span style={{ fontSize: 13 }}>{tampilkanMargin ? "👁️" : "🙈"}</span>
-              <span style={{ fontSize: 11.5 }}>MARGIN KASIR:</span>
-              <span
-                style={{
-                  background: tampilkanMargin ? "#10B981" : "#EF4444",
-                  color: "#fff",
-                  padding: "1.5px 7px",
-                  borderRadius: 10,
-                  fontSize: 10,
-                  fontWeight: 900,
-                  letterSpacing: 0.3,
-                }}
-              >
-                {tampilkanMargin ? "ON (TAMPIL)" : "OFF (HILANG)"}
-              </span>
-            </button>
-          )}
+              {sembunyikan ? "ON" : "OFF"}
+            </span>
+          </button>
 
           <TombolExportGroup
             onCetakPdf={handleCetakDataObat}
@@ -1130,34 +1112,32 @@ export default function DataObat() {
                   </span>
                 </div>
               </th>
-              {/* Kolom Margin (Bisa dimatikan / OFF oleh Admin sehingga Stok langsung bergeser ke kanan Harga Jual) */}
+              {/* Kolom Margin (Bisa disembunyikan via tombol Sembunyikan) */}
               {tampilkanMargin && (
                 <th style={{ width: 85, minWidth: 85, textAlign: "center", padding: "7px 4px" }}>
                   <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
                     <span>Margin %</span>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMargin();
-                        }}
-                        title="Klik untuk MENYEMBUNYIKAN kolom Margin dari Kasir (OFF)"
-                        style={{
-                          background: "#FEF2F2",
-                          border: "1px solid #FECACA",
-                          color: "#DC2626",
-                          borderRadius: 4,
-                          padding: "1px 4px",
-                          fontSize: 9,
-                          cursor: "pointer",
-                          fontWeight: 800,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        ✕ OFF
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSembunyikan();
+                      }}
+                      title="Klik untuk menyembunyikan kolom ini"
+                      style={{
+                        background: "#F1F5F9",
+                        border: "1px solid #CBD5E1",
+                        color: "#475569",
+                        borderRadius: 4,
+                        padding: "1px 4px",
+                        fontSize: 9,
+                        cursor: "pointer",
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 </th>
               )}
