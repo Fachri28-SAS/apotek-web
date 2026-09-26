@@ -3,7 +3,17 @@
  * supaya header Authorization otomatis terpasang di mana pun, dan
  * base URL cuma perlu diubah di satu tempat kalau nanti pindah hosting.
  */
-const BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const BASE_URL = (() => {
+  if (typeof window !== "undefined") {
+    // Di domain produksi (baik akses apotekbimafarma.com maupun www.apotekbimafarma.com atau vercel.app)
+    // SELALU gunakan https://www.apotekbimafarma.com/api agar tidak terkena 308 Permanent Redirect dari Vercel
+    // yang menyebabkan browser memunculkan "Failed to fetch" pada form Login & data katalog
+    if (window.location.hostname.includes("apotekbimafarma.com") || window.location.hostname.includes("vercel.app")) {
+      return "https://www.apotekbimafarma.com/api";
+    }
+  }
+  return import.meta.env.VITE_API_URL || "/api";
+})();
 
 function getToken() {
   if (typeof window === "undefined") return null;

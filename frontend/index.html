@@ -3,6 +3,11 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    if (window.location.hostname === "apotekbimafarma.com") {
+      window.location.replace("https://www.apotekbimafarma.com" + window.location.pathname + window.location.search + window.location.hash);
+    }
+  </script>
   <meta name="google" content="notranslate" />
 
   <link rel="icon" href="/favicon.ico" sizes="48x48" />
