@@ -77,7 +77,11 @@ export default function LaporanPengeluaran() {
     ])
       .then(([pengeluaranData, laporanData]) => {
         const labaKotor = laporanData?.kpi?.total_pendapatan ?? pengeluaranData?.kpi?.total_laba_penjualan ?? 0;
-        const marginPersen = laporanData?.kpi?.margin_persen ?? null;
+        const totalModal = Number(laporanData?.kpi?.total_modal || 0);
+        // Rumus client: Total Pendapatan / Total Modal * 100%
+        const marginPersen = totalModal > 0
+          ? Number(((labaKotor / totalModal) * 100).toFixed(1))
+          : (laporanData?.kpi?.margin_persen ?? null);
         const totalGaji = pengeluaranData?.kpi?.total_gaji ?? 0;
         const totalOperasionalNonGaji = Math.max(0, (pengeluaranData?.kpi?.total_operasional ?? 0) - totalGaji);
         const totalBeban = pengeluaranData?.kpi?.total_operasional ?? 0;
@@ -89,6 +93,7 @@ export default function LaporanPengeluaran() {
             ...pengeluaranData?.kpi,
             total_laba_penjualan: labaKotor,
             total_pendapatan: labaKotor,
+            total_modal: totalModal,
             margin_persen: marginPersen,
             total_gaji: totalGaji,
             total_operasional_non_gaji: totalOperasionalNonGaji,
@@ -421,8 +426,8 @@ export default function LaporanPengeluaran() {
                 {loading ? "…" : rupiah(data?.kpi?.total_pendapatan ?? data?.kpi?.total_laba_penjualan ?? 0)}
               </span>
               {!loading && data?.kpi?.margin_persen != null && (
-                <span className={"kpi-margin-badge " + (data.kpi.margin_persen >= 15 ? "" : "warning")}>
-                  {data.kpi.margin_persen}% Margin
+                <span className={"kpi-margin-badge " + (data.kpi.margin_persen >= 25 ? "" : data.kpi.margin_persen >= 20 ? "warning" : "danger")}>
+                  +{data.kpi.margin_persen}% Margin
                 </span>
               )}
             </div>
