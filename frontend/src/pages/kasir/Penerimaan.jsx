@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
+import { useAuth } from "../../context/useAuth";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
 import SearchObatPenerimaan from "./komponen/SearchObatPenerimaan";
 import TambahSupplierModal from "./komponen/TambahSupplierModal";
@@ -27,6 +29,8 @@ function badgeHarga(baru, sebelumnya) {
 }
 
 export default function Penerimaan() {
+  const { user } = useAuth();
+
   // ---------- Panel 1: Faktur ----------
   const [supplierList, setSupplierList] = useState([]);
   const [supplierId, setSupplierId] = useState("");
@@ -35,8 +39,18 @@ export default function Penerimaan() {
   const [tanggalTerima, setTanggalTerima] = useState(new Date().toISOString().slice(0, 10));
   const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahHari(new Date(), 30));
   const [isPkp, setIsPkp] = useState(false);
+  const [persenPpn, setPersenPpn] = useState(() => {
+    const saved = localStorage.getItem("bima_default_persen_ppn");
+    return saved !== null && !isNaN(Number(saved)) ? Number(saved) : 11;
+  });
   const [modalSupplierOpen, setModalSupplierOpen] = useState(false);
   const [fakturTerbuka, setFakturTerbuka] = useState(true);
+
+  function handleUbahPersenPpn(val) {
+    const num = Math.max(0, Math.min(100, Number(val) || 0));
+    setPersenPpn(num);
+    localStorage.setItem("bima_default_persen_ppn", String(num));
+  }
 
   // ---------- Panel 2: Daftar Item ----------
   const [items, setItems] = useState([]);
@@ -122,7 +136,7 @@ export default function Penerimaan() {
   const subtotal = items.reduce((s, it) => s + it.qty * it.harga_beli - Number(it.diskon || 0), 0);
   const diskonTotal = Number(diskonFakturRp || 0) + Math.round(subtotal * Number(diskonFakturPersen || 0) / 100);
   const subtotalSetelahDiskon = Math.max(subtotal - diskonTotal, 0);
-  const ppn = isPkp ? Math.round(subtotalSetelahDiskon * 0.11) : 0;
+  const ppn = isPkp ? Math.round(subtotalSetelahDiskon * (Number(persenPpn || 0) / 100)) : 0;
   const totalTagihan = subtotalSetelahDiskon + ppn;
 
   async function simpan() {
@@ -159,6 +173,17 @@ export default function Penerimaan() {
             harga_jual_baru: Number(it.harga_jual_baru ?? it.harga_jual_referensi),
           })),
         }),
+      });
+
+      // Catat ke riwayat perubahan (Audit Log)
+      tambahLogPerubahan({
+        kategori: "Penerimaan Barang",
+        aksi: "Input Faktur",
+        item: `Faktur ${noFaktur}`,
+        sebelum: "-",
+        sesudah: `Total: ${rupiah(totalTagihan)} (PPN ${isPkp ? `${persenPpn}%` : "0%"} = ${rupiah(ppn)})`,
+        keterangan: `Supplier: ${namaSupplier}, ${items.length} item obat diterima.`,
+        oleh: user?.nama || user?.username || "Admin",
       });
 
       setSukses(`Faktur ${noFaktur} berhasil disimpan. Stok & harga obat sudah diperbarui.`);
@@ -205,7 +230,7 @@ export default function Penerimaan() {
                 {namaSupplier ? `• ${namaSupplier}` : "• (Supplier belum dipilih)"}
                 {noFaktur ? ` • No: ${noFaktur}` : ""}
                 {tanggalJatuhTempo ? ` • Tempo: ${tanggalJatuhTempo}` : ""}
-                {isPkp ? " • PKP 11%" : " • Non PKP"}
+                {isPkp ? ` • PKP ${persenPpn}%` : " • Non PKP"}
               </span>
             )}
           </div>
@@ -317,8 +342,11 @@ export default function Penerimaan() {
               </div>
 
               <div className="payment-field" style={{ margin: 0 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, marginBottom: 3 }}>PKP Supplier</label>
-                <div className="metode-chips" style={{ gap: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, margin: 0 }}>PKP Supplier</label>
+                  <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>Tarif PPN: <strong>{persenPpn}%</strong></span>
+                </div>
+                <div className="metode-chips" style={{ gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                   <button
                     type="button"
                     className={`metode-chip ${!isPkp ? "active" : ""}`}
@@ -333,8 +361,47 @@ export default function Penerimaan() {
                     onClick={() => setIsPkp(true)}
                     style={{ padding: "5px 14px", fontSize: 12 }}
                   >
-                    PKP (PPN 11%)
+                    PKP (PPN {persenPpn}%)
                   </button>
+
+                  {/* Input fleksibel untuk ubah tarif PPN jika sewaktu-waktu ada kenaikan */}
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "3px 8px",
+                      background: "#FAF5FF",
+                      border: "1px solid #E9D5FF",
+                      borderRadius: 8,
+                      marginLeft: 2,
+                    }}
+                    title="Edit persentase tarif PPN sewaktu-waktu ada kenaikan (contoh: 11% menjadi 12%)"
+                  >
+                    <label style={{ fontSize: 11, fontWeight: 600, color: "var(--magenta-dark)", margin: 0 }}>
+                      Tarif PPN:
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      value={persenPpn}
+                      onChange={(e) => handleUbahPersenPpn(e.target.value)}
+                      style={{
+                        width: 48,
+                        padding: "3px 4px",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        textAlign: "center",
+                        borderRadius: 6,
+                        border: "1px solid var(--magenta)",
+                        background: "#fff",
+                        color: "var(--magenta-dark)",
+                      }}
+                    />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--magenta-dark)" }}>%</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -477,7 +544,7 @@ export default function Penerimaan() {
 
               <div className="payment-row"><span>Subtotal Setelah Diskon</span><span>{rupiah(subtotalSetelahDiskon)}</span></div>
               <div className="payment-row"><span>Sebelum Pajak (DPP)</span><span>{rupiah(subtotalSetelahDiskon)}</span></div>
-              <div className="payment-row"><span>Total Pajak (PPN {isPkp ? "11%" : "0%"})</span><span>{rupiah(ppn)}</span></div>
+              <div className="payment-row"><span>Total Pajak (PPN {isPkp ? `${persenPpn}%` : "0%"})</span><span>{rupiah(ppn)}</span></div>
               <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(totalTagihan)}</strong></div>
 
               <button className="payment-submit" style={{ marginTop: 16 }} onClick={simpan} disabled={loading}>

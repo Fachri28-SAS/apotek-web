@@ -3,6 +3,7 @@ import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
 import ObatModal from "./komponen/ObatModal";
 import SampahModal from "./komponen/SampahModal";
@@ -197,6 +198,15 @@ export default function DataObat() {
   async function hapusObat(obat) {
     if (!confirm(`Hapus "${obat.nama}"?`)) return;
     await api(`/obat/${obat.id}`, { method: "DELETE" });
+    tambahLogPerubahan({
+      kategori: "Katalog Obat",
+      aksi: "Hapus Obat",
+      item: obat.nama,
+      sebelum: `Stok: ${obat.stok || 0}`,
+      sesudah: "Dihapus ke Sampah",
+      keterangan: "Obat dihapus oleh petugas",
+      oleh: user?.nama || user?.username || "Admin",
+    });
     muatUlang();
   }
 
@@ -221,6 +231,7 @@ export default function DataObat() {
       return;
     }
 
+    const hargaLama = Number(targetSatuan.harga_jual || 0);
     const key = `${obat.id}_${targetSatuan.id}`;
     setSavingKey(key);
 
@@ -256,6 +267,17 @@ export default function DataObat() {
         sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
         localStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
       } catch {}
+
+      // Catat ke riwayat perubahan (Audit Log)
+      tambahLogPerubahan({
+        kategori: "Katalog Obat",
+        aksi: "Ganti Harga Obat",
+        item: `${obat.nama} (${targetSatuan.nama_satuan})`,
+        sebelum: rupiah(hargaLama),
+        sesudah: rupiah(hargaBaru),
+        keterangan: `Ubah harga jual satuan ${targetSatuan.nama_satuan}`,
+        oleh: user?.nama || user?.username || "Admin",
+      });
 
       setEditingKey(null);
       setNotifSukses(`✓ Harga ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
@@ -314,6 +336,15 @@ export default function DataObat() {
           );
         }
       }
+      tambahLogPerubahan({
+        kategori: "Katalog Obat",
+        aksi: "Auto Margin 25%",
+        item: `${obatBermasalahMargin.length} Obat`,
+        sebelum: "Margin tipis / belum bulat 500",
+        sesudah: "Margin 25% kelipatan Rp 500",
+        keterangan: "Penyesuaian massal harga jual obat",
+        oleh: user?.nama || user?.username || "Admin",
+      });
       alert(`Sukses! ${obatBermasalahMargin.length} obat telah diperbarui menjadi margin 25% dan kelipatan 500/1.000.`);
       muatUlang();
     } catch (err) {
@@ -327,6 +358,7 @@ export default function DataObat() {
     const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
     const beliBulat = Math.round(Number(def?.harga_beli || 0));
     const autoJual = hitungHargaJualOtomatis(beliBulat, 25);
+    const jualLama = Number(def?.harga_jual || 0);
 
     if (
       !window.confirm(
@@ -353,6 +385,15 @@ export default function DataObat() {
       await api(`/obat/${obat.id}`, {
         method: "PUT",
         body: JSON.stringify({ nama: obat.nama, satuan: satuanBaru }),
+      });
+      tambahLogPerubahan({
+        kategori: "Katalog Obat",
+        aksi: "Auto Margin 25%",
+        item: obat.nama,
+        sebelum: rupiah(jualLama),
+        sesudah: rupiah(autoJual),
+        keterangan: `Penyesuaian otomatis margin 25% bulat Rp 500`,
+        oleh: user?.nama || user?.username || "Admin",
       });
       muatUlang();
     } catch (err) {

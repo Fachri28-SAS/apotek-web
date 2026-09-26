@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
 import DetailBatchModal from "./komponen/DetailBatchModal";
 
@@ -11,6 +13,7 @@ function getTglYmd(d) {
 }
 
 export default function StokOpname() {
+  const { user } = useAuth();
   const tglSekarang = getTglYmd(new Date());
   const [items, setItems] = useState([]);
   const [loadingObat, setLoadingObat] = useState(true);
@@ -179,6 +182,16 @@ export default function StokOpname() {
         )
       );
 
+      tambahLogPerubahan({
+        kategori: "Stok Opname",
+        aksi: "Penyesuaian Stok",
+        item: it.nama,
+        sebelum: `Stok: ${it.stok_sistem} ${it.satuan_dasar}`,
+        sesudah: `Stok: ${stokBaru} ${it.satuan_dasar}`,
+        keterangan: it.keterangan || "Penyesuaian stok fisik",
+        oleh: user?.nama || user?.username || "Admin",
+      });
+
       setSukses(`✓ Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
       muatRiwayat();
     } catch (err) {
@@ -210,6 +223,17 @@ export default function StokOpname() {
           })),
         }),
       });
+
+      tambahLogPerubahan({
+        kategori: "Stok Opname",
+        aksi: "Penyesuaian Massal",
+        item: `${itemTerisi.length} Obat`,
+        sebelum: "Stok sebelumnya",
+        sesudah: "Stok fisik disesuaikan",
+        keterangan: `Stok opname massal ${itemTerisi.length} item`,
+        oleh: user?.nama || user?.username || "Admin",
+      });
+
       setSukses(
         `Berhasil menyesuaikan ${itemTerisi.length} obat. Stok sistem & mutasi telah diperbarui.`
       );

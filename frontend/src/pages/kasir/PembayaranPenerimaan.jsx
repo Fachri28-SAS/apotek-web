@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { cetakBukuBayarFaktur } from "../../utils/cetakLaporanPenerimaan";
 import { exportExcel, exportWord, cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../utils/exportDokumen";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
 import TombolExportGroup from "./komponen/TombolExportGroup";
@@ -21,6 +23,7 @@ const awalBulanDefault = `${now.getFullYear()}-${String(now.getMonth() + 1).padS
 const hariIniDefault = getTglYmd(now);
 
 export default function PembayaranPenerimaan() {
+  const { user } = useAuth();
   const [daftar, setDaftar] = useState([]);
   const [dariTanggal, setDariTanggal] = useState(awalBulanDefault);
   const [sampaiTanggal, setSampaiTanggal] = useState(hariIniDefault);
@@ -81,6 +84,19 @@ export default function PembayaranPenerimaan() {
     setLoadingToggle(true);
     try {
       const res = await api(`/penerimaan/${konfirmasiBayar.id}/toggle-bayar`, { method: "PUT" });
+      const statusBaru = res.penerimaan.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
+      const statusLama = konfirmasiBayar.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
+
+      tambahLogPerubahan({
+        kategori: "Penerimaan Barang",
+        aksi: "Ubah Status Bayar",
+        item: `Faktur ${konfirmasiBayar.no_faktur}`,
+        sebelum: statusLama,
+        sesudah: statusBaru,
+        keterangan: `Supplier: ${konfirmasiBayar.nama_supplier}, Total: ${rupiah(konfirmasiBayar.total)}`,
+        oleh: user?.nama || user?.username || "Admin",
+      });
+
       setDaftar((prev) =>
         prev.map((it) =>
           it.id === konfirmasiBayar.id
