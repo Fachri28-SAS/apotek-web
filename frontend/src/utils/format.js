@@ -27,19 +27,22 @@ export function hitungHargaJualOtomatis(hargaBeli, persenMargin = 25) {
 }
 
 /**
- * Hitung persentase margin laba kotor: (Jual - Beli) / Jual * 100
+ * Hitung persentase margin laba atas modal/harga beli:
+ * Pendapatan = Jual - Beli
+ * Persentase = (Pendapatan / Beli) * 100
+ * Contoh: Beli 75.000, Jual 100.000 -> (25.000 / 75.000) * 100 = 33.3%
  */
 export function hitungMarginPersen(beli, jual) {
   const hJual = Number(jual || 0);
   const hBeli = Number(beli || 0);
-  if (hJual <= 0) return null;
-  return Number((((hJual - hBeli) / hJual) * 100).toFixed(1));
+  if (hBeli <= 0) return null;
+  return Number((((hJual - hBeli) / hBeli) * 100).toFixed(1));
 }
 
 /**
  * Status alert warna margin:
- * - >= 20%: Hijau (Aman / Sehat)
- * - 0% s/d < 20%: Kuning (Peringatan / Margin Tipis)
+ * - >= 25%: Hijau (Aman / Sehat, standar apotek 33.3%)
+ * - 0% s/d < 25%: Kuning (Peringatan / Margin Tipis)
  * - < 0%: Merah (Bahaya / Jual Rugi!)
  */
 export function getStatusMargin(marginPct) {
@@ -49,8 +52,8 @@ export function getStatusMargin(marginPct) {
   if (marginPct < 0) {
     return { status: "rugi", warna: "merah", teks: "Rugi", label: `${marginPct}% ⛔ Rugi` };
   }
-  if (marginPct < 20) {
-    return { status: "tipis", warna: "kuning", teks: "Tipis", label: `${marginPct}% ⚠️ Tipis` };
+  if (marginPct < 25) {
+    return { status: "tipis", warna: "kuning", teks: "Tipis", label: `+${marginPct}% ⚠️ Tipis` };
   }
-  return { status: "aman", warna: "hijau", teks: "Aman", label: `${marginPct}%` };
+  return { status: "aman", warna: "hijau", teks: "Aman", label: `+${marginPct}%` };
 }

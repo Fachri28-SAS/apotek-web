@@ -91,27 +91,11 @@ export default function DataObat() {
 
   const totalPotensiLaba = Math.max(0, totalNilaiJualKeseluruhan - totalNilaiKeseluruhan);
 
-  // Rata-rata margin berbobot dari harga jual (Laba / Harga Jual * 100 -> Standar Apotek 25%)
-  const rataRataMarginBobot = totalNilaiJualKeseluruhan > 0
-    ? ((totalPotensiLaba / totalNilaiJualKeseluruhan) * 100)
-    : 0;
-
-  // Persentase Laba atas Modal / Markup (Laba / Modal Beli * 100 -> ~33.3%)
-  const persenLabaAtasModal = totalNilaiKeseluruhan > 0
+  // Rumus Klien: (Total Jual - Total Beli) / Total Beli * 100% = Pendapatan / Total Beli * 100% (~33.3%)
+  const persenMarginKeseluruhan = totalNilaiKeseluruhan > 0
     ? ((totalPotensiLaba / totalNilaiKeseluruhan) * 100)
     : 0;
 
-  // Rata-rata persentase margin per obat
-  const obatDenganMargin = daftar.map((o) => {
-    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
-    return hitungMarginPersen(def?.harga_beli, def?.harga_jual);
-  }).filter((m) => m !== null && !isNaN(m));
-
-  const rataRataMarginItem = obatDenganMargin.length > 0
-    ? (obatDenganMargin.reduce((a, b) => a + b, 0) / obatDenganMargin.length)
-    : 0;
-
-  const persenMarginTampil = rataRataMarginBobot > 0 ? rataRataMarginBobot : rataRataMarginItem;
   const rataRataNilaiPerObat = daftar.length > 0 ? Math.round(totalNilaiKeseluruhan / daftar.length) : 0;
 
   function formatPersen(nilai, total) {
@@ -524,16 +508,6 @@ export default function DataObat() {
             <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
               Total Besar Uang (Modal Stok)
             </span>
-            <span style={{
-              background: "#7C3AED",
-              color: "#fff",
-              fontSize: 10.5,
-              fontWeight: 800,
-              padding: "2px 8px",
-              borderRadius: 12
-            }} title="Keuntungan atas Modal: Laba ÷ Modal × 100%">
-              +{persenLabaAtasModal.toFixed(1)}% Laba Modal
-            </span>
           </div>
           <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
             {rupiah(totalNilaiKeseluruhan)}
@@ -555,7 +529,7 @@ export default function DataObat() {
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 12, color: "#166534", fontWeight: 700 }}>
-              Rata-Rata Persentase Laba
+              Persentase Margin
             </span>
             <span style={{
               background: "#16A34A",
@@ -564,21 +538,17 @@ export default function DataObat() {
               fontWeight: 800,
               padding: "2px 7px",
               borderRadius: 12
-            }} title="Margin Penjualan: Laba ÷ Harga Jual × 100%">
-              Margin Jual: {persenMarginTampil.toFixed(1)}%
+            }}>
+              Margin Stok
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
             <span style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>
-              +{persenLabaAtasModal.toFixed(1)}%
-            </span>
-            <span style={{ fontSize: 11.5, color: "#166534", fontWeight: 700 }}>
-              dari Modal (Markup)
+              +{persenMarginKeseluruhan.toFixed(1)}%
             </span>
           </div>
-          <div style={{ fontSize: 11, color: "#166534", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
-            <span>Potensi Laba: <strong>+{rupiah(totalPotensiLaba)}</strong></span>
-            <span>Margin Apotek: <strong>{persenMarginTampil.toFixed(1)}%</strong></span>
+          <div style={{ fontSize: 11, color: "#166534" }}>
+            Potensi Pendapatan: <strong>+{rupiah(totalPotensiLaba)}</strong>
           </div>
         </div>
       </div>
