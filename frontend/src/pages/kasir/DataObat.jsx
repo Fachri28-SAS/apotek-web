@@ -455,103 +455,105 @@ export default function DataObat() {
         </div>
       )}
 
-      {/* Kartu Ringkasan Stok & Total Nilai Uang (Aset) */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: 12,
-        marginBottom: 16,
-      }}>
+      {/* Kartu Ringkasan Stok & Total Nilai Uang (Aset) - Khusus Admin (tidak tampil untuk Kasir) */}
+      {user?.role === "admin" && (
         <div style={{
-          background: "#fff",
-          border: "1px solid var(--line)",
-          borderRadius: 12,
-          padding: "12px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: 12,
+          marginBottom: 16,
         }}>
-          <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Obat Terdaftar</span>
-          <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
-            {daftar.length} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>jenis</small>
-          </span>
-        </div>
+          <div style={{
+            background: "#fff",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+          }}>
+            <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Obat Terdaftar</span>
+            <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
+              {daftar.length} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>jenis</small>
+            </span>
+          </div>
 
-        <div style={{
-          background: "#fff",
-          border: "1px solid var(--line)",
-          borderRadius: 12,
-          padding: "12px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
-        }}>
-          <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Fisik Stok</span>
-          <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
-            {totalFisikKeseluruhan.toLocaleString("id-ID")} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>unit</small>
-          </span>
-        </div>
+          <div style={{
+            background: "#fff",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+          }}>
+            <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Fisik Stok</span>
+            <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
+              {totalFisikKeseluruhan.toLocaleString("id-ID")} <small style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>unit</small>
+            </span>
+          </div>
 
-        <div style={{
-          background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
-          border: "1px solid #E9D5FF",
-          borderRadius: 12,
-          padding: "12px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
-              Total Besar Uang (Modal Stok)
+          <div style={{
+            background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
+            border: "1px solid #E9D5FF",
+            borderRadius: 12,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
+                Total Besar Uang (Modal Stok)
+              </span>
+            </div>
+            <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
+              {rupiah(totalNilaiKeseluruhan)}
+            </span>
+            <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+              Potensi Nilai Jual: <strong style={{ color: "var(--ink)" }}>{rupiah(totalNilaiJualKeseluruhan)}</strong>
             </span>
           </div>
-          <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
-            {rupiah(totalNilaiKeseluruhan)}
-          </span>
-          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-            Potensi Nilai Jual: <strong style={{ color: "var(--ink)" }}>{rupiah(totalNilaiJualKeseluruhan)}</strong>
-          </span>
-        </div>
 
-        <div style={{
-          background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)",
-          border: "1px solid #BBF7D0",
-          borderRadius: 12,
-          padding: "12px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          boxShadow: "0 1px 3px rgba(22, 163, 74, 0.06)"
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#166534", fontWeight: 700 }}>
-              Persentase Margin
-            </span>
-            <span style={{
-              background: "#16A34A",
-              color: "#fff",
-              fontSize: 10,
-              fontWeight: 800,
-              padding: "2px 7px",
-              borderRadius: 12
-            }}>
-              Margin Stok
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>
-              +{persenMarginKeseluruhan.toFixed(1)}%
-            </span>
-          </div>
-          <div style={{ fontSize: 11, color: "#166534" }}>
-            Potensi Pendapatan: <strong>+{rupiah(totalPotensiLaba)}</strong>
+          <div style={{
+            background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)",
+            border: "1px solid #BBF7D0",
+            borderRadius: 12,
+            padding: "12px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            boxShadow: "0 1px 3px rgba(22, 163, 74, 0.06)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "#166534", fontWeight: 700 }}>
+                Persentase Margin
+              </span>
+              <span style={{
+                background: "#16A34A",
+                color: "#fff",
+                fontSize: 10,
+                fontWeight: 800,
+                padding: "2px 7px",
+                borderRadius: 12
+              }}>
+                Margin Stok
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>
+                +{persenMarginKeseluruhan.toFixed(1)}%
+              </span>
+            </div>
+            <div style={{ fontSize: 11, color: "#166534" }}>
+              Potensi Pendapatan: <strong>+{rupiah(totalPotensiLaba)}</strong>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Banner Alert Margin Tipis / Rugi */}
       {obatBermasalahMargin.length > 0 && (
