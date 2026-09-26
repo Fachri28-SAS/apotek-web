@@ -60,18 +60,18 @@ export default function DataObat() {
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
-  // Deteksi obat dengan margin bermasalah (< 20%) ATAU harga jual belum genap kelipatan 500
+  // Deteksi obat dengan margin bermasalah (< 25%) ATAU harga jual belum genap kelipatan 500
   const obatBermasalahMargin = daftar.filter((o) => {
     return o.satuan?.some((s) => {
       const m = hitungMarginPersen(s.harga_beli, s.harga_jual);
       const j = Number(s.harga_jual || 0);
       const tidakBulat = j > 0 && j % 500 !== 0;
-      return (m !== null && m < 20) || tidakBulat;
+      return (m !== null && m < 25) || tidakBulat;
     });
   });
   const jumlahRugi = obatBermasalahMargin.filter((o) => {
     const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
-    return (hitungMarginPersen(def?.harga_beli, def?.harga_jual) || 0) < 0;
+    return (hitungMarginPersen(def?.harga_beli, def?.harga_jual) || 0) < 20;
   }).length;
   const jumlahTipis = obatBermasalahMargin.length - jumlahRugi;
 
@@ -559,12 +559,12 @@ export default function DataObat() {
           <div className="alert-text">
             <span style={{ fontSize: 20 }}>⚠️</span>
             <div>
-              <strong>Peringatan Margin:</strong> Ditemukan <strong>{obatBermasalahMargin.length} obat</strong> dengan margin di bawah batas aman (20%).
+              <strong>Peringatan Margin:</strong> Ditemukan <strong>{obatBermasalahMargin.length} obat</strong> dengan margin di bawah batas aman (25%).
               {jumlahRugi > 0 ? (
-                <span style={{ color: "#DC2626", fontWeight: 800 }}> {jumlahRugi} obat jual rugi (harga beli &gt; harga jual)!</span>
+                <span style={{ color: "#DC2626", fontWeight: 800 }}> {jumlahRugi} obat margin rendah (&lt; 20%)!</span>
               ) : null}
               {jumlahTipis > 0 ? (
-                <span> {jumlahTipis} obat margin tipis (&lt; 20%).</span>
+                <span> {jumlahTipis} obat margin tipis (20% – 25%).</span>
               ) : null}
             </div>
           </div>

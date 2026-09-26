@@ -41,19 +41,35 @@ export function hitungMarginPersen(beli, jual) {
 
 /**
  * Status alert warna margin:
- * - >= 25%: Hijau (Aman / Sehat, standar apotek 33.3%)
- * - 0% s/d < 25%: Kuning (Peringatan / Margin Tipis)
- * - < 0%: Merah (Bahaya / Jual Rugi!)
+ * - >= 25%: Hijau (Aman)
+ * - 20% s/d < 25%: Kuning (Peringatan / Margin Tipis)
+ * - < 20%: Merah (Bahaya / Margin Rendah / Rugi)
  */
 export function getStatusMargin(marginPct) {
   if (marginPct === null || marginPct === undefined || isNaN(marginPct)) {
     return { status: "kosong", warna: "abu", teks: "-", label: "-" };
   }
-  if (marginPct < 0) {
-    return { status: "rugi", warna: "merah", teks: "Rugi", label: `${marginPct}% ⛔ Rugi` };
+  if (marginPct < 20) {
+    const isRugi = marginPct < 0;
+    return {
+      status: "rugi",
+      warna: "merah",
+      teks: isRugi ? "Rugi" : "Rendah",
+      label: isRugi ? `${marginPct}% ⛔ Rugi` : `${marginPct >= 0 ? `+${marginPct}%` : `${marginPct}%`} ⛔ Rendah`
+    };
   }
   if (marginPct < 25) {
-    return { status: "tipis", warna: "kuning", teks: "Tipis", label: `+${marginPct}% ⚠️ Tipis` };
+    return {
+      status: "tipis",
+      warna: "kuning",
+      teks: "Tipis",
+      label: `+${marginPct}% ⚠️ Tipis`
+    };
   }
-  return { status: "aman", warna: "hijau", teks: "Aman", label: `+${marginPct}%` };
+  return {
+    status: "aman",
+    warna: "hijau",
+    teks: "Aman",
+    label: `+${marginPct}%`
+  };
 }
