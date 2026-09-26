@@ -239,7 +239,7 @@ export default function DataObat() {
 
     try {
       const satuanBaru = (obat.satuan || []).map((s) => {
-        const isTarget = s.id === targetSatuan.id;
+        const isTarget = String(s.id) === String(targetSatuan.id) || (s.nama_satuan === targetSatuan.nama_satuan);
         return {
           id: s.id,
           nama_satuan: s.nama_satuan,
@@ -274,13 +274,15 @@ export default function DataObat() {
       const namaAkun = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkun,
-        role_akun: user?.role || "kasir",
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
         kategori: "Ganti Harga Obat",
         aksi: "Ubah",
         judul: `${obat.nama} (${targetSatuan.nama_satuan})`,
         sebelum: rupiah(hargaLama),
         sesudah: rupiah(hargaBaru),
-        keterangan: `Ubah harga jual satuan ${targetSatuan.nama_satuan}`,
+        keterangan: hargaLama !== hargaBaru
+          ? `Ubah harga jual satuan ${targetSatuan.nama_satuan} via klik ceklis (${namaAkun})`
+          : `Simpan konfirmasi harga jual satuan ${targetSatuan.nama_satuan} via klik ceklis (${namaAkun})`,
       });
 
       setEditingKey(null);

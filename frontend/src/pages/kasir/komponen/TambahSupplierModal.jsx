@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { api } from "../../../lib/api";
+import { useAuth } from "../../../context/useAuth";
+import { tambahLogPerubahan } from "../../../lib/auditLog";
 
 export default function TambahSupplierModal({ supplierList = [], onClose, onSukses, onHapusSupplier }) {
+  const { user } = useAuth();
   const [tab, setTab] = useState("tambah"); // "tambah" | "daftar"
   const [nama, setNama] = useState("");
   const [isPkp, setIsPkp] = useState(false);
@@ -36,6 +39,18 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
         }),
       });
 
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Supplier",
+        aksi: "Tambah",
+        judul: nama.trim(),
+        sebelum: "-",
+        sesudah: isPkp ? "PKP" : "Non-PKP",
+        keterangan: `Tambah supplier baru via formulir (${namaAkun})`,
+      });
+
       onSukses(res);
       onClose();
     } catch (err) {
@@ -54,6 +69,19 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
 
     try {
       await api(`/suppliers/${s.id}`, { method: "DELETE" });
+
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Supplier",
+        aksi: "Hapus",
+        judul: s.nama,
+        sebelum: "Aktif",
+        sesudah: "Dihapus",
+        keterangan: `Hapus supplier dari daftar pilihan (${namaAkun})`,
+      });
+
       onHapusSupplier(s.id);
       setPesan(`Supplier "${s.nama}" berhasil dihapus.`);
     } catch (err) {

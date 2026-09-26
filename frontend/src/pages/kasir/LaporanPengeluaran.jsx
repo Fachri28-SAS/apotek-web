@@ -3,6 +3,7 @@ import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import { useAuth } from "../../context/useAuth";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
 import TombolExportGroup from "./komponen/TombolExportGroup";
 
@@ -136,6 +137,19 @@ export default function LaporanPengeluaran() {
           nominal: nominalNum,
         }),
       });
+
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Pengeluaran",
+        aksi: "Tambah",
+        judul: form.nama_pengeluaran,
+        sebelum: "-",
+        sesudah: rupiah(nominalNum),
+        keterangan: `Input pengeluaran kategori ${form.kategori} (${namaAkun})`,
+      });
+
       setModalBuka(false);
       setForm({
         tanggal: new Date().toISOString().slice(0, 10),
@@ -157,6 +171,19 @@ export default function LaporanPengeluaran() {
     if (!window.confirm(`Yakin ingin menghapus catatan pengeluaran "${nama}"?`)) return;
     try {
       await api(`/pengeluaran/${id}`, { method: "DELETE" });
+
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Pengeluaran",
+        aksi: "Hapus",
+        judul: nama || "Catatan Pengeluaran",
+        sebelum: "Tercatat",
+        sesudah: "Dihapus",
+        keterangan: `Hapus catatan pengeluaran operasional (${namaAkun})`,
+      });
+
       muatData();
     } catch (err) {
       alert("Gagal menghapus: " + err.message);

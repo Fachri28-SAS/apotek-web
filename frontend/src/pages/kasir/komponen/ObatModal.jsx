@@ -189,32 +189,64 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
           }),
         });
 
-        const defLama = obat?.satuan?.find((s) => s.is_default) || obat?.satuan?.[0];
-        const defBaru = satuanDikirim[0];
-        const hargaJualLama = Number(defLama?.harga_jual || 0);
-        const hargaJualBaru = Number(defBaru?.harga_jual || 0);
+        // Deteksi perubahan harga
+        const rincianHargaLama = (obat?.satuan || [])
+          .map((s) => `${s.nama_satuan}: Beli Rp${Number(s.harga_beli || 0).toLocaleString("id-ID")}, Jual Rp${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
+          .join(" | ");
+        const rincianHargaBaru = satuanDikirim
+          .map((s) => `${s.nama_satuan}: Beli Rp${Number(s.harga_beli || 0).toLocaleString("id-ID")}, Jual Rp${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
+          .join(" | ");
 
-        const rincianLama = (obat?.satuan || [])
-          .map((s) => `${s.nama_satuan}: Rp ${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
-          .join(", ");
-        const rincianBaru = satuanDikirim
-          .map((s) => `${s.nama_satuan}: Rp ${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
-          .join(", ");
+        const adaUbahHarga = rincianHargaLama !== rincianHargaBaru;
 
-        const adaUbahHarga = rincianLama !== rincianBaru;
+        // Deteksi perubahan data identitas/detail obat
+        const perubahans = [];
+        if (nama.trim() !== (obat.nama || "").trim()) perubahans.push(`Nama: "${obat.nama}" ➔ "${nama}"`);
+        if (kemasan.trim() !== (obat.kemasan || "").trim()) perubahans.push(`Kemasan: "${obat.kemasan || "-"}" ➔ "${kemasan}"`);
+        if ((nomorBatch || "").trim() !== (obat.nomor_batch || "").trim()) perubahans.push(`Batch: "${obat.nomor_batch || "-"}" ➔ "${nomorBatch || "-"}"`);
+        if ((tanggalExp || "") !== (obat.tanggal_exp?.slice(0, 10) || "")) perubahans.push(`Exp: "${obat.tanggal_exp?.slice(0, 10) || "-"}" ➔ "${tanggalExp || "-"}"`);
+        if (Number(stokMinimum) !== Number(obat.stok_minimum ?? 10)) perubahans.push(`Stok Min: ${obat.stok_minimum} ➔ ${stokMinimum}`);
+        if (aktifDijual !== (obat.aktif_dijual ?? true)) perubahans.push(`Status Jual: ${obat.aktif_dijual ? "Aktif" : "Nonaktif"} ➔ ${aktifDijual ? "Aktif" : "Nonaktif"}`);
 
-        tambahLogPerubahan({
-          nama_akun: namaAkun,
-          role_akun: roleAkun,
-          kategori: "Ganti Harga Obat",
-          aksi: "Ubah",
-          judul: `${nama} (${satuanDikirim.map((s) => s.nama_satuan).join("/")})`,
-          sebelum: rincianLama || `Rp ${hargaJualLama.toLocaleString("id-ID")}`,
-          sesudah: rincianBaru || `Rp ${hargaJualBaru.toLocaleString("id-ID")}`,
-          keterangan: adaUbahHarga
-            ? `Ubah harga obat via formulir edit (${namaAkun})`
-            : `Pembaruan data obat via formulir edit (${namaAkun})`,
-        });
+        if (adaUbahHarga) {
+          tambahLogPerubahan({
+            nama_akun: namaAkun,
+            role_akun: roleAkun,
+            kategori: "Ganti Harga Obat",
+            aksi: "Ubah",
+            judul: `${nama} (${satuanDikirim.map((s) => s.nama_satuan).join("/")})`,
+            sebelum: rincianHargaLama || "-",
+            sesudah: rincianHargaBaru || "-",
+            keterangan: `Penyesuaian harga obat via formulir edit (${namaAkun})`,
+          });
+        }
+
+        if (perubahans.length > 0) {
+          tambahLogPerubahan({
+            nama_akun: namaAkun,
+            role_akun: roleAkun,
+            kategori: "Katalog Obat",
+            aksi: "Ubah Data",
+            judul: nama,
+            sebelum: "Data sebelumnya",
+            sesudah: perubahans.join("; "),
+            keterangan: `Edit rincian obat via formulir (${namaAkun})`,
+          });
+        }
+
+        // Jika tidak ada perubahan signifikan terdeteksi tapi user klik Simpan
+        if (!adaUbahHarga && perubahans.length === 0) {
+          tambahLogPerubahan({
+            nama_akun: namaAkun,
+            role_akun: roleAkun,
+            kategori: "Katalog Obat",
+            aksi: "Ubah Data",
+            judul: nama,
+            sebelum: "Tersimpan",
+            sesudah: "Disimpan ulang",
+            keterangan: `Konfirmasi data obat via formulir edit (${namaAkun})`,
+          });
+        }
       } else {
         await api("/obat", {
           method: "POST",

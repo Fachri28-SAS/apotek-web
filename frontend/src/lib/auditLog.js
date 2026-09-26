@@ -1,6 +1,26 @@
 // Utility Manajemen Riwayat Perubahan (Audit Trail Log) untuk Apotek Bima Farma
 const STORAGE_KEY = "bima_audit_log_perubahan";
 
+let channel = null;
+try {
+  if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+    channel = new BroadcastChannel("bima_audit_log_channel");
+  }
+} catch {
+  // ignore
+}
+
+function notifyLogChanged() {
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent("bima_audit_log_updated"));
+    } catch {}
+    try {
+      channel?.postMessage({ type: "AUDIT_LOG_UPDATED", time: Date.now() });
+    } catch {}
+  }
+}
+
 export function getRiwayatPerubahan() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -8,7 +28,7 @@ export function getRiwayatPerubahan() {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
 
-    // Filter otomatis: hapus data dummy/palsu lama jika masih ada di cache browser
+    // Filter otomatis: bersihkan data mock lama
     const realLogs = parsed.filter(
       (item) =>
         item &&
@@ -67,6 +87,7 @@ export function tambahLogPerubahan({
 
     const updated = [itemBaru, ...list].slice(0, 1000); // Simpan hingga 1000 log riwayat terbaru
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    notifyLogChanged();
     return itemBaru;
   } catch (e) {
     console.warn("Gagal mencatat log perubahan:", e);
@@ -76,4 +97,5 @@ export function tambahLogPerubahan({
 
 export function hapusSemuaLog() {
   localStorage.removeItem(STORAGE_KEY);
+  notifyLogChanged();
 }

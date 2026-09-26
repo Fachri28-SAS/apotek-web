@@ -29,13 +29,53 @@ export default function RiwayatPerubahan() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
 
-  // Ambil log riwayat murni dari sistem tanpa mock/dummy data
+  // Ambil log riwayat murni dari sistem tanpa mock/dummy data secara realtime
   useEffect(() => {
     muatLog();
+
+    // 1. Dengarkan event internal tab yang sama
+    function onUpdated() {
+      muatLog();
+    }
+    window.addEventListener("bima_audit_log_updated", onUpdated);
+
+    // 2. Dengarkan perubahan storage dari tab/jendela lain
+    function onStorage(e) {
+      if (e.key === "bima_audit_log_perubahan" || !e.key) {
+        muatLog();
+      }
+    }
+    window.addEventListener("storage", onStorage);
+
+    // 3. Dengarkan broadcast channel jika didukung browser
+    let channel = null;
+    try {
+      if ("BroadcastChannel" in window) {
+        channel = new BroadcastChannel("bima_audit_log_channel");
+        channel.onmessage = () => muatLog();
+      }
+    } catch {}
+
+    // 4. Dengarkan saat user kembali ke tab ini (focus / visibility)
+    window.addEventListener("focus", onUpdated);
+    document.addEventListener("visibilitychange", onUpdated);
+
+    // 5. Polling halus tiap 2 detik untuk memastikan sinkronisasi sempurna
+    const interval = setInterval(muatLog, 2000);
+
+    return () => {
+      window.removeEventListener("bima_audit_log_updated", onUpdated);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", onUpdated);
+      document.removeEventListener("visibilitychange", onUpdated);
+      clearInterval(interval);
+      try {
+        channel?.close();
+      } catch {}
+    };
   }, []);
 
   function muatLog() {
-    setLoading(true);
     try {
       const realLogs = getRiwayatPerubahan();
       const sorted = [...realLogs].sort(
@@ -268,7 +308,7 @@ export default function RiwayatPerubahan() {
             🔄 Segarkan Log
           </button>
 
-          {logs.length > 0 && (
+          {isAdmin && logs.length > 0 && (
             <button
               type="button"
               onClick={handleBersihkanLog}

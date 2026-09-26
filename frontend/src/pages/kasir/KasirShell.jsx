@@ -30,7 +30,7 @@ const MENU = [
     icon: <><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></> },
   { label: "Kelola Pengguna", path: "/kasir/users", hanyaAdmin: true,
     icon: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></> },
-  { label: "Riwayat Perubahan", path: "/kasir/riwayat-perubahan", hanyaAdmin: true,
+  { label: "Riwayat Perubahan", path: "/kasir/riwayat-perubahan",
     icon: <><path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="9" /><path d="M3.05 11a9 9 0 011.5-3.5L7 10" /></> },
 ];
 

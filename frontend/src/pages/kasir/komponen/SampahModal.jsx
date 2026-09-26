@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
+import { useAuth } from "../../../context/useAuth";
+import { tambahLogPerubahan } from "../../../lib/auditLog";
 
 export default function SampahModal({ onClose, onSelesai }) {
+  const { user } = useAuth();
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -23,6 +26,19 @@ export default function SampahModal({ onClose, onSelesai }) {
     try {
       await api(`/obat/${obat.id}/pulihkan`, { method: "POST" });
       setDaftar((prev) => prev.filter((o) => o.id !== obat.id));
+
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Katalog Obat",
+        aksi: "Pulihkan",
+        judul: obat.nama,
+        sebelum: "Di Sampah",
+        sesudah: "Dipulihkan Aktif",
+        keterangan: `Obat dipulihkan dari sampah (${namaAkun})`,
+      });
+
       onSelesai(); // refresh tabel Data Obat utama, obat ini harus muncul lagi di situ
     } catch (err) {
       setError(err.message);
@@ -38,6 +54,18 @@ export default function SampahModal({ onClose, onSelesai }) {
     try {
       await api(`/obat/${obat.id}/permanen`, { method: "DELETE" });
       setDaftar((prev) => prev.filter((o) => o.id !== obat.id));
+
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Katalog Obat",
+        aksi: "Hapus Permanen",
+        judul: obat.nama,
+        sebelum: "Di Sampah",
+        sesudah: "Dihapus Selamanya",
+        keterangan: `Obat dihapus secara permanen dari sistem (${namaAkun})`,
+      });
     } catch (err) {
       setError(err.message);
     } finally {

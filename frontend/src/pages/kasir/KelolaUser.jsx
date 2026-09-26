@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import KasirShell from "./KasirShell";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/useAuth";
+import { tambahLogPerubahan } from "../../lib/auditLog";
 
 export default function KelolaUser() {
   const { user: currentUser } = useAuth();
@@ -93,6 +94,19 @@ export default function KelolaUser() {
           method: "PUT",
           body: JSON.stringify(body),
         });
+
+        const namaAkun = currentUser?.nama || currentUser?.username || "Admin";
+        tambahLogPerubahan({
+          nama_akun: namaAkun,
+          role_akun: currentUser?.role || "admin",
+          kategori: "Pengguna",
+          aksi: "Ubah",
+          judul: `${nama} (@${username})`,
+          sebelum: `Role: ${userEdit.role}, Status: ${userEdit.aktif ? "Aktif" : "Nonaktif"}`,
+          sesudah: `Role: ${role}, Status: ${aktif ? "Aktif" : "Nonaktif"}`,
+          keterangan: `Pembaruan data akun pengguna (${namaAkun})`,
+        });
+
         setSuksesPesan(`Data akun @${username} berhasil diperbarui.`);
       } else {
         // Tambah User Baru
@@ -105,6 +119,19 @@ export default function KelolaUser() {
             role,
           }),
         });
+
+        const namaAkun = currentUser?.nama || currentUser?.username || "Admin";
+        tambahLogPerubahan({
+          nama_akun: namaAkun,
+          role_akun: currentUser?.role || "admin",
+          kategori: "Pengguna",
+          aksi: "Tambah",
+          judul: `${nama} (@${username})`,
+          sebelum: "-",
+          sesudah: `Role: ${role}, Status: Aktif`,
+          keterangan: `Pembuatan akun kasir/pengguna baru (${namaAkun})`,
+        });
+
         setSuksesPesan(`Akun baru @${username} berhasil dibuat.`);
       }
 
@@ -136,6 +163,19 @@ export default function KelolaUser() {
         method: "PUT",
         body: JSON.stringify({ aktif: statusTujuan }),
       });
+
+      const namaAkun = currentUser?.nama || currentUser?.username || "Admin";
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: currentUser?.role || "admin",
+        kategori: "Pengguna",
+        aksi: statusTujuan ? "Aktifkan" : "Nonaktifkan",
+        judul: `${u.nama} (@${u.username})`,
+        sebelum: u.aktif ? "Akun Aktif" : "Akun Nonaktif",
+        sesudah: statusTujuan ? "Akun Aktif" : "Akun Nonaktif",
+        keterangan: `${statusTujuan ? "Aktivasi" : "Penonaktifan"} akun kasir (${namaAkun})`,
+      });
+
       setSuksesPesan(`Status akun @${u.username} berhasil diubah.`);
       muatUsers();
       setTimeout(() => setSuksesPesan(""), 3500);
