@@ -69,12 +69,43 @@ export default function DataObat() {
     return acc + (Number(o.stok || 0) * Number(def?.harga_beli || 0));
   }, 0);
 
+  const totalNilaiJualKeseluruhan = daftar.reduce((acc, o) => {
+    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+    return acc + (Number(o.stok || 0) * Number(def?.harga_jual || 0));
+  }, 0);
+
   const totalFisikKeseluruhan = daftar.reduce((acc, o) => acc + Number(o.stok || 0), 0);
 
+  const totalPotensiLaba = Math.max(0, totalNilaiJualKeseluruhan - totalNilaiKeseluruhan);
+
+  // Rata-rata margin berbobot dari harga jual (Laba / Harga Jual * 100 -> Standar Apotek 25%)
+  const rataRataMarginBobot = totalNilaiJualKeseluruhan > 0
+    ? ((totalPotensiLaba / totalNilaiJualKeseluruhan) * 100)
+    : 0;
+
+  // Persentase Laba atas Modal / Markup (Laba / Modal Beli * 100 -> ~33.3%)
+  const persenLabaAtasModal = totalNilaiKeseluruhan > 0
+    ? ((totalPotensiLaba / totalNilaiKeseluruhan) * 100)
+    : 0;
+
+  // Rata-rata persentase margin per obat
+  const obatDenganMargin = daftar.map((o) => {
+    const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
+    return hitungMarginPersen(def?.harga_beli, def?.harga_jual);
+  }).filter((m) => m !== null && !isNaN(m));
+
+  const rataRataMarginItem = obatDenganMargin.length > 0
+    ? (obatDenganMargin.reduce((a, b) => a + b, 0) / obatDenganMargin.length)
+    : 0;
+
+  const persenMarginTampil = rataRataMarginBobot > 0 ? rataRataMarginBobot : rataRataMarginItem;
+  const rataRataNilaiPerObat = daftar.length > 0 ? Math.round(totalNilaiKeseluruhan / daftar.length) : 0;
+
   function formatPersen(nilai, total) {
-    if (!total || total <= 0 || !nilai) return "0%";
-    const p = (nilai / total) * 100;
+    if (!total || total <= 0 || !nilai || Number(nilai) <= 0) return "0%";
+    const p = (Number(nilai) / Number(total)) * 100;
     if (p > 0 && p < 0.01) return "< 0.01%";
+    if (p < 1) return `${p.toFixed(2)}%`;
     return `${p.toFixed(1)}%`;
   }
 
@@ -389,10 +420,66 @@ export default function DataObat() {
           gap: 4,
           boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)"
         }}>
-          <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>Total Besar Uang (Nilai Stok Keseluruhan)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
+              Total Besar Uang (Modal Stok)
+            </span>
+            <span style={{
+              background: "#7C3AED",
+              color: "#fff",
+              fontSize: 10.5,
+              fontWeight: 800,
+              padding: "2px 8px",
+              borderRadius: 12
+            }} title="Keuntungan atas Modal: Laba ÷ Modal × 100%">
+              +{persenLabaAtasModal.toFixed(1)}% Laba Modal
+            </span>
+          </div>
           <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
             {rupiah(totalNilaiKeseluruhan)}
           </span>
+          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+            Potensi Nilai Jual: <strong style={{ color: "var(--ink)" }}>{rupiah(totalNilaiJualKeseluruhan)}</strong>
+          </span>
+        </div>
+
+        <div style={{
+          background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)",
+          border: "1px solid #BBF7D0",
+          borderRadius: 12,
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          boxShadow: "0 1px 3px rgba(22, 163, 74, 0.06)"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#166534", fontWeight: 700 }}>
+              Rata-Rata Persentase Laba
+            </span>
+            <span style={{
+              background: "#16A34A",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 800,
+              padding: "2px 7px",
+              borderRadius: 12
+            }} title="Margin Penjualan: Laba ÷ Harga Jual × 100%">
+              Margin Jual: {persenMarginTampil.toFixed(1)}%
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+            <span style={{ fontSize: 22, fontWeight: 900, color: "#15803D" }}>
+              +{persenLabaAtasModal.toFixed(1)}%
+            </span>
+            <span style={{ fontSize: 11.5, color: "#166534", fontWeight: 700 }}>
+              dari Modal (Markup)
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: "#166534", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
+            <span>Potensi Laba: <strong>+{rupiah(totalPotensiLaba)}</strong></span>
+            <span>Margin Apotek: <strong>{persenMarginTampil.toFixed(1)}%</strong></span>
+          </div>
         </div>
       </div>
 
@@ -509,7 +596,7 @@ export default function DataObat() {
                     )}
                   </div>
                   <div style={{ fontSize: 11.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 3 }}>
-                    Nilai Stok: {rupiah(nilaiUang)} {mStat.status !== "kosong" ? `· ${mStat.label}` : ""}
+                    Nilai Stok: {rupiah(nilaiUang)} ({persenStr} dari total)
                   </div>
                 </div>
                 <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
@@ -634,21 +721,6 @@ export default function DataObat() {
                     <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
                       {rupiah(nilaiUang)}
                     </div>
-                    {mStat.status !== "kosong" && (
-                      <div style={{
-                        display: "inline-block",
-                        background: "#FAF5FF",
-                        border: "1px solid #E9D5FF",
-                        color: "var(--magenta-dark)",
-                        borderRadius: 6,
-                        padding: "1px 6px",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        marginTop: 2
-                      }}>
-                        {mStat.label}
-                      </div>
-                    )}
                   </td>
                   <td>
                     {obat.tanggal_exp ? (

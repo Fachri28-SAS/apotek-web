@@ -13,10 +13,14 @@ function cekKunciValid(input) {
 }
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem("bf_ingat_username") || "";
+  });
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [ingat, setIngat] = useState(true);
+  const [ingatUsername, setIngatUsername] = useState(() => {
+    return !!localStorage.getItem("bf_ingat_username");
+  });
   const [error, setError] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
@@ -72,7 +76,12 @@ export default function Login() {
     setError("");
     setLoadingSubmit(true);
     try {
-      await login(username, password, ingat);
+      if (ingatUsername) {
+        localStorage.setItem("bf_ingat_username", username.trim());
+      } else {
+        localStorage.removeItem("bf_ingat_username");
+      }
+      await login(username, password);
       navigate(tujuanAwal, { replace: true });
     } catch (err) {
       setError(err.message);
@@ -302,8 +311,12 @@ export default function Login() {
 
               <div className="login-row">
                 <label className="login-remember">
-                  <input type="checkbox" checked={ingat} onChange={(e) => setIngat(e.target.checked)} />
-                  Ingat saya
+                  <input
+                    type="checkbox"
+                    checked={ingatUsername}
+                    onChange={(e) => setIngatUsername(e.target.checked)}
+                  />
+                  Ingat nama pengguna
                 </label>
                 <button
                   type="button"

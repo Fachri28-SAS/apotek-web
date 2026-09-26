@@ -52,12 +52,18 @@ export default function Riwayat() {
     muatUlang();
   }, [dariTanggal, sampaiTanggal, kasirId, sumber]);
 
+  const [memuatStrukId, setMemuatStrukId] = useState(null);
+
   async function bukaStruk(id) {
+    if (memuatStrukId) return;
+    setMemuatStrukId(id);
     try {
       const data = await api(`/penjualan/${id}`);
       setStruk(data);
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "Gagal memuat detail struk.");
+    } finally {
+      setMemuatStrukId(null);
     }
   }
 
@@ -279,7 +285,7 @@ export default function Riwayat() {
         )}
       </div>
 
-      <StrukModal data={struk} onClose={() => setStruk(null)} />
+      <StrukModal data={struk} onClose={() => setStruk(null)} autoPrint={false} />
     </KasirShell>
   );
 }

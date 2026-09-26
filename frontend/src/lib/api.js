@@ -6,38 +6,25 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getToken() {
-  let token = sessionStorage.getItem("bimafarma_token");
-  if (!token) {
-    token = localStorage.getItem("bimafarma_token");
-    if (token) {
-      try {
-        sessionStorage.setItem("bimafarma_token", token);
-        const u = localStorage.getItem("bimafarma_user");
-        if (u) sessionStorage.setItem("bimafarma_user", u);
-      } catch {
-        // ignore
-      }
-    }
-  }
-  return token;
+  // Hanya ambil dari sessionStorage agar saat browser/tab ditutup, sesi otomatis musnah
+  return sessionStorage.getItem("bimafarma_token");
 }
 
-function setToken(token, ingat = true) {
+function setToken(token) {
+  // Bersihkan sisa token di localStorage agar tidak ada sesi tertinggal
+  try {
+    localStorage.removeItem("bimafarma_token");
+  } catch {
+    // ignore
+  }
+
   if (!token) {
     sessionStorage.removeItem("bimafarma_token");
-    localStorage.removeItem("bimafarma_token");
     return;
   }
 
-  // Selalu simpan di sessionStorage agar setiap tab browser independen (bisa multi-role tanpa bentrok)
+  // Sesi HANYA disimpan di sessionStorage (musnah otomatis saat tab/browser di-close)
   sessionStorage.setItem("bimafarma_token", token);
-
-  // Jika opsi ingat aktif, simpan juga di localStorage sebagai fallback tab baru
-  if (ingat) {
-    localStorage.setItem("bimafarma_token", token);
-  } else {
-    localStorage.removeItem("bimafarma_token");
-  }
 }
 
 /**
@@ -87,12 +74,12 @@ async function api(path, options = {}) {
   }
 }
 
-export async function login(username, password, ingat = true) {
+export async function login(username, password) {
   const data = await api("/login", {
     method: "POST",
     body: JSON.stringify({ username, password }),
   });
-  setToken(data.token, ingat);
+  setToken(data.token);
   return data.user;
 }
 

@@ -256,29 +256,32 @@ export function cetakStrukDigital(pesanan) {
       <head>
         <title>Struk-${pesanan.kode_tracking || "Pesanan"}</title>
         <style>
-          @page { margin: 8mm; size: auto; }
+          @page { margin: 0; size: 58mm auto; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
           body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-            font-size: 12px;
-            color: #111;
-            padding: 10px;
-            max-width: 80mm;
+            font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
+            font-size: 9.5px;
+            line-height: 1.25;
+            color: #000;
+            background: #fff;
+            padding: 1.5mm 1mm 18mm 1mm;
+            width: 46.5mm;
+            max-width: 46.5mm;
             margin: 0 auto;
           }
           .center { text-align: center; }
           .bold { font-weight: bold; }
-          .dashed { border-top: 1px dashed #444; margin: 10px 0; }
-          .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+          .dashed { border-top: 1px dashed #000; margin: 4px 0; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 2px; }
           .badge {
             display: inline-block;
-            background: #DCFCE7;
-            color: #166534;
-            border: 1px solid #86EFAC;
+            color: #000;
+            border: 1px solid #000;
             border-radius: 4px;
-            padding: 4px 8px;
+            padding: 2px 6px;
             font-weight: bold;
-            font-size: 11px;
-            margin: 6px 0;
+            font-size: 9px;
+            margin: 4px 0;
           }
         </style>
       </head>
