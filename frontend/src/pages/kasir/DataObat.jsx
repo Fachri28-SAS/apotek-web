@@ -201,7 +201,7 @@ export default function DataObat() {
     const namaAkun = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
     tambahLogPerubahan({
       nama_akun: namaAkun,
-      role_akun: user?.role || "admin",
+      role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
       kategori: "Katalog Obat",
       aksi: "Hapus",
       judul: obat.nama,
@@ -343,7 +343,7 @@ export default function DataObat() {
       const namaAkunSemua = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkunSemua,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
         kategori: "Ganti Harga Obat",
         aksi: "Auto Margin",
         judul: `${obatBermasalahMargin.length} Macam Obat`,
@@ -395,7 +395,7 @@ export default function DataObat() {
       const namaAkunSatu = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkunSatu,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
         kategori: "Ganti Harga Obat",
         aksi: "Auto Margin",
         judul: obat.nama,

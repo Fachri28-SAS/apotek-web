@@ -87,10 +87,10 @@ export default function PembayaranPenerimaan() {
       const statusBaru = res.penerimaan.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
       const statusLama = konfirmasiBayar.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
 
-      const namaAkun = user?.nama || user?.username || "Admin";
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkun,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || "kasir",
         kategori: "Faktur Penerimaan",
         aksi: "Ubah Status Bayar",
         judul: `Faktur ${konfirmasiBayar.no_faktur} (${konfirmasiBayar.nama_supplier})`,

@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../../context/useAuth";
 import { api } from "../../../lib/api";
 import { hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../../utils/format";
+import { tambahLogPerubahan } from "../../../lib/auditLog";
 
 function satuanKosong() {
   return { nama_satuan: "", faktor: 1, harga_beli: "", harga_jual: "" };
 }
 
 export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
+  const { user } = useAuth();
   const modeEdit = !!obat;
 
   const [namaSaran, setNamaSaran] = useState([]);
@@ -100,6 +103,18 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
     try {
       await api(`/obat/${obat.id}/satuan/${s.id}`, { method: "DELETE" });
       setSatuanList((prev) => prev.filter((_, i) => i !== idx));
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      const roleAkun = user?.role || "kasir";
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: roleAkun,
+        kategori: "Katalog Obat",
+        aksi: "Hapus Satuan",
+        judul: `${obat?.nama || "Obat"} - Satuan ${s.nama_satuan}`,
+        sebelum: `Satuan: ${s.nama_satuan} (Rp ${Number(s.harga_jual || 0).toLocaleString("id-ID")})`,
+        sesudah: "Dihapus",
+        keterangan: `Hapus satuan obat via modal (${namaAkun})`,
+      });
       onDataBerubah?.(); // refresh tabel utama di belakang layar, tanpa nutup modal ini
     } catch (err) {
       // Kalau ternyata sudah kehapus duluan (data basi), jangan tampilkan
@@ -158,6 +173,9 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
 
     setLoading(true);
     try {
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
+      const roleAkun = user?.role || "kasir";
+
       if (modeEdit) {
         await api(`/obat/${obat.id}`, {
           method: "PUT",
@@ -170,6 +188,33 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
             ...(hapusGambar ? { hapus_gambar: true } : {}),
           }),
         });
+
+        const defLama = obat?.satuan?.find((s) => s.is_default) || obat?.satuan?.[0];
+        const defBaru = satuanDikirim[0];
+        const hargaJualLama = Number(defLama?.harga_jual || 0);
+        const hargaJualBaru = Number(defBaru?.harga_jual || 0);
+
+        const rincianLama = (obat?.satuan || [])
+          .map((s) => `${s.nama_satuan}: Rp ${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
+          .join(", ");
+        const rincianBaru = satuanDikirim
+          .map((s) => `${s.nama_satuan}: Rp ${Number(s.harga_jual || 0).toLocaleString("id-ID")}`)
+          .join(", ");
+
+        const adaUbahHarga = rincianLama !== rincianBaru;
+
+        tambahLogPerubahan({
+          nama_akun: namaAkun,
+          role_akun: roleAkun,
+          kategori: "Ganti Harga Obat",
+          aksi: "Ubah",
+          judul: `${nama} (${satuanDikirim.map((s) => s.nama_satuan).join("/")})`,
+          sebelum: rincianLama || `Rp ${hargaJualLama.toLocaleString("id-ID")}`,
+          sesudah: rincianBaru || `Rp ${hargaJualBaru.toLocaleString("id-ID")}`,
+          keterangan: adaUbahHarga
+            ? `Ubah harga obat via formulir edit (${namaAkun})`
+            : `Pembaruan data obat via formulir edit (${namaAkun})`,
+        });
       } else {
         await api("/obat", {
           method: "POST",
@@ -181,6 +226,17 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
             satuan: satuanDikirim.map(({ id, ...s }) => s), // id tidak relevan saat create
             ...(gambarBase64 ? { gambar_base64: gambarBase64 } : {}),
           }),
+        });
+
+        tambahLogPerubahan({
+          nama_akun: namaAkun,
+          role_akun: roleAkun,
+          kategori: "Katalog Obat",
+          aksi: "Tambah",
+          judul: nama,
+          sebelum: "-",
+          sesudah: `Stok: ${stokAwal} ${satuanDasar || satuanDikirim[0]?.nama_satuan}, Jual: Rp ${Number(satuanDikirim[0]?.harga_jual || 0).toLocaleString("id-ID")}`,
+          keterangan: `Input obat baru via formulir (${namaAkun})`,
         });
       }
       onSelesai();

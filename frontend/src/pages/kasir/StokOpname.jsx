@@ -182,10 +182,10 @@ export default function StokOpname() {
         )
       );
 
-      const namaAkunSatu = user?.nama || user?.username || "Admin";
+      const namaAkunSatu = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkunSatu,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || "kasir",
         kategori: "Stok Opname",
         aksi: "Penyesuaian Stok",
         judul: it.nama,
@@ -226,10 +226,10 @@ export default function StokOpname() {
         }),
       });
 
-      const namaAkunSemua = user?.nama || user?.username || "Admin";
+      const namaAkunSemua = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkunSemua,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || "kasir",
         kategori: "Stok Opname",
         aksi: "Penyesuaian Massal",
         judul: `${itemTerisi.length} Macam Obat`,

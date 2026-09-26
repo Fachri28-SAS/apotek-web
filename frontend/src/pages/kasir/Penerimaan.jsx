@@ -176,10 +176,10 @@ export default function Penerimaan() {
       });
 
       // Catat ke riwayat perubahan (Audit Log) dengan Nama Akun yang Login
-      const namaAkun = user?.nama || user?.username || "Admin";
+      const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
       tambahLogPerubahan({
         nama_akun: namaAkun,
-        role_akun: user?.role || "admin",
+        role_akun: user?.role || "kasir",
         kategori: "Faktur Penerimaan",
         aksi: "Input Faktur",
         judul: `Faktur ${noFaktur} (${namaSupplier})`,
