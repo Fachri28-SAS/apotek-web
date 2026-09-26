@@ -29,6 +29,13 @@ var WARNA_METODE = { tunai: "#39A048", qris: "#A64BC7", transfer: "#1A56B8" };
 
 
 
+function hitungMarginPersenTrx(t) {
+  var modal = Number(t.total_modal || 0);
+  var laba = Number(t.total_pendapatan != null ? t.total_pendapatan : (Number(t.total || 0) - modal));
+  if (modal <= 0) return 0;
+  return Number(((laba / modal) * 100).toFixed(1));
+}
+
 function exportCSV(transaksi) {
   var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total Penjualan,Total Modal (HPP),Total Pendapatan (Laba),Margin,Metode Bayar\n";
   var rows = transaksi.map(function(t) {
@@ -44,7 +51,7 @@ function exportCSV(transaksi) {
       t.total,
       t.total_modal || 0,
       t.total_pendapatan || 0,
-      (t.margin_persen || 0) + "%",
+      hitungMarginPersenTrx(t) + "%",
       t.metode_bayar,
     ].join(",");
   }).join("\n");
@@ -127,7 +134,7 @@ export default function Laporan() {
         rupiah(t.total),
         rupiah(t.total_modal || 0),
         rupiah(t.total_pendapatan || 0),
-        (t.margin_persen || 0) + "%",
+        hitungMarginPersenTrx(t) + "%",
         t.metode_bayar || "-",
       ];
     });
@@ -139,7 +146,7 @@ export default function Laporan() {
         { label: rupiah(totalModal), align: "right" },
         { label: rupiah(totalLaba), align: "right" },
         {
-          label: totalJual > 0 ? Math.round((totalLaba / totalJual) * 100) + "%" : "0%",
+          label: totalModal > 0 ? Math.round((totalLaba / totalModal) * 100) + "%" : "0%",
           align: "center",
         },
         { label: "-", align: "center" },
@@ -263,9 +270,17 @@ export default function Laporan() {
                 {loading ? "…" : rupiah(data.kpi.total_pendapatan)}
               </span>
               {!loading && (
-                <span className={"kpi-margin-badge " + (data.kpi.margin_persen >= 15 ? "" : "warning")}>
-                  {data.kpi.margin_persen}% Margin
-                </span>
+                (() => {
+                  var kpiMargin = (data && data.kpi && Number(data.kpi.total_modal) > 0)
+                    ? Number((((Number(data.kpi.total_penjualan || 0) - Number(data.kpi.total_modal || 0)) / Number(data.kpi.total_modal)) * 100).toFixed(1))
+                    : (data && data.kpi ? data.kpi.margin_persen : 0);
+                  var kpiClass = kpiMargin >= 25 ? "" : (kpiMargin >= 20 ? "warning" : "danger");
+                  return (
+                    <span className={"kpi-margin-badge " + kpiClass}>
+                      +{kpiMargin}% Margin
+                    </span>
+                  );
+                })()
               )}
             </div>
             <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Total Pendapatan (Laba)</div>
@@ -400,9 +415,15 @@ export default function Laporan() {
                         +{rupiah(t.total_pendapatan || 0)}
                       </td>
                       <td>
-                        <span className={"kpi-margin-badge " + ((t.margin_persen || 0) >= 15 ? "" : "warning")}>
-                          {t.margin_persen || 0}%
-                        </span>
+                        {(() => {
+                          var mPersen = hitungMarginPersenTrx(t);
+                          var badgeClass = mPersen >= 25 ? "" : (mPersen >= 20 ? "warning" : "danger");
+                          return (
+                            <span className={"kpi-margin-badge " + badgeClass}>
+                              {mPersen}%
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td><span className="metode-badge">{t.metode_bayar}</span></td>
                     </tr>

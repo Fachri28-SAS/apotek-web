@@ -48,7 +48,7 @@ class LaporanController extends Controller
             ->value('modal') ?? 0);
 
         $totalPendapatan = (float) ($totalPenjualan - $totalModal);
-        $marginPersen = $totalPenjualan > 0 ? round(($totalPendapatan / $totalPenjualan) * 100, 1) : 0;
+        $marginPersen = $totalModal > 0 ? round(($totalPendapatan / $totalModal) * 100, 1) : 0;
 
         // --- Breakdown metode pembayaran (untuk progress bar) ---
         $metodeBreakdown = (clone $queryPeriode)
@@ -103,7 +103,7 @@ class LaporanController extends Controller
                     return ($item->harga_beli ?? 0) * $item->qty;
                 });
                 $labaTrx = (float) ($t->total - $modalTrx);
-                $marginTrx = $t->total > 0 ? round(($labaTrx / $t->total) * 100, 1) : 0;
+                $marginTrx = $modalTrx > 0 ? round(($labaTrx / $modalTrx) * 100, 1) : 0;
 
                 return [
                     'id' => $t->id,
