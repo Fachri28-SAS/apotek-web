@@ -504,4 +504,32 @@ class ObatController extends Controller
             'jumlah_diperbarui' => $diperbarui
         ]);
     }
+
+    /**
+     * GET /api/pengaturan-margin
+     * Cek apakah kolom margin diizinkan tampil untuk kasir
+     */
+    public function getPengaturanMargin()
+    {
+        $setting = DB::table('pengaturan')->where('kunci', 'tampilkan_margin_kasir')->first();
+        $tampil = $setting ? ($setting->nilai === '1' || $setting->nilai === 'true') : true;
+        return response()->json(['tampilkan_margin' => $tampil]);
+    }
+
+    /**
+     * POST /api/pengaturan-margin (khusus admin)
+     * Simpan status kontrol margin kasir
+     */
+    public function setPengaturanMargin(Request $r)
+    {
+        $tampil = $r->boolean('tampilkan_margin', true);
+        DB::table('pengaturan')->updateOrInsert(
+            ['kunci' => 'tampilkan_margin_kasir'],
+            ['nilai' => $tampil ? '1' : '0', 'updated_at' => now()]
+        );
+        return response()->json([
+            'tampilkan_margin' => $tampil,
+            'message' => 'Pengaturan margin kasir berhasil diperbarui.'
+        ]);
+    }
 }

@@ -25,6 +25,7 @@ Route::get('/obat', [ObatController::class, 'index']);
 Route::get('/obat/{obat}', [ObatController::class, 'show']);
 Route::get('/suppliers', [SupplierController::class, 'index']);
 Route::get('/obat-referensi', [ObatReferensiController::class, 'index']);
+Route::get('/pengaturan-margin', [ObatController::class, 'getPengaturanMargin']);
 
 Route::get('/storage/{path}', function ($path) {
     if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
@@ -106,5 +107,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::post('/pengaturan-margin', [ObatController::class, 'setPengaturanMargin']);
     });
 });
