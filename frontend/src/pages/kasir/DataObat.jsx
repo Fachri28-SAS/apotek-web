@@ -16,12 +16,6 @@ function daysUntil(dateStr) {
   return Math.ceil((exp - now) / 86400000);
 }
 
-/**
- * Badge naik/turun harga beli — dibandingkan dari harga sebelumnya yang
- * tersimpan di obat_satuan. Kolom ini diperbarui dari 2 sumber: Penerimaan
- * Barang MAUPUN edit manual di Data Obat — jadi badge ini selalu ikut
- * bereaksi ke perubahan harga dari mana pun asalnya.
- */
 function badgeHargaBeli(satuan) {
   if (!satuan || satuan.harga_beli_sebelumnya == null) return null;
 
@@ -49,9 +43,12 @@ function getCachedObat() {
 
 export default function DataObat() {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   const [daftar, setDaftar] = useState(getCachedObat);
   const [loading, setLoading] = useState(() => getCachedObat().length === 0);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [notifSukses, setNotifSukses] = useState("");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [obatEdit, setObatEdit] = useState(null);
@@ -59,6 +56,26 @@ export default function DataObat() {
   const [riwayatObat, setRiwayatObat] = useState(null);
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
+
+  // Pengaturan Admin: Sembunyikan kolom margin di akun kasir via icon mata
+  const [sembunyikanMarginKasir, setSembunyikanMarginKasir] = useState(() => {
+    return localStorage.getItem("bima_hide_margin_kasir") === "true";
+  });
+
+  // Di akun admin selalu tampil, di akun kasir mengikuti kontrol mata dari admin
+  const tampilkanKolomMargin = isAdmin || !sembunyikanMarginKasir;
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(50); // 25, 50, 100, 200, "semua"
+
+  // Scope cetak: "halaman" atau "semua"
+  const [scopeCetak, setScopeCetak] = useState("halaman");
+
+  // State Edit Harga Langsung (Inline Quick Edit)
+  const [editingKey, setEditingKey] = useState(null); // string: `${obatId}_${satuanId}`
+  const [inputHargaJual, setInputHargaJual] = useState("");
+  const [savingKey, setSavingKey] = useState(null);
 
   // Deteksi obat dengan margin bermasalah (< 25%) ATAU harga jual belum genap kelipatan 500
   const obatBermasalahMargin = daftar.filter((o) => {
@@ -77,6 +94,18 @@ export default function DataObat() {
 
   const daftarTampil = filterMarginTipis ? obatBermasalahMargin : daftar;
 
+  // Reset ke halaman 1 saat pencarian atau filter margin berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterMarginTipis]);
+
+  // Kalkulasi data per halaman (Pagination)
+  const totalData = daftarTampil.length;
+  const totalPages = perPage === "semua" ? 1 : Math.ceil(totalData / perPage) || 1;
+  const startIndex = perPage === "semua" ? 0 : (currentPage - 1) * perPage;
+  const endIndex = perPage === "semua" ? totalData : startIndex + perPage;
+  const daftarHalaman = perPage === "semua" ? daftarTampil : daftarTampil.slice(startIndex, endIndex);
+
   const totalNilaiKeseluruhan = daftar.reduce((acc, o) => {
     const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
     return acc + (Number(o.stok || 0) * Number(def?.harga_beli || 0));
@@ -88,15 +117,12 @@ export default function DataObat() {
   }, 0);
 
   const totalFisikKeseluruhan = daftar.reduce((acc, o) => acc + Number(o.stok || 0), 0);
-
   const totalPotensiLaba = Math.max(0, totalNilaiJualKeseluruhan - totalNilaiKeseluruhan);
 
-  // Rumus Klien: (Total Jual - Total Beli) / Total Beli * 100% = Pendapatan / Total Beli * 100% (~33.3%)
+  // Rumus Klien: (Total Jual - Total Beli) / Total Beli * 100%
   const persenMarginKeseluruhan = totalNilaiKeseluruhan > 0
     ? ((totalPotensiLaba / totalNilaiKeseluruhan) * 100)
     : 0;
-
-  const rataRataNilaiPerObat = daftar.length > 0 ? Math.round(totalNilaiKeseluruhan / daftar.length) : 0;
 
   function formatPersen(nilai, total) {
     if (!total || total <= 0 || !nilai || Number(nilai) <= 0) return "0%";
@@ -118,9 +144,7 @@ export default function DataObat() {
             try {
               sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
               localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-            } catch {
-              // ignore
-            }
+            } catch {}
           }
         }
       })
@@ -139,27 +163,87 @@ export default function DataObat() {
   function bukaTambah() { setObatEdit(null); setModalOpen(true); }
   function bukaEdit(obat) { setObatEdit(obat); setModalOpen(true); }
 
-  async function toggleField(obat, field) {
-    await api(`/obat/${obat.id}`, {
-      method: "PUT",
-      body: JSON.stringify({ [field]: !obat[field] }),
-    });
-    muatUlang();
-  }
-
   async function hapusObat(obat) {
     if (!confirm(`Hapus "${obat.nama}"?`)) return;
     await api(`/obat/${obat.id}`, { method: "DELETE" });
     muatUlang();
   }
 
+  // --- LOGIKA EDIT HARGA JUAL LANGSUNG DI SITU (INLINE PRICE EDIT) ---
+  function mulaiEditHarga(obat, satuan) {
+    const targetSatuan = satuan || obat.satuan?.[0];
+    if (!targetSatuan) return;
+    const key = `${obat.id}_${targetSatuan.id}`;
+    setEditingKey(key);
+    setInputHargaJual(String(Math.round(Number(targetSatuan.harga_jual || 0))));
+  }
+
+  function batalEditHarga() {
+    setEditingKey(null);
+    setInputHargaJual("");
+  }
+
+  async function simpanEditHarga(obat, targetSatuan, hargaBaruStr) {
+    const hargaBaru = Math.round(Number(hargaBaruStr || 0));
+    if (isNaN(hargaBaru) || hargaBaru < 0) {
+      alert("Harga jual harus berupa angka valid.");
+      return;
+    }
+
+    const key = `${obat.id}_${targetSatuan.id}`;
+    setSavingKey(key);
+
+    try {
+      const satuanBaru = (obat.satuan || []).map((s) => {
+        const isTarget = s.id === targetSatuan.id;
+        return {
+          id: s.id,
+          nama_satuan: s.nama_satuan,
+          faktor: s.faktor || 1,
+          harga_beli: s.harga_beli,
+          harga_jual: isTarget ? hargaBaru : s.harga_jual,
+          is_default: s.is_default,
+        };
+      });
+
+      const res = await api(`/obat/${obat.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ nama: obat.nama, satuan: satuanBaru }),
+      });
+
+      const updateList = res?.satuan || satuanBaru;
+      setDaftar((prev) =>
+        prev.map((o) => (o.id === obat.id ? { ...o, satuan: updateList } : o))
+      );
+
+      // Update cache di storage
+      try {
+        const cached = getCachedObat();
+        const updatedCache = cached.map((o) =>
+          o.id === obat.id ? { ...o, satuan: updateList } : o
+        );
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+      } catch {}
+
+      setEditingKey(null);
+      setNotifSukses(`✓ Harga ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
+      setTimeout(() => setNotifSukses(""), 4000);
+    } catch (err) {
+      alert("Gagal mengubah harga: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  // --- PERBAIKI MARGIN OTOMATIS ---
   async function handlePerbaikiSemuaMargin() {
     if (obatBermasalahMargin.length === 0) return;
     if (
       !window.confirm(
         `Sesuaikan ${obatBermasalahMargin.length} obat yang harganya belum genap / margin tipis?\n\n` +
         `• Harga jual otomatis dihitung dengan Margin 25% (Harga Beli / 0.75)\n` +
-        `• Dibulatkan ke atas ke kelipatan Rp 500 / Rp 1.000 (tidak ada angka ganjil)\n` +
+        `• Dibulatkan ke atas ke kelipatan Rp 500 / Rp 1.000\n` +
         `• Desimal pada harga beli juga akan dibersihkan ke rupiah utuh.`
       )
     ) {
@@ -174,7 +258,6 @@ export default function DataObat() {
           body: JSON.stringify({ hanya_bermasalah: true }),
         });
       } catch (e) {
-        // Fallback langsung lewat PUT per obat secara paralel (chunk 5)
         const chunkSize = 5;
         for (let i = 0; i < obatBermasalahMargin.length; i += chunkSize) {
           const chunk = obatBermasalahMargin.slice(i, i + chunkSize);
@@ -246,39 +329,34 @@ export default function DataObat() {
     }
   }
 
-  function siapkanDataExport() {
+  // --- EKSPOR DATA OBAT (PER HALAMAN ATAU SEMUA DATA) ---
+  function siapkanDataExport(scope = "semua") {
+    const dataSumber = scope === "halaman" && perPage !== "semua" ? daftarHalaman : daftarTampil;
+    const tampilMargin = tampilkanKolomMargin;
+
     const headers = [
-      { label: "No.", align: "center", width: "35px" },
+      { label: "NO", align: "center", width: "45px" },
       { label: "Nama Obat", align: "left" },
       { label: "Kemasan", align: "left" },
       { label: "Satuan", align: "left" },
       { label: "No. Batch", align: "center" },
       { label: "Harga Beli", align: "right" },
       { label: "Harga Jual", align: "right" },
-      { label: "Margin", align: "center" },
+      ...(tampilMargin ? [{ label: "Margin", align: "center" }] : []),
       { label: "Stok", align: "right" },
       { label: "Total Nilai", align: "right" },
-      { label: "Expired", align: "center" },
+      { label: "Kadaluwarsa", align: "center" },
     ];
 
-    const totalAsetStok = daftarTampil.reduce((acc, o) => {
-      const def = o.satuan?.find((s) => s.is_default) || o.satuan?.[0];
-      return acc + (Number(o.stok || 0) * Number(def?.harga_beli || 0));
-    }, 0);
+    let totalAsetStok = 0;
+    let totalFisikStok = 0;
 
-    const totalFisikStok = daftarTampil.reduce((acc, o) => acc + Number(o.stok || 0), 0);
-
-    const rows = daftarTampil.map((obat, idx) => {
+    const rows = dataSumber.map((obat, idx) => {
+      const noUrut = (scope === "halaman" && perPage !== "semua") ? startIndex + idx + 1 : idx + 1;
       const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
-      const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ") || obat.satuan_dasar || "-";
-      const hargaBeli = obat.satuan?.length > 1
-        ? obat.satuan.map((s) => rupiah(s.harga_beli)).join(" / ")
-        : rupiah(def?.harga_beli);
-      const hargaJual = obat.satuan?.length > 1
-        ? obat.satuan.map((s) => rupiah(s.harga_jual)).join(" / ")
-        : rupiah(def?.harga_jual);
       const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
       const mStat = getStatusMargin(mNum);
+      const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ");
       const expStr = obat.tanggal_exp
         ? new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
         : "-";
@@ -286,43 +364,50 @@ export default function DataObat() {
       const stokNum = Number(obat.stok || 0);
       const beliNum = Number(def?.harga_beli || 0);
       const nilaiUang = stokNum * beliNum;
+      totalAsetStok += nilaiUang;
+      totalFisikStok += stokNum;
 
-      return [
-        idx + 1,
+      const row = [
+        noUrut,
         obat.nama,
         obat.kemasan || "-",
-        satuanNames,
+        satuanNames || "-",
         obat.nomor_batch || "-",
-        hargaBeli,
-        hargaJual,
-        mStat.label,
-        `${stokNum} ${obat.satuan_dasar || ""}`,
-        rupiah(nilaiUang),
-        expStr,
+        rupiah(def?.harga_beli),
+        rupiah(def?.harga_jual),
       ];
+
+      if (tampilMargin) {
+        row.push(mStat.status !== "kosong" ? mStat.label : "-");
+      }
+
+      row.push(
+        `${obat.stok} ${obat.satuan_dasar || ""}`,
+        rupiah(nilaiUang),
+        expStr
+      );
+
+      return row;
     });
 
     const footers = [
       [
         {
           label: `Total Data: ${rows.length} Obat · Total Fisik: ${totalFisikStok.toLocaleString("id-ID")} Unit · Total Besar Uang: ${rupiah(totalAsetStok)}`,
-          colspan: 11,
+          colspan: headers.length,
           align: "right",
         },
       ],
     ];
 
-    const keterangan = filterMarginTipis
-      ? "Obat Margin < 20%"
-      : search
-      ? `Pencarian: "${search}"`
-      : "";
+    const infoHal = (scope === "halaman" && perPage !== "semua") ? ` (Halaman ${currentPage} dari ${totalPages})` : " (Semua Data)";
+    const keterangan = (filterMarginTipis ? "Obat Margin < 25%" : search ? `Pencarian: "${search}"` : "") + infoHal;
 
     return { headers, rows, footers, keterangan };
   }
 
   function handleCetakDataObat() {
-    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     cetakDokumenA4({
       judul: "LAPORAN DATA OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
@@ -336,9 +421,9 @@ export default function DataObat() {
   }
 
   function handleExcelDataObat() {
-    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     exportExcel({
-      filename: "data-obat-apotek-bima-farma",
+      filename: `data-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
       judul: "LAPORAN DATA OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       keterangan,
@@ -349,9 +434,9 @@ export default function DataObat() {
   }
 
   function handleWordDataObat() {
-    const { headers, rows, footers, keterangan } = siapkanDataExport();
+    const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     exportWord({
-      filename: "data-obat-apotek-bima-farma",
+      filename: `data-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
       judul: "LAPORAN DATA OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       keterangan,
@@ -363,6 +448,68 @@ export default function DataObat() {
     });
   }
 
+  // Helper render tombol nomor halaman (Pagination pintar)
+  function renderPageNumbers() {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisible = 5;
+
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    if (start > 1) {
+      pages.push(
+        <button
+          key={1}
+          type="button"
+          onClick={() => setCurrentPage(1)}
+          className={`pagination-num-btn ${currentPage === 1 ? "active" : ""}`}
+        >
+          1
+        </button>
+      );
+      if (start > 2) {
+        pages.push(<span key="dots-start" style={{ padding: "0 4px", color: "var(--ink-soft)" }}>…</span>);
+      }
+    }
+
+    for (let p = start; p <= end; p++) {
+      pages.push(
+        <button
+          key={p}
+          type="button"
+          onClick={() => setCurrentPage(p)}
+          className={`pagination-num-btn ${currentPage === p ? "active" : ""}`}
+        >
+          {p}
+        </button>
+      );
+    }
+
+    if (end < totalPages) {
+      if (end < totalPages - 1) {
+        pages.push(<span key="dots-end" style={{ padding: "0 4px", color: "var(--ink-soft)" }}>…</span>);
+      }
+      pages.push(
+        <button
+          key={totalPages}
+          type="button"
+          onClick={() => setCurrentPage(totalPages)}
+          className={`pagination-num-btn ${currentPage === totalPages ? "active" : ""}`}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return pages;
+  }
+
   return (
     <KasirShell>
       <div className="halaman-header">
@@ -370,10 +517,10 @@ export default function DataObat() {
           <h1 style={{ fontSize: 24 }}>Data Obat</h1>
           <p className="halaman-sub">
             {filterMarginTipis
-              ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 20%)`
+              ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 25%)`
               : loading && daftar.length === 0
               ? "Menghubungkan ke database apotek…"
-              : `${daftar.length} obat terdaftar ${loading ? "· (Menyinkronkan…)" : ""}`}
+              : `${totalData.toLocaleString("id-ID")} obat terdaftar ${loading ? "· (Menyinkronkan…)" : ""}`}
           </p>
         </div>
         <div className="halaman-header-aksi" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -389,12 +536,66 @@ export default function DataObat() {
                 padding: "8px 14px",
                 fontWeight: 700,
                 fontSize: 12,
-                cursor: "pointer"
+                cursor: "pointer",
               }}
             >
               🔄 Muat Ulang
             </button>
           )}
+
+          {/* Selector Lingkup Cetak (Per Halaman vs Semua Data) */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              background: "var(--surface)",
+              border: "1.5px solid var(--line)",
+              padding: "3px 6px",
+              borderRadius: 8,
+            }}
+          >
+            <span style={{ fontSize: 11.5, color: "var(--ink-soft)", fontWeight: 700, marginRight: 2 }}>
+              Cetak:
+            </span>
+            <button
+              type="button"
+              onClick={() => setScopeCetak("halaman")}
+              style={{
+                padding: "4px 8px",
+                fontSize: 11.5,
+                fontWeight: 700,
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                background: scopeCetak === "halaman" ? "var(--magenta)" : "transparent",
+                color: scopeCetak === "halaman" ? "#fff" : "var(--ink-soft)",
+                transition: "all 0.15s ease",
+              }}
+              title="Cetak atau ekspor data pada halaman ini saja"
+            >
+              Hal. {currentPage} ({daftarHalaman.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setScopeCetak("semua")}
+              style={{
+                padding: "4px 8px",
+                fontSize: 11.5,
+                fontWeight: 700,
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                background: scopeCetak === "semua" ? "var(--magenta)" : "transparent",
+                color: scopeCetak === "semua" ? "#fff" : "var(--ink-soft)",
+                transition: "all 0.15s ease",
+              }}
+              title="Cetak atau ekspor seluruh obat di database"
+            >
+              Semua ({totalData})
+            </button>
+          </div>
+
           <TombolExportGroup
             onCetakPdf={handleCetakDataObat}
             onExportExcel={handleExcelDataObat}
@@ -405,6 +606,27 @@ export default function DataObat() {
           <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
         </div>
       </div>
+
+      {/* Banner Notifikasi Sukses Simpan Harga Langsung */}
+      {notifSukses && (
+        <div
+          style={{
+            background: "#ECFDF5",
+            color: "#065F46",
+            padding: "10px 16px",
+            borderRadius: 10,
+            marginBottom: 14,
+            fontWeight: 700,
+            fontSize: 13.5,
+            border: "1px solid #A7F3D0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>{notifSukses}</span>
+        </div>
+      )}
 
       {/* Banner Notifikasi Error / Timeout */}
       {errorMsg && (
@@ -418,7 +640,7 @@ export default function DataObat() {
           alignItems: "center",
           justifyContent: "space-between",
           gap: 12,
-          color: "#991B1B"
+          color: "#991B1B",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 20 }}>⚠️</span>
@@ -430,7 +652,7 @@ export default function DataObat() {
                 </div>
               ) : (
                 <div style={{ fontSize: 12, marginTop: 2, color: "#7F1D1D" }}>
-                  Server sedang merespons lambat saat mengambil 1.500+ katalog obat. Silakan coba klik Muat Ulang.
+                  Server sedang merespons lambat saat mengambil katalog obat. Silakan coba klik Muat Ulang.
                 </div>
               )}
             </div>
@@ -447,7 +669,7 @@ export default function DataObat() {
               fontWeight: 700,
               fontSize: 12,
               cursor: "pointer",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
             }}
           >
             🔄 Coba Lagi
@@ -456,7 +678,7 @@ export default function DataObat() {
       )}
 
       {/* Kartu Ringkasan Stok & Total Nilai Uang (Aset) - Khusus Admin (tidak tampil untuk Kasir) */}
-      {user?.role === "admin" && (
+      {isAdmin && (
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -471,7 +693,7 @@ export default function DataObat() {
             display: "flex",
             flexDirection: "column",
             gap: 4,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
           }}>
             <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Obat Terdaftar</span>
             <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
@@ -487,7 +709,7 @@ export default function DataObat() {
             display: "flex",
             flexDirection: "column",
             gap: 4,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.03)"
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
           }}>
             <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Fisik Stok</span>
             <span style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)" }}>
@@ -503,7 +725,7 @@ export default function DataObat() {
             display: "flex",
             flexDirection: "column",
             gap: 4,
-            boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)"
+            boxShadow: "0 1px 3px rgba(124, 58, 237, 0.06)",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: "var(--magenta-dark)", fontWeight: 700 }}>
@@ -526,7 +748,7 @@ export default function DataObat() {
             display: "flex",
             flexDirection: "column",
             gap: 4,
-            boxShadow: "0 1px 3px rgba(22, 163, 74, 0.06)"
+            boxShadow: "0 1px 3px rgba(22, 163, 74, 0.06)",
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 12, color: "#166534", fontWeight: 700 }}>
@@ -538,7 +760,7 @@ export default function DataObat() {
                 fontSize: 10,
                 fontWeight: 800,
                 padding: "2px 7px",
-                borderRadius: 12
+                borderRadius: 12,
               }}>
                 Margin Stok
               </span>
@@ -556,7 +778,7 @@ export default function DataObat() {
       )}
 
       {/* Banner Alert Margin Tipis / Rugi */}
-      {obatBermasalahMargin.length > 0 && (
+      {isAdmin && obatBermasalahMargin.length > 0 && (
         <div className="margin-alert-box">
           <div className="alert-text">
             <span style={{ fontSize: 20 }}>⚠️</span>
@@ -585,7 +807,7 @@ export default function DataObat() {
                 background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
                 borderColor: "#6D28D9",
                 color: "#fff",
-                fontWeight: 700
+                fontWeight: 700,
               }}
               disabled={sedangPerbaiki}
               onClick={handlePerbaikiSemuaMargin}
@@ -596,7 +818,7 @@ export default function DataObat() {
         </div>
       )}
 
-      {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 5) ---------- */}
+      {/* ---------- TAMPILAN KHUSUS MOBILE ---------- */}
       <div className="mobile-only" style={{ marginBottom: 20 }}>
         <div className="search-mobile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -614,10 +836,11 @@ export default function DataObat() {
           <div className="panel-kosong" style={{ padding: 24, borderRadius: 14 }}>
             <div style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>Sedang memuat katalog obat dari server…</div>
           </div>
-        ) : daftarTampil.length === 0 ? (
+        ) : daftarHalaman.length === 0 ? (
           <div className="panel-kosong" style={{ padding: 20, borderRadius: 14 }}>Tidak ada obat yang cocok.</div>
         ) : (
-          daftarTampil.map((obat) => {
+          daftarHalaman.map((obat, idx) => {
+            const noUrut = startIndex + idx + 1;
             const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
             const stokMenipis = obat.stok <= (obat.stok_minimum || 0);
             const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
@@ -627,90 +850,266 @@ export default function DataObat() {
             const nilaiUang = stokNum * beliNum;
             const persenStr = formatPersen(nilaiUang, totalNilaiKeseluruhan);
 
+            const isEditHarga = def && editingKey === `${obat.id}_${def.id}`;
+
             return (
               <div
                 className="list-card"
                 key={obat.id}
-                onClick={() => bukaEdit(obat)}
+                onClick={() => !isEditHarga && bukaEdit(obat)}
               >
-                <div className="ic">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" />
-                  </svg>
-                </div>
-                <div className="body">
-                  <div className="t1">{obat.nama}</div>
-                  <div className="t2" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <span>{rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""} {obat.nomor_batch ? `· Batch ${obat.nomor_batch}` : ""}</span>
-                    {mStat.status !== "kosong" && (
-                      <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
-                        {mStat.label}
-                      </span>
-                    )}
-                    {(mStat.status === "rugi" || mStat.status === "tipis") && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePerbaikiSatuObat(obat);
-                        }}
-                        style={{
-                          background: "#F5F3FF",
-                          border: "1px solid #7C3AED",
-                          color: "#6D28D9",
-                          borderRadius: 4,
-                          padding: "1px 6px",
-                          fontSize: 10,
-                          fontWeight: 700,
-                          cursor: "pointer"
-                        }}
-                      >
-                        ⚡ Jadi 25%
-                      </button>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, width: "100%" }}>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: "var(--ink-soft)",
+                      background: "#F1F5F9",
+                      padding: "2px 6px",
+                      borderRadius: 6,
+                    }}
+                  >
+                    #{noUrut}
+                  </span>
+                  <div className="body" style={{ flex: 1 }}>
+                    <div className="t1" style={{ fontSize: 14.5 }}>{obat.nama}</div>
+                    
+                    {/* Harga Jual dengan Kemampuan Edit Langsung di Mobile */}
+                    <div style={{ margin: "5px 0" }} onClick={(e) => e.stopPropagation()}>
+                      {isEditHarga ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700 }}>Rp</span>
+                          <input
+                            type="number"
+                            value={inputHargaJual}
+                            onChange={(e) => setInputHargaJual(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") simpanEditHarga(obat, def, inputHargaJual);
+                              if (e.key === "Escape") batalEditHarga();
+                            }}
+                            autoFocus
+                            style={{
+                              width: 95,
+                              padding: "4px 8px",
+                              borderRadius: 6,
+                              border: "2px solid var(--magenta)",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              outline: "none",
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => simpanEditHarga(obat, def, inputHargaJual)}
+                            disabled={savingKey === `${obat.id}_${def.id}`}
+                            style={{
+                              background: "#16A34A",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: 6,
+                              padding: "5px 8px",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {savingKey === `${obat.id}_${def.id}` ? "…" : "✓"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={batalEditHarga}
+                            style={{
+                              background: "#E2E8F0",
+                              color: "#475569",
+                              border: "none",
+                              borderRadius: 6,
+                              padding: "5px 8px",
+                              fontSize: 12,
+                              cursor: "pointer",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => mulaiEditHarga(obat, def)}
+                          title="Ketuk untuk ubah harga jual langsung"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            background: "rgba(147, 51, 234, 0.06)",
+                            border: "1px dashed #D8B4FE",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
+                            {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""}
+                          </span>
+                          <span style={{ fontSize: 10, color: "var(--magenta)" }}>✏️</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="t2" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+                      {obat.nomor_batch && <span>Batch: {obat.nomor_batch}</span>}
+                      {tampilkanKolomMargin && mStat.status !== "kosong" && (
+                        <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
+                          {mStat.label}
+                        </span>
+                      )}
+                      {isAdmin && (mStat.status === "rugi" || mStat.status === "tipis") && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePerbaikiSatuObat(obat);
+                          }}
+                          style={{
+                            background: "#F5F3FF",
+                            border: "1px solid #7C3AED",
+                            color: "#6D28D9",
+                            borderRadius: 4,
+                            padding: "1px 6px",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ⚡ 25%
+                        </button>
+                      )}
+                    </div>
+                    {isAdmin && (
+                      <div style={{ fontSize: 11.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 3 }}>
+                        Nilai Stok: {rupiah(nilaiUang)} ({persenStr})
+                      </div>
                     )}
                   </div>
-                  <div style={{ fontSize: 11.5, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 3 }}>
-                    Nilai Stok: {rupiah(nilaiUang)} ({persenStr} dari total)
-                  </div>
+                  <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
+                    {obat.stok} {obat.satuan_dasar}
+                  </span>
                 </div>
-                <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
-                  {obat.stok} {obat.satuan_dasar}
-                </span>
               </div>
             );
           })
         )}
       </div>
 
-      {/* ---------- TAMPILAN KHUSUS DESKTOP (SEARCH & TABEL LENGKAP) ---------- */}
-      <div className="search-obat-input desktop-only" style={{ maxWidth: 340, marginBottom: 20 }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
-        </svg>
-        <input type="text" placeholder="Cari nama obat…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      {/* ---------- TAMPILAN KHUSUS DESKTOP (SEARCH, KONTROL & TABEL) ---------- */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+        <div className="search-obat-input desktop-only" style={{ maxWidth: 360, margin: 0 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Cari nama obat, batch, kemasan…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)", padding: 0 }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Info Ringkas Halaman di Desktop Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--ink-soft)" }}>
+          <span>
+            Menampilkan <strong>{totalData === 0 ? 0 : startIndex + 1}</strong> – <strong>{Math.min(endIndex, totalData)}</strong> dari <strong>{totalData.toLocaleString("id-ID")}</strong> obat
+          </span>
+        </div>
       </div>
 
-      <div className="obat-table-wrap desktop-only">
-        <table className="obat-table" style={{ minWidth: 1140 }}>
+      {/* WRAPPER TABEL RESPONTIF (RESPONSIVE TABLE WRAPPER) */}
+      <div
+        className="obat-table-wrap desktop-only"
+        style={{
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          borderRadius: 14,
+          border: "1px solid var(--line)",
+          background: "#fff",
+          marginBottom: 16,
+        }}
+      >
+        <table className="obat-table" style={{ minWidth: 1200, width: "100%", fontSize: 13 }}>
           <thead>
             <tr>
-              <th style={{ minWidth: 170 }}>Nama Obat</th>
-              <th style={{ width: 80, minWidth: 80 }}>Kemasan</th>
-              <th style={{ width: 80, minWidth: 80 }}>Satuan</th>
-              <th style={{ width: 90, minWidth: 90 }}>Batch</th>
-              <th style={{ minWidth: 110 }}>Harga Beli</th>
-              <th style={{ minWidth: 100 }}>Harga Jual</th>
-              <th style={{ width: 90, minWidth: 90 }}>Margin %</th>
-              <th style={{ width: 85, minWidth: 85 }}>Stok</th>
-              <th style={{ minWidth: 125, textAlign: "right" }}>Total Nilai</th>
-              <th style={{ width: 110, minWidth: 110 }}>Kadaluwarsa</th>
-              <th style={{ width: 130, minWidth: 130, textAlign: "center" }}>Aksi</th>
+              {/* 1. NO DI PALING DEPAN */}
+              <th style={{ width: 48, minWidth: 48, textAlign: "center" }}>NO</th>
+              <th style={{ minWidth: 180 }}>Nama Obat</th>
+              <th style={{ width: 85, minWidth: 85 }}>Kemasan</th>
+              <th style={{ width: 85, minWidth: 85 }}>Satuan</th>
+              <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Batch</th>
+              <th style={{ width: 125, minWidth: 125, textAlign: "right" }}>Harga Beli</th>
+              {/* Kolom Harga Jual dengan Keterangan Edit Langsung */}
+              <th style={{ width: 145, minWidth: 145, textAlign: "right" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <span>Harga Jual</span>
+                  <span style={{ fontSize: 11, color: "var(--magenta)", fontWeight: 800 }} title="Bisa langsung diedit di sini">
+                    ✏️
+                  </span>
+                </div>
+              </th>
+              {/* Kolom Margin dengan Icon Mata untuk Admin */}
+              {tampilkanKolomMargin && (
+                <th style={{ width: 135, minWidth: 135, textAlign: "center" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                    <span>Margin %</span>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const baru = !sembunyikanMarginKasir;
+                          setSembunyikanMarginKasir(baru);
+                          localStorage.setItem("bima_hide_margin_kasir", baru ? "true" : "false");
+                        }}
+                        title={
+                          sembunyikanMarginKasir
+                            ? "Status: Margin DISEMBUNYIKAN untuk Kasir. Klik untuk MENAMPILKAN kembali ke Kasir."
+                            : "Status: Margin TAMPIL untuk Kasir. Klik untuk MENYEMBUNYIKAN dari Kasir."
+                        }
+                        style={{
+                          background: sembunyikanMarginKasir ? "#FEF2F2" : "#F0FDF4",
+                          border: sembunyikanMarginKasir ? "1px solid #FECACA" : "1px solid #BBF7D0",
+                          color: sembunyikanMarginKasir ? "#DC2626" : "#16A34A",
+                          borderRadius: 6,
+                          padding: "2px 5px",
+                          fontSize: 11,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {sembunyikanMarginKasir ? "👁️‍🗨️" : "👁️"}
+                      </button>
+                    )}
+                  </div>
+                </th>
+              )}
+              <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Stok</th>
+              <th style={{ width: 130, minWidth: 130, textAlign: "right" }}>Total Nilai</th>
+              <th style={{ width: 115, minWidth: 115, textAlign: "center" }}>Kadaluwarsa</th>
+              <th style={{ width: 120, minWidth: 120, textAlign: "center" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading && daftar.length === 0 && (
               <tr>
-                <td colSpan={11} className="obat-table-info" style={{ padding: "36px 16px" }}>
+                <td colSpan={tampilkanKolomMargin ? 12 : 11} className="obat-table-info" style={{ padding: "36px 16px" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <div style={{ fontWeight: 700, color: "var(--magenta-dark)", fontSize: 14 }}>
                       Sedang menyinkronkan data katalog obat dari server apotek…
@@ -720,28 +1119,40 @@ export default function DataObat() {
                 </td>
               </tr>
             )}
-            {!loading && daftarTampil.length === 0 && (
-              <tr><td colSpan={11} className="obat-table-info">Tidak ada obat yang cocok.</td></tr>
+            {!loading && daftarHalaman.length === 0 && (
+              <tr>
+                <td colSpan={tampilkanKolomMargin ? 12 : 11} className="obat-table-info">
+                  {search ? `Tidak ada obat yang cocok dengan pencarian "${search}".` : "Tidak ada data obat."}
+                </td>
+              </tr>
             )}
-            {daftarTampil.map((obat) => {
-              const def = obat.satuan?.find(s => s.is_default) || obat.satuan?.[0];
+            {daftarHalaman.map((obat, idx) => {
+              const noUrut = startIndex + idx + 1;
+              const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
               const hari = daysUntil(obat.tanggal_exp);
-              const satuanNames = obat.satuan?.map(s => s.nama_satuan).join(" / ");
+              const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ");
               const hargaBeli = obat.satuan?.length > 1
-                ? obat.satuan.map(s => rupiah(s.harga_beli)).join(" / ")
+                ? obat.satuan.map((s) => rupiah(s.harga_beli)).join(" / ")
                 : rupiah(def?.harga_beli);
-              const hargaJual = obat.satuan?.length > 1
-                ? obat.satuan.map(s => rupiah(s.harga_jual)).join(" / ")
-                : rupiah(def?.harga_jual);
+
               const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
               const mStat = getStatusMargin(mNum);
               const stokNum = Number(obat.stok || 0);
               const beliNum = Number(def?.harga_beli || 0);
               const nilaiUang = stokNum * beliNum;
-              const persenStr = formatPersen(nilaiUang, totalNilaiKeseluruhan);
+
+              // Key unik inline edit untuk obat dan satuannya
+              const inlineEditKey = def ? `${obat.id}_${def.id}` : null;
+              const isEditing = inlineEditKey && editingKey === inlineEditKey;
 
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
+                  {/* 1. NO */}
+                  <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
+                    {noUrut}
+                  </td>
+
+                  {/* 2. NAMA OBAT */}
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {obat.gambar_url || obat.gambar ? (
@@ -752,102 +1163,192 @@ export default function DataObat() {
                           onError={(e) => { e.target.style.display = "none"; }}
                         />
                       ) : null}
-                      <span className="obat-nama-cell">{obat.nama}</span>
+                      <span className="obat-nama-cell" style={{ fontWeight: 700, color: "var(--ink)" }}>
+                        {obat.nama}
+                      </span>
                     </div>
                   </td>
-                  <td>{obat.kemasan || "-"}</td>
-                  <td>{satuanNames}</td>
-                  <td className="obat-batch-cell">{obat.nomor_batch || "-"}</td>
-                  <td className="obat-harga-cell">
-                    {hargaBeli}
-                    {(() => {
-                      const badge = badgeHargaBeli(def);
-                      return badge ? <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div> : null;
-                    })()}
+
+                  {/* 3. KEMASAN */}
+                  <td style={{ color: "var(--ink-soft)" }}>{obat.kemasan || "-"}</td>
+
+                  {/* 4. SATUAN */}
+                  <td style={{ fontWeight: 600 }}>{satuanNames}</td>
+
+                  {/* 5. BATCH */}
+                  <td className="obat-batch-cell" style={{ textAlign: "center" }}>{obat.nomor_batch || "-"}</td>
+
+                  {/* 6. HARGA BELI */}
+                  <td className="obat-harga-cell" style={{ textAlign: "right" }}>
+                    <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end" }}>
+                      <span>{hargaBeli}</span>
+                      {(() => {
+                        const badge = badgeHargaBeli(def);
+                        return badge ? <div className={`harga-badge ${badge.warna}`} style={{ marginTop: 2 }}>{badge.teks}</div> : null;
+                      })()}
+                    </div>
                   </td>
-                  <td className="obat-harga-cell">{hargaJual}</td>
-                  <td className="obat-margin-cell">
-                    {mStat.status !== "kosong" ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-start" }}>
-                        <span className={`margin-badge ${mStat.warna}`}>
-                          {mStat.label}
-                        </span>
-                        {(mStat.status === "rugi" || mStat.status === "tipis") && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePerbaikiSatuObat(obat);
-                            }}
-                            style={{
-                              background: "#F5F3FF",
-                              border: "1px solid #7C3AED",
-                              color: "#6D28D9",
-                              borderRadius: 5,
-                              padding: "2px 7px",
-                              fontSize: 10,
-                              fontWeight: 700,
-                              cursor: "pointer",
-                              whiteSpace: "nowrap"
-                            }}
-                            title="Otomatis hitung margin 25% dan dibulatkan ke kelipatan 500"
-                          >
-                            ⚡ Jadi 25%
-                          </button>
-                        )}
+
+                  {/* 7. HARGA JUAL - EDIT LANGSUNG DI SITU (INLINE QUICK EDIT) */}
+                  <td className="obat-harga-cell" style={{ textAlign: "right" }}>
+                    {isEditing ? (
+                      <div
+                        style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Rp</span>
+                        <input
+                          type="number"
+                          value={inputHargaJual}
+                          onChange={(e) => setInputHargaJual(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") simpanEditHarga(obat, def, inputHargaJual);
+                            if (e.key === "Escape") batalEditHarga();
+                          }}
+                          autoFocus
+                          style={{
+                            width: 85,
+                            padding: "3px 6px",
+                            borderRadius: 6,
+                            border: "2px solid var(--magenta)",
+                            fontSize: 12.5,
+                            fontWeight: 800,
+                            outline: "none",
+                            textAlign: "right",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => simpanEditHarga(obat, def, inputHargaJual)}
+                          disabled={savingKey === inlineEditKey}
+                          title="Simpan perubahan harga (Enter)"
+                          style={{
+                            background: "#16A34A",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 5,
+                            padding: "4px 7px",
+                            cursor: "pointer",
+                            fontSize: 11,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {savingKey === inlineEditKey ? "…" : "✓"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={batalEditHarga}
+                          title="Batal (Esc)"
+                          style={{
+                            background: "#E2E8F0",
+                            color: "#475569",
+                            border: "none",
+                            borderRadius: 5,
+                            padding: "4px 6px",
+                            cursor: "pointer",
+                            fontSize: 11,
+                          }}
+                        >
+                          ✕
+                        </button>
                       </div>
                     ) : (
-                      "-"
+                      <div
+                        onClick={() => mulaiEditHarga(obat, def)}
+                        title="Klik untuk ubah harga jual langsung di sini"
+                        style={{
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          justifyContent: "flex-end",
+                          padding: "3px 7px",
+                          borderRadius: 6,
+                          background: "rgba(147, 51, 234, 0.05)",
+                          border: "1px dashed #D8B4FE",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
+                          {rupiah(def?.harga_jual)}
+                        </span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 11, height: 11, color: "var(--magenta)" }}>
+                          <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        </svg>
+                      </div>
                     )}
                   </td>
-                  <td>
-                    <span>{obat.stok} {obat.satuan_dasar}</span>
+
+                  {/* 8. MARGIN % (Ditampilkan / disembunyikan untuk kasir via icon mata) */}
+                  {tampilkanKolomMargin && (
+                    <td className="obat-margin-cell" style={{ textAlign: "center" }}>
+                      {mStat.status !== "kosong" ? (
+                        <div style={{ display: "inline-flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
+                          <span className={`margin-badge ${mStat.warna}`}>
+                            {mStat.label}
+                          </span>
+                          {isAdmin && (mStat.status === "rugi" || mStat.status === "tipis") && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePerbaikiSatuObat(obat);
+                              }}
+                              style={{
+                                background: "#F5F3FF",
+                                border: "1px solid #7C3AED",
+                                color: "#6D28D9",
+                                borderRadius: 5,
+                                padding: "2px 6px",
+                                fontSize: 9.5,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                              }}
+                              title="Otomatis hitung margin 25% dan kelipatan 500"
+                            >
+                              ⚡ Jadi 25%
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  )}
+
+                  {/* 9. STOK */}
+                  <td style={{ textAlign: "center" }}>
+                    <span style={{ fontWeight: 700 }}>{obat.stok}</span>{" "}
+                    <span style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
                     {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis">MENIPIS</div>}
                   </td>
+
+                  {/* 10. TOTAL NILAI */}
                   <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                     <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
                       {rupiah(nilaiUang)}
                     </div>
                   </td>
-                  <td>
+
+                  {/* 11. KADALUWARSA */}
+                  <td style={{ textAlign: "center" }}>
                     {obat.tanggal_exp ? (
                       <div>
                         <span>{new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</span>
                         {hari !== null && hari <= 90 && (
-                          <span className={`exp-badge ${hari <= 30 ? "merah" : "kuning"}`}>
-                            {hari <= 0 ? "EXPIRED" : `${hari}H`}
-                          </span>
+                          <div style={{ marginTop: 2 }}>
+                            <span className={`exp-badge ${hari <= 30 ? "merah" : "kuning"}`}>
+                              {hari <= 0 ? "EXPIRED" : `${hari}H`}
+                            </span>
+                          </div>
                         )}
                       </div>
                     ) : "-"}
                   </td>
-                  {/* Kolom Aktif & Resep sengaja disembunyikan dari tampilan tabel
-                      (permintaan user). Toggle-nya masih ada & berfungsi di
-                      modal Edit Obat, dan field aktif_dijual/perlu_resep masih
-                      dipakai penuh di backend (filter Kasir & Toko). Kalau
-                      nanti mau dimunculkan lagi di tabel, tinggal un-comment
-                      2 <td> di bawah ini + 2 <th> di header. */}
-                  {/*
-                  <td>
-                    <button
-                      className={`toggle-pill ${obat.aktif_dijual ? "on" : ""}`}
-                      onClick={() => toggleField(obat, "aktif_dijual")}
-                      aria-label={obat.aktif_dijual ? "Nonaktifkan" : "Aktifkan"}
-                    >
-                      <span className="toggle-knob" />
-                    </button>
-                  </td>
-                  <td>
-                    <button
-                      className={`toggle-pill ${obat.perlu_resep ? "on" : ""}`}
-                      onClick={() => toggleField(obat, "perlu_resep")}
-                      aria-label={obat.perlu_resep ? "Hapus resep" : "Wajib resep"}
-                    >
-                      <span className="toggle-knob" />
-                    </button>
-                  </td>
-                  */}
-                  <td style={{ width: 130, minWidth: 130, textAlign: "center", whiteSpace: "nowrap" }}>
+
+                  {/* 12. AKSI */}
+                  <td style={{ width: 120, minWidth: 120, textAlign: "center", whiteSpace: "nowrap" }}>
                     <div className="obat-aksi-icons" style={{ justifyContent: "center" }}>
                       <button
                         type="button"
@@ -858,8 +1359,8 @@ export default function DataObat() {
                           border: "1px solid var(--magenta)",
                           borderRadius: 8,
                           padding: 0,
-                          width: 32,
-                          height: 32,
+                          width: 30,
+                          height: 30,
                           color: "var(--magenta-dark)",
                           cursor: "pointer",
                           display: "inline-flex",
@@ -868,7 +1369,7 @@ export default function DataObat() {
                           flexShrink: 0,
                         }}
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 14, height: 14 }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 13, height: 13 }}>
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                           <polyline points="14 2 14 8 20 8"></polyline>
                           <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -876,7 +1377,7 @@ export default function DataObat() {
                           <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                       </button>
-                      <button onClick={() => bukaEdit(obat)} title="Edit" style={{ flexShrink: 0 }}>
+                      <button onClick={() => bukaEdit(obat)} title="Edit Obat Lengkap" style={{ flexShrink: 0 }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                           <path d="M17 3l4 4L7 21H3v-4L17 3z" />
                         </svg>
@@ -893,6 +1394,139 @@ export default function DataObat() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* NAVIGASI HALAMAN (PAGINATION) - DESKTOP & MOBILE */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+          padding: "12px 18px",
+          background: "#fff",
+          borderRadius: 14,
+          border: "1px solid var(--line)",
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", fontSize: 13, color: "var(--ink-soft)" }}>
+          <span>
+            Menampilkan <strong>{totalData === 0 ? 0 : startIndex + 1}</strong> – <strong>{Math.min(endIndex, totalData)}</strong> dari <strong>{totalData.toLocaleString("id-ID")}</strong> obat
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span>Per Halaman:</span>
+            <select
+              value={perPage}
+              onChange={(e) => {
+                const val = e.target.value === "semua" ? "semua" : Number(e.target.value);
+                setPerPage(val);
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: "4px 8px",
+                borderRadius: 8,
+                border: "1.5px solid var(--line)",
+                fontSize: 12.5,
+                fontWeight: 700,
+                background: "#FAF5FF",
+                color: "var(--magenta-dark)",
+                cursor: "pointer",
+                outline: "none",
+              }}
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+              <option value="semua">Semua</option>
+            </select>
+          </div>
+        </div>
+
+        {perPage !== "semua" && totalPages > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage(1)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 8,
+                border: "1px solid var(--line)",
+                background: currentPage <= 1 ? "#F1F5F9" : "#fff",
+                color: currentPage <= 1 ? "#94A3B8" : "var(--ink)",
+                cursor: currentPage <= 1 ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+              title="Halaman Pertama"
+            >
+              ««
+            </button>
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              style={{
+                padding: "6px 11px",
+                borderRadius: 8,
+                border: "1px solid var(--line)",
+                background: currentPage <= 1 ? "#F1F5F9" : "#fff",
+                color: currentPage <= 1 ? "#94A3B8" : "var(--ink)",
+                cursor: currentPage <= 1 ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+              title="Halaman Sebelumnya"
+            >
+              ‹
+            </button>
+
+            {/* Nomor-nomor halaman */}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              {renderPageNumbers()}
+            </div>
+
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              style={{
+                padding: "6px 11px",
+                borderRadius: 8,
+                border: "1px solid var(--line)",
+                background: currentPage >= totalPages ? "#F1F5F9" : "#fff",
+                color: currentPage >= totalPages ? "#94A3B8" : "var(--ink)",
+                cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+              title="Halaman Selanjutnya"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 8,
+                border: "1px solid var(--line)",
+                background: currentPage >= totalPages ? "#F1F5F9" : "#fff",
+                color: currentPage >= totalPages ? "#94A3B8" : "var(--ink)",
+                cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
+                fontSize: 12,
+                fontWeight: 700,
+              }}
+              title="Halaman Terakhir"
+            >
+              »»
+            </button>
+          </div>
+        )}
       </div>
 
       {modalOpen && (

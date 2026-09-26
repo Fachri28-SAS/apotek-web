@@ -2018,4 +2018,35 @@
   }
 }
 
+/* Pagination Number Buttons */
+.pagination-num-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pagination-num-btn:hover {
+  background: #FAF5FF;
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
+}
+
+.pagination-num-btn.active {
+  background: var(--magenta);
+  border-color: var(--magenta);
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(147, 51, 234, 0.3);
+}
+
 
