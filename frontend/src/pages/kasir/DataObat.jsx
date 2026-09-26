@@ -57,13 +57,20 @@ export default function DataObat() {
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
-  // Pengaturan Admin: Sembunyikan kolom margin di akun kasir via icon mata
-  const [sembunyikanMarginKasir, setSembunyikanMarginKasir] = useState(() => {
-    return localStorage.getItem("bima_hide_margin_kasir") === "true";
+  // Kontrol ON / OFF visibilitas kolom margin di tabel
+  const [tampilkanMargin, setTampilkanMargin] = useState(() => {
+    const saved = localStorage.getItem("bima_tampilkan_margin_tabel");
+    // Default tampil (true) kecuali jika secara eksplisit diset false
+    return saved !== "false";
   });
 
-  // Di akun admin selalu tampil, di akun kasir mengikuti kontrol mata dari admin
-  const tampilkanKolomMargin = isAdmin || !sembunyikanMarginKasir;
+  function toggleMargin() {
+    setTampilkanMargin((prev) => {
+      const baru = !prev;
+      localStorage.setItem("bima_tampilkan_margin_tabel", baru ? "true" : "false");
+      return baru;
+    });
+  }
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -596,6 +603,50 @@ export default function DataObat() {
             </button>
           </div>
 
+          {/* Tombol Kontrol Margin ON / OFF yang sangat jelas statusnya */}
+          <button
+            type="button"
+            onClick={toggleMargin}
+            title={
+              tampilkanMargin
+                ? "Status: Margin ON (Tampil di tabel). Klik untuk MENYEMBUNYIKAN kolom Margin (OFF)"
+                : "Status: Margin OFF (Disembunyikan). Klik untuk MENAMPILKAN kembali kolom Margin (ON)"
+            }
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: tampilkanMargin ? "#ECFDF5" : "#FEF2F2",
+              border: tampilkanMargin ? "1.5px solid #10B981" : "1.5px solid #EF4444",
+              color: tampilkanMargin ? "#065F46" : "#991B1B",
+              padding: "4px 10px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              boxShadow: tampilkanMargin
+                ? "0 1px 2px rgba(16, 185, 129, 0.15)"
+                : "0 1px 2px rgba(239, 68, 68, 0.15)",
+            }}
+          >
+            <span style={{ fontSize: 13 }}>{tampilkanMargin ? "👁️" : "🙈"}</span>
+            <span style={{ fontSize: 11.5 }}>MARGIN:</span>
+            <span
+              style={{
+                background: tampilkanMargin ? "#10B981" : "#EF4444",
+                color: "#fff",
+                padding: "1.5px 7px",
+                borderRadius: 10,
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: 0.3,
+              }}
+            >
+              {tampilkanMargin ? "ON (TAMPIL)" : "OFF (HILANG)"}
+            </span>
+          </button>
+
           <TombolExportGroup
             onCetakPdf={handleCetakDataObat}
             onExportExcel={handleExcelDataObat}
@@ -956,7 +1007,7 @@ export default function DataObat() {
 
                     <div className="t2" style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
                       {obat.nomor_batch && <span>Batch: {obat.nomor_batch}</span>}
-                      {tampilkanKolomMargin && mStat.status !== "kosong" && (
+                      {tampilkanMargin && mStat.status !== "kosong" && (
                         <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 9.5, padding: "1px 5px" }}>
                           {mStat.label}
                         </span>
@@ -1042,74 +1093,64 @@ export default function DataObat() {
           marginBottom: 16,
         }}
       >
-        <table className="obat-table" style={{ minWidth: 1200, width: "100%", fontSize: 13 }}>
+        <table className="obat-table" style={{ minWidth: tampilkanMargin ? 980 : 880, width: "100%", fontSize: 12.5 }}>
           <thead>
             <tr>
               {/* 1. NO DI PALING DEPAN */}
-              <th style={{ width: 48, minWidth: 48, textAlign: "center" }}>NO</th>
-              <th style={{ minWidth: 180 }}>Nama Obat</th>
-              <th style={{ width: 85, minWidth: 85 }}>Kemasan</th>
-              <th style={{ width: 85, minWidth: 85 }}>Satuan</th>
-              <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Batch</th>
-              <th style={{ width: 125, minWidth: 125, textAlign: "right" }}>Harga Beli</th>
+              <th style={{ width: 36, minWidth: 36, textAlign: "center", padding: "7px 4px" }}>NO</th>
+              <th style={{ minWidth: 160, padding: "7px 8px" }}>Nama Obat</th>
+              <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Kemasan</th>
+              <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Satuan</th>
+              <th style={{ width: 75, minWidth: 75, textAlign: "center", padding: "7px 5px" }}>Batch</th>
+              <th style={{ width: 98, minWidth: 98, textAlign: "right", padding: "7px 6px" }}>Harga Beli</th>
               {/* Kolom Harga Jual dengan Keterangan Edit Langsung */}
-              <th style={{ width: 145, minWidth: 145, textAlign: "right" }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <th style={{ width: 108, minWidth: 108, textAlign: "right", padding: "7px 6px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
                   <span>Harga Jual</span>
-                  <span style={{ fontSize: 11, color: "var(--magenta)", fontWeight: 800 }} title="Bisa langsung diedit di sini">
+                  <span style={{ fontSize: 10.5, color: "var(--magenta)", fontWeight: 800 }} title="Bisa langsung diedit di sini">
                     ✏️
                   </span>
                 </div>
               </th>
-              {/* Kolom Margin dengan Icon Mata untuk Admin */}
-              {tampilkanKolomMargin && (
-                <th style={{ width: 135, minWidth: 135, textAlign: "center" }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+              {/* Kolom Margin (Bisa dimatikan / OFF sehingga Stok langsung bergeser ke kanan Harga Jual) */}
+              {tampilkanMargin && (
+                <th style={{ width: 85, minWidth: 85, textAlign: "center", padding: "7px 4px" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
                     <span>Margin %</span>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const baru = !sembunyikanMarginKasir;
-                          setSembunyikanMarginKasir(baru);
-                          localStorage.setItem("bima_hide_margin_kasir", baru ? "true" : "false");
-                        }}
-                        title={
-                          sembunyikanMarginKasir
-                            ? "Status: Margin DISEMBUNYIKAN untuk Kasir. Klik untuk MENAMPILKAN kembali ke Kasir."
-                            : "Status: Margin TAMPIL untuk Kasir. Klik untuk MENYEMBUNYIKAN dari Kasir."
-                        }
-                        style={{
-                          background: sembunyikanMarginKasir ? "#FEF2F2" : "#F0FDF4",
-                          border: sembunyikanMarginKasir ? "1px solid #FECACA" : "1px solid #BBF7D0",
-                          color: sembunyikanMarginKasir ? "#DC2626" : "#16A34A",
-                          borderRadius: 6,
-                          padding: "2px 5px",
-                          fontSize: 11,
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 3,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {sembunyikanMarginKasir ? "👁️‍🗨️" : "👁️"}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleMargin();
+                      }}
+                      title="Klik untuk MENYEMBUNYIKAN kolom Margin (OFF)"
+                      style={{
+                        background: "#FEF2F2",
+                        border: "1px solid #FECACA",
+                        color: "#DC2626",
+                        borderRadius: 4,
+                        padding: "1px 4px",
+                        fontSize: 9,
+                        cursor: "pointer",
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      ✕ OFF
+                    </button>
                   </div>
                 </th>
               )}
-              <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Stok</th>
-              <th style={{ width: 130, minWidth: 130, textAlign: "right" }}>Total Nilai</th>
-              <th style={{ width: 115, minWidth: 115, textAlign: "center" }}>Kadaluwarsa</th>
-              <th style={{ width: 120, minWidth: 120, textAlign: "center" }}>Aksi</th>
+              <th style={{ width: 72, minWidth: 72, textAlign: "center", padding: "7px 5px" }}>Stok</th>
+              <th style={{ width: 105, minWidth: 105, textAlign: "right", padding: "7px 6px" }}>Total Nilai</th>
+              <th style={{ width: 92, minWidth: 92, textAlign: "center", padding: "7px 5px" }}>Kadaluwarsa</th>
+              <th style={{ width: 86, minWidth: 86, textAlign: "center", padding: "7px 4px" }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading && daftar.length === 0 && (
               <tr>
-                <td colSpan={tampilkanKolomMargin ? 12 : 11} className="obat-table-info" style={{ padding: "36px 16px" }}>
+                <td colSpan={tampilkanMargin ? 12 : 11} className="obat-table-info" style={{ padding: "30px 16px" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <div style={{ fontWeight: 700, color: "var(--magenta-dark)", fontSize: 14 }}>
                       Sedang menyinkronkan data katalog obat dari server apotek…
@@ -1121,7 +1162,7 @@ export default function DataObat() {
             )}
             {!loading && daftarHalaman.length === 0 && (
               <tr>
-                <td colSpan={tampilkanKolomMargin ? 12 : 11} className="obat-table-info">
+                <td colSpan={tampilkanMargin ? 12 : 11} className="obat-table-info">
                   {search ? `Tidak ada obat yang cocok dengan pencarian "${search}".` : "Tidak ada data obat."}
                 </td>
               </tr>
@@ -1148,38 +1189,38 @@ export default function DataObat() {
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
                   {/* 1. NO */}
-                  <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
+                  <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)", padding: "6px 4px" }}>
                     {noUrut}
                   </td>
 
                   {/* 2. NAMA OBAT */}
-                  <td>
+                  <td style={{ padding: "6px 8px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       {obat.gambar_url || obat.gambar ? (
                         <img
                           src={obat.gambar_url || `/storage/${obat.gambar}`}
                           alt=""
-                          style={{ width: 28, height: 28, borderRadius: 4, objectFit: "cover", flexShrink: 0 }}
+                          style={{ width: 26, height: 26, borderRadius: 4, objectFit: "cover", flexShrink: 0 }}
                           onError={(e) => { e.target.style.display = "none"; }}
                         />
                       ) : null}
-                      <span className="obat-nama-cell" style={{ fontWeight: 700, color: "var(--ink)" }}>
+                      <span className="obat-nama-cell" style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13 }}>
                         {obat.nama}
                       </span>
                     </div>
                   </td>
 
                   {/* 3. KEMASAN */}
-                  <td style={{ color: "var(--ink-soft)" }}>{obat.kemasan || "-"}</td>
+                  <td style={{ color: "var(--ink-soft)", padding: "6px 6px" }}>{obat.kemasan || "-"}</td>
 
                   {/* 4. SATUAN */}
-                  <td style={{ fontWeight: 600 }}>{satuanNames}</td>
+                  <td style={{ fontWeight: 600, padding: "6px 6px" }}>{satuanNames}</td>
 
                   {/* 5. BATCH */}
-                  <td className="obat-batch-cell" style={{ textAlign: "center" }}>{obat.nomor_batch || "-"}</td>
+                  <td className="obat-batch-cell" style={{ textAlign: "center", padding: "6px 5px" }}>{obat.nomor_batch || "-"}</td>
 
                   {/* 6. HARGA BELI */}
-                  <td className="obat-harga-cell" style={{ textAlign: "right" }}>
+                  <td className="obat-harga-cell" style={{ textAlign: "right", padding: "6px 6px" }}>
                     <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end" }}>
                       <span>{hargaBeli}</span>
                       {(() => {
@@ -1190,13 +1231,13 @@ export default function DataObat() {
                   </td>
 
                   {/* 7. HARGA JUAL - EDIT LANGSUNG DI SITU (INLINE QUICK EDIT) */}
-                  <td className="obat-harga-cell" style={{ textAlign: "right" }}>
+                  <td className="obat-harga-cell" style={{ textAlign: "right", padding: "6px 6px" }}>
                     {isEditing ? (
                       <div
-                        style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Rp</span>
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink-soft)" }}>Rp</span>
                         <input
                           type="number"
                           value={inputHargaJual}
@@ -1207,11 +1248,11 @@ export default function DataObat() {
                           }}
                           autoFocus
                           style={{
-                            width: 85,
-                            padding: "3px 6px",
+                            width: 80,
+                            padding: "2px 5px",
                             borderRadius: 6,
                             border: "2px solid var(--magenta)",
-                            fontSize: 12.5,
+                            fontSize: 12,
                             fontWeight: 800,
                             outline: "none",
                             textAlign: "right",
@@ -1226,10 +1267,10 @@ export default function DataObat() {
                             background: "#16A34A",
                             color: "#fff",
                             border: "none",
-                            borderRadius: 5,
-                            padding: "4px 7px",
+                            borderRadius: 4,
+                            padding: "3px 6px",
                             cursor: "pointer",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 800,
                           }}
                         >
@@ -1243,10 +1284,10 @@ export default function DataObat() {
                             background: "#E2E8F0",
                             color: "#475569",
                             border: "none",
-                            borderRadius: 5,
-                            padding: "4px 6px",
+                            borderRadius: 4,
+                            padding: "3px 5px",
                             cursor: "pointer",
-                            fontSize: 11,
+                            fontSize: 10.5,
                           }}
                         >
                           ✕
@@ -1260,31 +1301,31 @@ export default function DataObat() {
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 6,
+                          gap: 5,
                           justifyContent: "flex-end",
-                          padding: "3px 7px",
+                          padding: "2px 6px",
                           borderRadius: 6,
                           background: "rgba(147, 51, 234, 0.05)",
                           border: "1px dashed #D8B4FE",
                           transition: "all 0.15s ease",
                         }}
                       >
-                        <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
+                        <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 12.5 }}>
                           {rupiah(def?.harga_jual)}
                         </span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 11, height: 11, color: "var(--magenta)" }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 10, height: 10, color: "var(--magenta)" }}>
                           <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
                         </svg>
                       </div>
                     )}
                   </td>
 
-                  {/* 8. MARGIN % (Ditampilkan / disembunyikan untuk kasir via icon mata) */}
-                  {tampilkanKolomMargin && (
-                    <td className="obat-margin-cell" style={{ textAlign: "center" }}>
+                  {/* 8. MARGIN % (Jika OFF, kolom ini lenyap total dan Stok bergeser ke kanan Harga Jual) */}
+                  {tampilkanMargin && (
+                    <td className="obat-margin-cell" style={{ textAlign: "center", padding: "6px 4px" }}>
                       {mStat.status !== "kosong" ? (
-                        <div style={{ display: "inline-flex", flexDirection: "column", gap: 3, alignItems: "center" }}>
-                          <span className={`margin-badge ${mStat.warna}`}>
+                        <div style={{ display: "inline-flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
+                          <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 11, padding: "2px 6px" }}>
                             {mStat.label}
                           </span>
                           {isAdmin && (mStat.status === "rugi" || mStat.status === "tipis") && (
@@ -1298,9 +1339,9 @@ export default function DataObat() {
                                 background: "#F5F3FF",
                                 border: "1px solid #7C3AED",
                                 color: "#6D28D9",
-                                borderRadius: 5,
-                                padding: "2px 6px",
-                                fontSize: 9.5,
+                                borderRadius: 4,
+                                padding: "1px 5px",
+                                fontSize: 9,
                                 fontWeight: 700,
                                 cursor: "pointer",
                                 whiteSpace: "nowrap",
@@ -1317,25 +1358,25 @@ export default function DataObat() {
                     </td>
                   )}
 
-                  {/* 9. STOK */}
-                  <td style={{ textAlign: "center" }}>
+                  {/* 9. STOK (Menempel langsung di kanan Harga Jual jika Margin OFF) */}
+                  <td style={{ textAlign: "center", padding: "6px 5px" }}>
                     <span style={{ fontWeight: 700 }}>{obat.stok}</span>{" "}
-                    <span style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
+                    <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
                     {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis">MENIPIS</div>}
                   </td>
 
                   {/* 10. TOTAL NILAI */}
-                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                    <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap", padding: "6px 6px" }}>
+                    <div style={{ fontWeight: 800, color: "var(--ink)", fontSize: 12.5 }}>
                       {rupiah(nilaiUang)}
                     </div>
                   </td>
 
                   {/* 11. KADALUWARSA */}
-                  <td style={{ textAlign: "center" }}>
+                  <td style={{ textAlign: "center", padding: "6px 5px" }}>
                     {obat.tanggal_exp ? (
                       <div>
-                        <span>{new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                        <span style={{ fontSize: 12 }}>{new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</span>
                         {hari !== null && hari <= 90 && (
                           <div style={{ marginTop: 2 }}>
                             <span className={`exp-badge ${hari <= 30 ? "merah" : "kuning"}`}>
@@ -1348,7 +1389,7 @@ export default function DataObat() {
                   </td>
 
                   {/* 12. AKSI */}
-                  <td style={{ width: 120, minWidth: 120, textAlign: "center", whiteSpace: "nowrap" }}>
+                  <td style={{ width: 86, minWidth: 86, textAlign: "center", whiteSpace: "nowrap", padding: "6px 4px" }}>
                     <div className="obat-aksi-icons" style={{ justifyContent: "center" }}>
                       <button
                         type="button"
