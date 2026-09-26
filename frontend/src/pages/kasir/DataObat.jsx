@@ -72,6 +72,27 @@ export default function DataObat() {
     });
   }
 
+  // Shortcut rahasia: Tekan tombol 'h' atau 'm' di keyboard untuk sembunyikan/tampilkan kolom secara senyap
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (
+        e.target.tagName === "INPUT" ||
+        e.target.tagName === "TEXTAREA" ||
+        e.target.isContentEditable ||
+        modalOpen ||
+        sampahOpen ||
+        riwayatObat
+      ) {
+        return;
+      }
+      if (e.key.toLowerCase() === "h" || e.key.toLowerCase() === "m") {
+        toggleSembunyikan();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen, sampahOpen, riwayatObat]);
+
   // Kolom margin tampil saat mode sembunyikan tidak aktif
   const tampilkanMargin = !sembunyikan;
 
@@ -340,9 +361,10 @@ export default function DataObat() {
   }
 
   // --- EKSPOR DATA OBAT (PER HALAMAN ATAU SEMUA DATA) ---
+  // --- EKSPOR & CETAK DATA OBAT (PER HALAMAN ATAU SEMUA DATA) ---
+  // Kolom Margin % tidak pernah diikutsertakan dalam cetak/ekspor (rahasia apotek)
   function siapkanDataExport(scope = "semua") {
     const dataSumber = scope === "halaman" && perPage !== "semua" ? daftarHalaman : daftarTampil;
-    const tampilMargin = tampilkanKolomMargin;
 
     const headers = [
       { label: "NO", align: "center", width: "45px" },
@@ -352,7 +374,6 @@ export default function DataObat() {
       { label: "No. Batch", align: "center" },
       { label: "Harga Beli", align: "right" },
       { label: "Harga Jual", align: "right" },
-      ...(tampilMargin ? [{ label: "Margin", align: "center" }] : []),
       { label: "Stok", align: "right" },
       { label: "Total Nilai", align: "right" },
       { label: "Kadaluwarsa", align: "center" },
@@ -364,8 +385,6 @@ export default function DataObat() {
     const rows = dataSumber.map((obat, idx) => {
       const noUrut = (scope === "halaman" && perPage !== "semua") ? startIndex + idx + 1 : idx + 1;
       const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
-      const mNum = hitungMarginPersen(def?.harga_beli, def?.harga_jual);
-      const mStat = getStatusMargin(mNum);
       const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ");
       const expStr = obat.tanggal_exp
         ? new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
@@ -377,7 +396,7 @@ export default function DataObat() {
       totalAsetStok += nilaiUang;
       totalFisikStok += stokNum;
 
-      const row = [
+      return [
         noUrut,
         obat.nama,
         obat.kemasan || "-",
@@ -385,19 +404,10 @@ export default function DataObat() {
         obat.nomor_batch || "-",
         rupiah(def?.harga_beli),
         rupiah(def?.harga_jual),
-      ];
-
-      if (tampilMargin) {
-        row.push(mStat.status !== "kosong" ? mStat.label : "-");
-      }
-
-      row.push(
         `${obat.stok} ${obat.satuan_dasar || ""}`,
         rupiah(nilaiUang),
-        expStr
-      );
-
-      return row;
+        expStr,
+      ];
     });
 
     const footers = [
@@ -524,7 +534,30 @@ export default function DataObat() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Data Obat</h1>
+          <div
+            onClick={toggleSembunyikan}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+            title="Klik judul ini atau tekan 'H' di keyboard untuk sembunyikan / tampilkan kolom"
+          >
+            <h1 style={{ fontSize: 24, margin: 0 }}>Data Obat</h1>
+            <span
+              style={{
+                fontSize: 12,
+                opacity: 0.18,
+                transition: "opacity 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.75")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.18")}
+            >
+              {sembunyikan ? "🙈" : "👁️"}
+            </span>
+          </div>
           <p className="halaman-sub">
             {filterMarginTipis
               ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 25%)`
@@ -605,47 +638,6 @@ export default function DataObat() {
               Semua ({totalData})
             </button>
           </div>
-
-          {/* Tombol Kontrol: Sembunyikan (Bisa digunakan oleh Kasir maupun Admin, aman & tidak vulgar) */}
-          <button
-            type="button"
-            onClick={toggleSembunyikan}
-            title={
-              sembunyikan
-                ? "Mode Sembunyikan aktif (kolom disembunyikan). Klik untuk MENAMPILKAN kembali (OFF)"
-                : "Klik untuk MENYEMBUNYIKAN kolom (ON)"
-            }
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: sembunyikan ? "#F1F5F9" : "var(--surface)",
-              border: sembunyikan ? "1.5px solid #64748B" : "1.5px solid var(--line)",
-              color: sembunyikan ? "#1E293B" : "var(--ink)",
-              padding: "4px 10px",
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <span style={{ fontSize: 13 }}>{sembunyikan ? "🙈" : "👁️"}</span>
-            <span style={{ fontSize: 11.5 }}>Sembunyikan:</span>
-            <span
-              style={{
-                background: sembunyikan ? "#475569" : "#E2E8F0",
-                color: sembunyikan ? "#fff" : "#475569",
-                padding: "1px 6px",
-                borderRadius: 8,
-                fontSize: 10,
-                fontWeight: 900,
-                letterSpacing: 0.3,
-              }}
-            >
-              {sembunyikan ? "ON" : "OFF"}
-            </span>
-          </button>
 
           <TombolExportGroup
             onCetakPdf={handleCetakDataObat}
