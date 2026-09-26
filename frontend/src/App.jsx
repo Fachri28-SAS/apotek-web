@@ -80,7 +80,7 @@ function App() {
             <Route
               path="/kasir/riwayat-perubahan"
               element={
-                <RutePrivat rolesBoleh={["admin", "kasir"]}>
+                <RutePrivat rolesBoleh={["admin"]}>
                   <RiwayatPerubahan />
                 </RutePrivat>
               }
