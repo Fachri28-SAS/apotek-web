@@ -111,6 +111,17 @@ export default function DataObat() {
   const [inputStok, setInputStok] = useState("");
   const [savingKey, setSavingKey] = useState(null);
 
+  // State Tambah Obat Langsung di Baris Tabel (Tanpa Pop-up)
+  const [tambahInline, setTambahInline] = useState(false);
+  const [namaBaru, setNamaBaru] = useState("");
+  const [satuanBaru, setSatuanBaru] = useState("Strip");
+  const [batchBaru, setBatchBaru] = useState("");
+  const [hargaBeliBaru, setHargaBeliBaru] = useState("");
+  const [hargaJualBaru, setHargaJualBaru] = useState("");
+  const [stokBaru, setStokBaru] = useState("");
+  const [expBaru, setExpBaru] = useState("");
+  const [loadingSimpanBaru, setLoadingSimpanBaru] = useState(false);
+
   // Deteksi obat dengan margin bermasalah (< 25%) ATAU harga jual belum genap kelipatan 500
   const obatBermasalahMargin = daftar.filter((o) => {
     return o.satuan?.some((s) => {
@@ -194,7 +205,84 @@ export default function DataObat() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  function bukaTambah() { setObatEdit(null); setModalOpen(true); }
+  function bukaTambah() {
+    setTambahInline(true);
+    setNamaBaru("");
+    setSatuanBaru("Strip");
+    setBatchBaru("");
+    setHargaBeliBaru("");
+    setHargaJualBaru("");
+    setStokBaru("");
+    setExpBaru("");
+  }
+  function batalTambahInline() {
+    setTambahInline(false);
+  }
+
+  async function simpanObatBaruInline() {
+    if (!namaBaru.trim()) {
+      alert("Silakan isi nama obat terlebih dahulu.");
+      return;
+    }
+    const satuanTrim = satuanBaru.trim() || "Strip";
+    const beliNum = Math.round(Number(hargaBeliBaru) || 0);
+    const jualNum = Math.round(Number(hargaJualBaru) || (beliNum > 0 ? hitungHargaJualOtomatis(beliNum, 25) : 0));
+    const stokNum = Math.round(Number(stokBaru) || 0);
+
+    setLoadingSimpanBaru(true);
+    try {
+      const payload = {
+        nama: namaBaru.trim(),
+        kemasan: null,
+        satuan_dasar: satuanTrim,
+        stok: stokNum,
+        stok_minimum: 1,
+        nomor_batch: batchBaru.trim() || null,
+        tanggal_exp: expBaru || null,
+        supplier_id: null,
+        perlu_resep: false,
+        aktif_dijual: true,
+        tampil_online: true,
+        satuan: [
+          {
+            nama_satuan: satuanTrim,
+            faktor: 1,
+            harga_beli: beliNum,
+            harga_jual: jualNum,
+            is_default: true,
+            urutan: 0,
+          },
+        ],
+      };
+
+      await api("/obat", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      const namaAkun = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
+        kategori: "Katalog Obat",
+        aksi: "Tambah",
+        judul: namaBaru.trim(),
+        sebelum: "-",
+        sesudah: `Stok: ${stokNum} ${satuanTrim}, Beli: ${rupiah(beliNum)}, Jual: ${rupiah(jualNum)}`,
+        keterangan: `Input obat baru langsung di baris tabel (${namaAkun})`,
+      });
+
+      setNotifSukses(`Obat "${namaBaru.trim()}" berhasil ditambahkan ke katalog!`);
+      setTimeout(() => setNotifSukses(""), 4000);
+      setTambahInline(false);
+      muatUlang();
+    } catch (err) {
+      alert("Gagal menambahkan obat: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setLoadingSimpanBaru(false);
+    }
+  }
+
   function bukaEdit(obat) { setObatEdit(obat); setModalOpen(true); }
 
   async function hapusObat(obat) {
@@ -580,7 +668,6 @@ export default function DataObat() {
     const headers = [
       { label: "NO", align: "center", width: "45px" },
       { label: "Nama Obat", align: "left" },
-      { label: "Kemasan", align: "left" },
       { label: "Satuan", align: "left" },
       { label: "No. Batch", align: "center" },
       { label: "Harga Beli", align: "right" },
@@ -610,7 +697,6 @@ export default function DataObat() {
       return [
         noUrut,
         obat.nama,
-        obat.kemasan || "-",
         satuanNames || "-",
         obat.nomor_batch || "-",
         rupiah(def?.harga_beli),
@@ -1086,6 +1172,201 @@ export default function DataObat() {
           />
         </div>
 
+        {/* Form Tambah Obat Langsung di Mobile */}
+        {tambahInline && (
+          <div
+            className="list-card"
+            style={{
+              border: "2px solid var(--magenta)",
+              background: "#FDF4FF",
+              marginBottom: 14,
+              boxShadow: "0 4px 12px rgba(147, 51, 234, 0.12)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ fontWeight: 800, color: "var(--magenta-dark)", fontSize: 14 }}>
+                ➕ Tambah Obat Baru (Langsung)
+              </span>
+              <button
+                type="button"
+                onClick={batalTambahInline}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "var(--ink-soft)" }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Nama Obat *</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Paracetamol 500mg"
+                  value={namaBaru}
+                  onChange={(e) => setNamaBaru(e.target.value)}
+                  autoFocus
+                  style={{
+                    width: "100%",
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: "1.5px solid var(--magenta)",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    background: "#fff",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Satuan Dasar</label>
+                  <input
+                    type="text"
+                    placeholder="Strip / Botol"
+                    value={satuanBaru}
+                    onChange={(e) => setSatuanBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 12.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>No. Batch (Opsional)</label>
+                  <input
+                    type="text"
+                    placeholder="Batch"
+                    value={batchBaru}
+                    onChange={(e) => setBatchBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 12.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "#1E40AF" }}>Harga Beli (Rp)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={hargaBeliBaru}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setHargaBeliBaru(val);
+                      if (val && !hargaJualBaru) {
+                        setHargaJualBaru(hitungHargaJualOtomatis(Number(val), 25));
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid #2563EB",
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--magenta)" }}>Harga Jual (Rp)</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={hargaJualBaru}
+                    onChange={(e) => setHargaJualBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--magenta)",
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Stok Awal</label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={stokBaru}
+                    onChange={(e) => setStokBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "6px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-soft)" }}>Kadaluwarsa</label>
+                  <input
+                    type="date"
+                    value={expBaru}
+                    onChange={(e) => setExpBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "5px 6px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 11.5,
+                      background: "#fff",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                <button
+                  type="button"
+                  onClick={simpanObatBaruInline}
+                  disabled={loadingSimpanBaru}
+                  className="btn-tambah"
+                  style={{ flex: 1, padding: "9px 12px", justifyContent: "center", fontSize: 13 }}
+                >
+                  {loadingSimpanBaru ? "Menyimpan…" : "✓ Simpan Obat"}
+                </button>
+                <button
+                  type="button"
+                  onClick={batalTambahInline}
+                  style={{
+                    background: "#E2E8F0",
+                    color: "#475569",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "9px 14px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontSize: 13,
+                  }}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading && daftar.length === 0 ? (
           <div className="panel-kosong" style={{ padding: 24, borderRadius: 14 }}>
             <div style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>Sedang memuat katalog obat dari server…</div>
@@ -1408,7 +1689,7 @@ export default function DataObat() {
           </svg>
           <input
             type="text"
-            placeholder="Cari nama obat, batch, kemasan…"
+            placeholder="Cari nama obat, batch…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -1449,8 +1730,7 @@ export default function DataObat() {
               {/* 1. NO DI PALING DEPAN */}
               <th style={{ width: 36, minWidth: 36, textAlign: "center", padding: "7px 4px" }}>NO</th>
               <th style={{ minWidth: 160, padding: "7px 8px" }}>Nama Obat</th>
-              <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Kemasan</th>
-              <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Satuan</th>
+              <th style={{ width: 75, minWidth: 75, padding: "7px 5px" }}>Satuan</th>
               <th style={{ width: 75, minWidth: 75, textAlign: "center", padding: "7px 5px" }}>Batch</th>
               {/* Kolom Harga Beli dengan Keterangan Edit Langsung */}
               <th style={{ width: 105, minWidth: 105, textAlign: "right", padding: "7px 6px" }}>
@@ -1508,7 +1788,7 @@ export default function DataObat() {
           <tbody>
             {loading && daftar.length === 0 && (
               <tr>
-                <td colSpan={tampilkanMargin ? 12 : 11} className="obat-table-info" style={{ padding: "30px 16px" }}>
+                <td colSpan={tampilkanMargin ? 11 : 10} className="obat-table-info" style={{ padding: "30px 16px" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <div style={{ fontWeight: 700, color: "var(--magenta-dark)", fontSize: 14 }}>
                       Sedang menyinkronkan data katalog obat dari server apotek…
@@ -1520,8 +1800,207 @@ export default function DataObat() {
             )}
             {!loading && daftarHalaman.length === 0 && (
               <tr>
-                <td colSpan={tampilkanMargin ? 12 : 11} className="obat-table-info">
+                <td colSpan={tampilkanMargin ? 11 : 10} className="obat-table-info">
                   {search ? `Tidak ada obat yang cocok dengan pencarian "${search}".` : "Tidak ada data obat."}
+                </td>
+              </tr>
+            )}
+
+            {/* BARIS TAMBAH OBAT LANGSUNG DI TABEL (INLINE TANPA POPUP) */}
+            {tambahInline && (
+              <tr style={{ background: "#FDF4FF", borderBottom: "2px solid var(--magenta)" }}>
+                <td style={{ textAlign: "center", padding: "8px 4px" }}>
+                  <span style={{ background: "var(--magenta)", color: "#fff", padding: "2px 5px", borderRadius: 4, fontWeight: 800, fontSize: 10 }}>
+                    BARU
+                  </span>
+                </td>
+                <td style={{ padding: "6px 8px" }}>
+                  <input
+                    type="text"
+                    placeholder="Nama obat baru…"
+                    value={namaBaru}
+                    onChange={(e) => setNamaBaru(e.target.value)}
+                    autoFocus
+                    style={{
+                      width: "100%",
+                      padding: "5px 8px",
+                      borderRadius: 6,
+                      border: "1.5px solid var(--magenta)",
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      outline: "none",
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                <td style={{ padding: "6px 5px" }}>
+                  <input
+                    type="text"
+                    placeholder="Strip/Botol"
+                    value={satuanBaru}
+                    onChange={(e) => setSatuanBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "5px 6px",
+                      borderRadius: 6,
+                      border: "1.5px solid var(--line)",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                <td style={{ padding: "6px 5px", textAlign: "center" }}>
+                  <input
+                    type="text"
+                    placeholder="No. Batch"
+                    value={batchBaru}
+                    onChange={(e) => setBatchBaru(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "5px 6px",
+                      borderRadius: 6,
+                      border: "1.5px solid var(--line)",
+                      textAlign: "center",
+                      fontSize: 12,
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                <td style={{ padding: "6px 6px", textAlign: "right" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#2563EB" }}>Rp</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={hargaBeliBaru}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setHargaBeliBaru(val);
+                        if (val && !hargaJualBaru) {
+                          setHargaJualBaru(hitungHargaJualOtomatis(Number(val), 25));
+                        }
+                      }}
+                      style={{
+                        width: 78,
+                        padding: "5px 6px",
+                        borderRadius: 6,
+                        border: "1.5px solid #2563EB",
+                        fontWeight: 700,
+                        textAlign: "right",
+                        fontSize: 12,
+                        background: "#fff",
+                      }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: "6px 6px", textAlign: "right" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--magenta)" }}>Rp</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={hargaJualBaru}
+                      onChange={(e) => setHargaJualBaru(e.target.value)}
+                      style={{
+                        width: 78,
+                        padding: "5px 6px",
+                        borderRadius: 6,
+                        border: "1.5px solid var(--magenta)",
+                        fontWeight: 700,
+                        textAlign: "right",
+                        fontSize: 12,
+                        background: "#fff",
+                      }}
+                    />
+                  </div>
+                </td>
+                <td style={{ padding: "6px 5px", textAlign: "center" }}>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={stokBaru}
+                    onChange={(e) => setStokBaru(e.target.value)}
+                    style={{
+                      width: 52,
+                      padding: "5px 6px",
+                      borderRadius: 6,
+                      border: "1.5px solid var(--line)",
+                      textAlign: "center",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                {tampilkanMargin && (
+                  <td style={{ textAlign: "center", padding: "6px 4px" }}>
+                    {hargaBeliBaru && hargaJualBaru ? (
+                      <span style={{ fontWeight: 800, fontSize: 11.5, color: "#16A34A" }}>
+                        {hitungMarginPersen(Number(hargaBeliBaru), Number(hargaJualBaru))}%
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--ink-soft)", fontSize: 11 }}>-</span>
+                    )}
+                  </td>
+                )}
+                <td style={{ textAlign: "right", padding: "6px 6px", fontWeight: 700, color: "var(--ink)" }}>
+                  {rupiah((Number(stokBaru) || 0) * (Number(hargaBeliBaru) || 0))}
+                </td>
+                <td style={{ padding: "6px 5px", textAlign: "center" }}>
+                  <input
+                    type="date"
+                    value={expBaru}
+                    onChange={(e) => setExpBaru(e.target.value)}
+                    style={{
+                      width: 100,
+                      padding: "4px 4px",
+                      borderRadius: 6,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 11,
+                      background: "#fff",
+                    }}
+                  />
+                </td>
+                <td style={{ padding: "6px 4px", textAlign: "center" }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    <button
+                      type="button"
+                      onClick={simpanObatBaruInline}
+                      disabled={loadingSimpanBaru}
+                      style={{
+                        background: "#16A34A",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 5,
+                        padding: "5px 8px",
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        boxShadow: "0 2px 4px rgba(22, 163, 74, 0.25)",
+                      }}
+                      title="Simpan obat baru"
+                    >
+                      {loadingSimpanBaru ? "…" : "✓"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={batalTambahInline}
+                      style={{
+                        background: "#E2E8F0",
+                        color: "#475569",
+                        border: "none",
+                        borderRadius: 5,
+                        padding: "5px 6px",
+                        fontSize: 11,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                      title="Batal"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </td>
               </tr>
             )}
@@ -1572,10 +2051,7 @@ export default function DataObat() {
                     </div>
                   </td>
 
-                  {/* 3. KEMASAN */}
-                  <td style={{ color: "var(--ink-soft)", padding: "6px 6px" }}>{obat.kemasan || "-"}</td>
-
-                  {/* 4. SATUAN */}
+                  {/* 3. SATUAN */}
                   <td style={{ fontWeight: 600, padding: "6px 6px" }}>{satuanNames}</td>
 
                   {/* 5. BATCH */}
