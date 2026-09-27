@@ -261,52 +261,9 @@ export default function PembayaranPenerimaan() {
 
   return (
     <KasirShell>
-      {/* Switcher Tab Navigasi: Buku Barang Masuk & Buku Bayar Faktur */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-        <Link
-          to="/kasir/riwayat-penerimaan"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 18px",
-            borderRadius: 10,
-            fontSize: 13.5,
-            fontWeight: 700,
-            background: "#fff",
-            color: "var(--ink)",
-            border: "1.5px solid var(--line)",
-            textDecoration: "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <span>📦</span>
-          <span>Buku Barang Masuk (Per Item)</span>
-        </Link>
-        <Link
-          to="/kasir/pembayaran-penerimaan"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 18px",
-            borderRadius: 10,
-            fontSize: 13.5,
-            fontWeight: 700,
-            background: "var(--magenta)",
-            color: "#fff",
-            textDecoration: "none",
-            boxShadow: "0 2px 5px rgba(147, 51, 234, 0.25)",
-          }}
-        >
-          <span>💳</span>
-          <span>Buku Bayar Faktur PBF</span>
-        </Link>
-      </div>
-
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Buku Bayar Faktur PBF</h1>
+          <h1 style={{ fontSize: 24 }}>Bayar Tagihan PBF</h1>
           <p className="halaman-sub">
             {loading ? "Memuat…" : `${daftarTampil.length} faktur tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
           </p>
@@ -524,7 +481,7 @@ export default function PembayaranPenerimaan() {
         </div>
 
         {loading ? (
-          <div className="panel-kosong">Memuat buku bayar faktur…</div>
+          <div className="panel-kosong">Memuat daftar tagihan PBF…</div>
         ) : grupList.length === 0 ? (
           <div className="panel-kosong">
             {search ? `Tidak ditemukan faktur untuk pencarian "${search}".` : "Belum ada faktur pada periode tanggal ini."}

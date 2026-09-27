@@ -248,49 +248,6 @@ export default function RiwayatPenerimaan() {
 
   return (
     <KasirShell>
-      {/* Switcher Tab Navigasi: Buku Barang Masuk & Buku Bayar Faktur */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-        <Link
-          to="/kasir/riwayat-penerimaan"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 18px",
-            borderRadius: 10,
-            fontSize: 13.5,
-            fontWeight: 700,
-            background: "var(--magenta)",
-            color: "#fff",
-            textDecoration: "none",
-            boxShadow: "0 2px 5px rgba(147, 51, 234, 0.25)",
-          }}
-        >
-          <span>📦</span>
-          <span>Buku Barang Masuk (Per Item)</span>
-        </Link>
-        <Link
-          to="/kasir/pembayaran-penerimaan"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "9px 18px",
-            borderRadius: 10,
-            fontSize: 13.5,
-            fontWeight: 700,
-            background: "#fff",
-            color: "var(--ink)",
-            border: "1.5px solid var(--line)",
-            textDecoration: "none",
-            transition: "all 0.15s ease",
-          }}
-        >
-          <span>💳</span>
-          <span>Buku Bayar Faktur PBF</span>
-        </Link>
-      </div>
-
       <div className="halaman-header">
         <div>
           <h1 style={{ fontSize: 24 }}>Buku Penerimaan Barang Fisik</h1>
