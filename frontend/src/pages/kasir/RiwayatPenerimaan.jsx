@@ -569,11 +569,10 @@ export default function RiwayatPenerimaan() {
                       <div
                         style={{
                           display: "inline-flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: 3,
+                          alignItems: "center",
+                          gap: 5,
                           cursor: "pointer",
-                          padding: "4px 8px",
+                          padding: "5px 9px",
                           borderRadius: 8,
                           transition: "all 0.15s ease",
                           background: "#FAF5FF",
@@ -588,35 +587,8 @@ export default function RiwayatPenerimaan() {
                           e.currentTarget.style.borderColor = "#E9D5FF";
                         }}
                       >
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                          <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
-                          <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN">🔍</span>
-                        </div>
-                        {b.isPkp ? (
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 700,
-                              color: "#6B21A8",
-                            }}
-                          >
-                            PPN {b.tarifPpn}%: +{rupiah(b.nilaiPpnRp)}
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: 9.5,
-                              padding: "1px 5px",
-                              borderRadius: 4,
-                              background: "#F1F5F9",
-                              color: "#64748B",
-                              fontWeight: 600,
-                            }}
-                            title="Faktur ini bertipe Non-PKP (Bebas PPN)"
-                          >
-                            Non-PKP (PPN Rp 0)
-                          </span>
-                        )}
+                        <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
+                        <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN">🔍</span>
                       </div>
                     </td>
                   </tr>
@@ -773,38 +745,14 @@ export default function RiwayatPenerimaan() {
                   border: modalPpnItem.isPkp ? "1.5px solid #D8B4FE" : "1px solid #E2E8F0",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: modalPpnItem.isPkp ? "#6B21A8" : "#475569" }}>
-                    Status Pajak Supplier
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: modalPpnItem.isPkp ? "#6B21A8" : "#475569" }}>
+                    Besaran PPN
                   </span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "2px 8px",
-                      borderRadius: 6,
-                      background: modalPpnItem.isPkp ? "#E9D5FF" : "#E2E8F0",
-                      color: modalPpnItem.isPkp ? "#6B21A8" : "#475569",
-                    }}
-                  >
-                    {modalPpnItem.isPkp ? `PKP (Tarif PPN ${modalPpnItem.tarifPpn}%)` : "Non-PKP (Bebas PPN)"}
-                  </span>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                  <span style={{ fontSize: 13, color: modalPpnItem.isPkp ? "#7E22CE" : "#64748B" }}>
-                    Besaran PPN {modalPpnItem.isPkp ? `(${modalPpnItem.tarifPpn}%)` : ""}
-                  </span>
-                  <span style={{ fontSize: 16, fontWeight: 800, color: modalPpnItem.isPkp ? "#7E22CE" : "#64748B" }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: modalPpnItem.isPkp ? "#7E22CE" : "#475569" }}>
                     {modalPpnItem.isPkp ? `+${rupiah(modalPpnItem.nilaiPpnRp)}` : "Rp 0"}
                   </span>
                 </div>
-
-                {modalPpnItem.isPkp && (
-                  <div style={{ fontSize: 11, color: "#9333EA", marginTop: 4, fontStyle: "italic" }}>
-                    Perhitungan: {rupiah(modalPpnItem.jumlahRp)} × {modalPpnItem.tarifPpn}% = {rupiah(modalPpnItem.nilaiPpnRp)}
-                  </div>
-                )}
               </div>
 
               {/* Total Akhir */}

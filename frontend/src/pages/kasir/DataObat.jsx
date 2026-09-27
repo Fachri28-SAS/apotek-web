@@ -104,10 +104,11 @@ export default function DataObat() {
   // Scope cetak: "halaman" atau "semua"
   const [scopeCetak, setScopeCetak] = useState("halaman");
 
-  // State Edit Harga Langsung (Inline Quick Edit)
-  const [editingKey, setEditingKey] = useState(null); // string: `jual_${obatId}_${satuanId}` atau `beli_${obatId}_${satuanId}`
+  // State Edit Harga & Stok Langsung (Inline Quick Edit)
+  const [editingKey, setEditingKey] = useState(null); // string: `jual_${obatId}_${satuanId}`, `beli_${obatId}_${satuanId}`, atau `stok_${obatId}`
   const [inputHargaJual, setInputHargaJual] = useState("");
   const [inputHargaBeli, setInputHargaBeli] = useState("");
+  const [inputStok, setInputStok] = useState("");
   const [savingKey, setSavingKey] = useState(null);
 
   // Deteksi obat dengan margin bermasalah (< 25%) ATAU harga jual belum genap kelipatan 500
@@ -374,6 +375,81 @@ export default function DataObat() {
       setTimeout(() => setNotifSukses(""), 4000);
     } catch (err) {
       alert("Gagal mengubah harga beli: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  // --- LOGIKA EDIT STOK LANGSUNG DI SITU (INLINE STOCK EDIT) ---
+  function mulaiEditStok(obat) {
+    const key = `stok_${obat.id}`;
+    setEditingKey(key);
+    setInputStok(String(obat.stok ?? 0));
+  }
+
+  function batalEditStok() {
+    setEditingKey(null);
+    setInputStok("");
+  }
+
+  async function simpanEditStok(obat, stokBaruStr) {
+    const stokBaru = Math.round(Number(stokBaruStr || 0));
+    if (isNaN(stokBaru) || stokBaru < 0) {
+      alert("Stok harus berupa angka valid (minimal 0).");
+      return;
+    }
+
+    const stokLama = Number(obat.stok || 0);
+    const key = `stok_${obat.id}`;
+    setSavingKey(key);
+
+    try {
+      await api("/obat/opname", {
+        method: "POST",
+        body: JSON.stringify({
+          items: [
+            {
+              obat_id: obat.id,
+              stok_fisik: stokBaru,
+              keterangan: "Penyesuaian stok langsung di katalog obat",
+            },
+          ],
+        }),
+      });
+
+      // Update state lokal
+      setDaftar((prev) =>
+        prev.map((o) => (o.id === obat.id ? { ...o, stok: stokBaru } : o))
+      );
+
+      // Update cache di storage
+      try {
+        const cached = getCachedObat();
+        const updatedCache = cached.map((o) =>
+          o.id === obat.id ? { ...o, stok: stokBaru } : o
+        );
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+      } catch {}
+
+      // Catat ke riwayat perubahan (Audit Log)
+      const namaAkun = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
+        kategori: "Katalog Obat",
+        aksi: "Penyesuaian Stok",
+        judul: obat.nama,
+        sebelum: `Stok: ${stokLama} ${obat.satuan_dasar || "Unit"}`,
+        sesudah: `Stok: ${stokBaru} ${obat.satuan_dasar || "Unit"}`,
+        keterangan: `Ubah stok langsung di katalog obat (${namaAkun})`,
+      });
+
+      setEditingKey(null);
+      setNotifSukses(`✓ Stok ${obat.nama} berhasil diubah menjadi ${stokBaru} ${obat.satuan_dasar || "Unit"}`);
+      setTimeout(() => setNotifSukses(""), 4000);
+    } catch (err) {
+      alert("Gagal mengubah stok: " + (err.message || "Terjadi kesalahan"));
     } finally {
       setSavingKey(null);
     }
@@ -1030,12 +1106,13 @@ export default function DataObat() {
 
             const isEditHargaJual = def && editingKey === `jual_${obat.id}_${def.id}`;
             const isEditHargaBeli = def && editingKey === `beli_${obat.id}_${def.id}`;
+            const isEditStok = editingKey === `stok_${obat.id}`;
 
             return (
               <div
                 className="list-card"
                 key={obat.id}
-                onClick={() => !isEditHargaJual && !isEditHargaBeli && bukaEdit(obat)}
+                onClick={() => !isEditHargaJual && !isEditHargaBeli && !isEditStok && bukaEdit(obat)}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, width: "100%" }}>
                   <span
@@ -1247,9 +1324,75 @@ export default function DataObat() {
                       </div>
                     )}
                   </div>
-                  <span className={`badge-mini ${stokMenipis ? "low" : "ok"}`}>
-                    {obat.stok} {obat.satuan_dasar}
-                  </span>
+                  {isEditStok ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 3 }} onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="number"
+                        value={inputStok}
+                        onChange={(e) => setInputStok(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") simpanEditStok(obat, inputStok);
+                          if (e.key === "Escape") batalEditStok();
+                        }}
+                        autoFocus
+                        style={{
+                          width: 55,
+                          padding: "3px 4px",
+                          borderRadius: 6,
+                          border: "2px solid #059669",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          textAlign: "center",
+                          outline: "none",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => simpanEditStok(obat, inputStok)}
+                        disabled={savingKey === `stok_${obat.id}`}
+                        style={{
+                          background: "#16A34A",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "3px 5px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {savingKey === `stok_${obat.id}` ? "…" : "✓"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={batalEditStok}
+                        style={{
+                          background: "#E2E8F0",
+                          color: "#475569",
+                          border: "none",
+                          borderRadius: 4,
+                          padding: "3px 5px",
+                          fontSize: 11,
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      className={`badge-mini ${stokMenipis ? "low" : "ok"}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        mulaiEditStok(obat);
+                      }}
+                      title="Ketuk untuk ubah stok langsung"
+                      style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3 }}
+                    >
+                      <span>{obat.stok} {obat.satuan_dasar}</span>
+                      <span style={{ fontSize: 9 }}>✏️</span>
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -1402,6 +1545,8 @@ export default function DataObat() {
               const isEditing = inlineEditKey && editingKey === inlineEditKey;
               const inlineEditBeliKey = def ? `beli_${obat.id}_${def.id}` : null;
               const isEditingBeli = inlineEditBeliKey && editingKey === inlineEditBeliKey;
+              const inlineEditStokKey = `stok_${obat.id}`;
+              const isEditingStok = editingKey === inlineEditStokKey;
 
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
@@ -1665,11 +1810,100 @@ export default function DataObat() {
                     </td>
                   )}
 
-                  {/* 9. STOK (Menempel langsung di kanan Harga Jual jika Margin OFF) */}
+                  {/* 9. STOK (Bisa diedit langsung di situ dengan klik) */}
                   <td style={{ textAlign: "center", padding: "6px 5px" }}>
-                    <span style={{ fontWeight: 700 }}>{obat.stok}</span>{" "}
-                    <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
-                    {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis">MENIPIS</div>}
+                    {isEditingStok ? (
+                      <div
+                        style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "center" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="number"
+                          value={inputStok}
+                          onChange={(e) => setInputStok(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") simpanEditStok(obat, inputStok);
+                            if (e.key === "Escape") batalEditStok();
+                          }}
+                          autoFocus
+                          style={{
+                            width: 60,
+                            padding: "2px 4px",
+                            borderRadius: 6,
+                            border: "2px solid #059669",
+                            fontSize: 12,
+                            fontWeight: 800,
+                            outline: "none",
+                            textAlign: "center",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => simpanEditStok(obat, inputStok)}
+                          disabled={savingKey === inlineEditStokKey}
+                          title="Simpan perubahan stok (Enter)"
+                          style={{
+                            background: "#16A34A",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 6px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {savingKey === inlineEditStokKey ? "…" : "✓"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={batalEditStok}
+                          title="Batal (Esc)"
+                          style={{
+                            background: "#E2E8F0",
+                            color: "#475569",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 5px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
+                        <div
+                          onClick={() => mulaiEditStok(obat)}
+                          title="Klik untuk ubah stok langsung di sini"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            cursor: "pointer",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            background: "rgba(16, 185, 129, 0.05)",
+                            border: "1px dashed transparent",
+                            transition: "all 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "#059669";
+                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "transparent";
+                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
+                          }}
+                        >
+                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>{obat.stok}</span>{" "}
+                          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
+                          <span style={{ fontSize: 10, color: "#059669", opacity: 0.7 }}>✏️</span>
+                        </div>
+                        {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis" style={{ marginTop: 2 }}>MENIPIS</div>}
+                      </div>
+                    )}
                   </td>
 
                   {/* 10. TOTAL NILAI */}
