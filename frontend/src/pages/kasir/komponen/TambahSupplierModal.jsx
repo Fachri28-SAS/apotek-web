@@ -257,7 +257,7 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
                     color: isPkp ? "var(--magenta-dark)" : "var(--ink-soft)",
                   }}
                 >
-                  PKP (PPN 11%)
+                  PKP (Kena PPN)
                 </button>
               </div>
             </div>

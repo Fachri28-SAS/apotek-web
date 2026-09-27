@@ -29,6 +29,8 @@ export default function RiwayatPenerimaan() {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState("");
+  const [modalPpnItem, setModalPpnItem] = useState(null);
+  const [modalPpnRingkasan, setModalPpnRingkasan] = useState(false);
 
   // Ambil daftar supplier aktif
   useEffect(() => {
@@ -77,15 +79,18 @@ export default function RiwayatPenerimaan() {
   });
 
   // Flatten faktur menjadi deretan baris per-item (sesuai Foto 1 Buku Penerimaan Barang Fisik)
-  // Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN 11%
+  // Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN
   const barisItem = [];
   let noUrut = 1;
 
   daftarTampil.forEach((p) => {
     const items = p.items || [];
+    const tarifPpn = p.is_pkp ? (Number(p.persen_ppn) > 0 ? Number(p.persen_ppn) : 11) : 0;
+
     if (items.length === 0) {
       const jmlRp = Number(p.total || 0);
-      const jmlPpn = p.is_pkp ? Math.round(jmlRp * 1.11) : jmlRp;
+      const nilaiPpn = p.is_pkp ? Math.round(jmlRp * (tarifPpn / 100)) : 0;
+      const jmlPpn = jmlRp + nilaiPpn;
       barisItem.push({
         no: noUrut++,
         fakturId: p.id,
@@ -101,6 +106,8 @@ export default function RiwayatPenerimaan() {
         hargaSatuan: jmlRp,
         jumlahRp: jmlRp,
         jumlahPpnRp: jmlPpn,
+        nilaiPpnRp: nilaiPpn,
+        tarifPpn: tarifPpn,
         isPkp: p.is_pkp,
       });
     } else {
@@ -108,7 +115,8 @@ export default function RiwayatPenerimaan() {
         const qty = Number(it.qty || 0);
         const hargaBeli = Number(it.harga_beli || 0);
         const subtotalItem = Number(it.subtotal ?? (qty * hargaBeli - Number(it.diskon || 0)));
-        const subtotalPpn = p.is_pkp ? Math.round(subtotalItem * 1.11) : subtotalItem;
+        const nilaiPpnItem = p.is_pkp ? Math.round(subtotalItem * (tarifPpn / 100)) : 0;
+        const subtotalPpn = subtotalItem + nilaiPpnItem;
 
         barisItem.push({
           no: noUrut++,
@@ -125,6 +133,8 @@ export default function RiwayatPenerimaan() {
           hargaSatuan: hargaBeli,
           jumlahRp: subtotalItem,
           jumlahPpnRp: subtotalPpn,
+          nilaiPpnRp: nilaiPpnItem,
+          tarifPpn: tarifPpn,
           isPkp: p.is_pkp,
           rawItem: it,
         });
@@ -148,7 +158,9 @@ export default function RiwayatPenerimaan() {
   // Akumulasi KPI
   const totalJumlahSemua = barisItemTampil.reduce((s, b) => s + Number(b.jumlahRp || 0), 0);
   const totalJumlahPpnSemua = barisItemTampil.reduce((s, b) => s + Number(b.jumlahPpnRp || 0), 0);
+  const totalNilaiPpnSemua = barisItemTampil.reduce((s, b) => s + Number(b.nilaiPpnRp || 0), 0);
   const totalFakturUnik = new Set(barisItemTampil.map((b) => b.fakturId)).size;
+  const totalFakturPkp = new Set(barisItemTampil.filter((b) => b.isPkp).map((b) => b.fakturId)).size;
 
   // Format tanggal singkat (misal: 25.11.24 atau 25/11/2024)
   function formatTgl(tglStr) {
@@ -175,7 +187,7 @@ export default function RiwayatPenerimaan() {
       { label: "No Batch", align: "center" },
       { label: "Harga Satuan (Rp)", align: "right" },
       { label: "Jumlah (Rp)", align: "right" },
-      { label: "Jumlah + PPN 11%", align: "right" },
+      { label: "Jumlah + PPN", align: "right" },
     ];
 
     const rows = barisItemTampil.map((b, idx) => [
@@ -312,10 +324,49 @@ export default function RiwayatPenerimaan() {
             {rupiah(totalJumlahSemua)}
           </div>
         </div>
-        <div style={{ background: "#FAF5FF", padding: "14px 18px", borderRadius: 14, border: "1px solid #E9D5FF" }}>
-          <div style={{ fontSize: 12, color: "#6B21A8", fontWeight: 600 }}>Total Jumlah + PPN 11%</div>
+        <div
+          onClick={() => setModalPpnRingkasan(true)}
+          title="Klik untuk melihat rincian kalkulasi total PPN"
+          style={{
+            background: "#FAF5FF",
+            padding: "14px 18px",
+            borderRadius: 14,
+            border: "1px solid #E9D5FF",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#C084FC";
+            e.currentTarget.style.boxShadow = "0 4px 14px rgba(126, 34, 206, 0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "#E9D5FF";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 12, color: "#6B21A8", fontWeight: 600 }}>Total Jumlah + PPN</div>
+            <span
+              style={{
+                fontSize: 10.5,
+                background: "#E9D5FF",
+                color: "#6B21A8",
+                padding: "2px 6px",
+                borderRadius: 6,
+                fontWeight: 700,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
+              Rincian PPN 🔍
+            </span>
+          </div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#7E22CE", marginTop: 4 }}>
             {rupiah(totalJumlahPpnSemua)}
+          </div>
+          <div style={{ fontSize: 11.5, color: "#7E22CE", fontWeight: 700, marginTop: 4 }}>
+            {totalNilaiPpnSemua > 0 ? `Termasuk PPN: +${rupiah(totalNilaiPpnSemua)}` : "Semua Faktur Non-PKP"}
           </div>
         </div>
       </div>
@@ -440,7 +491,7 @@ export default function RiwayatPenerimaan() {
                   <th style={{ width: 95, textAlign: "center" }}>No Batch</th>
                   <th style={{ width: 120, textAlign: "right" }}>Harga Satuan (Rp)</th>
                   <th style={{ width: 125, textAlign: "right" }}>Jumlah (Rp)</th>
-                  <th style={{ width: 140, textAlign: "right" }}>Jumlah + PPN 11%</th>
+                  <th style={{ width: 155, textAlign: "right" }}>Jumlah + PPN</th>
                 </tr>
               </thead>
               <tbody>
@@ -506,23 +557,64 @@ export default function RiwayatPenerimaan() {
                       {rupiah(b.jumlahRp)}
                     </td>
 
-                    {/* 12. Jumlah + PPN 11% */}
-                    <td style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8" }}>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 5, justifyContent: "flex-end" }}>
-                        <span>{rupiah(b.jumlahPpnRp)}</span>
-                        {!b.isPkp && (
+                    {/* 12. Jumlah + PPN */}
+                    <td
+                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalPpnItem(b);
+                      }}
+                      title="Klik untuk melihat rincian PPN barang ini"
+                    >
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                          gap: 3,
+                          cursor: "pointer",
+                          padding: "4px 8px",
+                          borderRadius: 8,
+                          transition: "all 0.15s ease",
+                          background: "#FAF5FF",
+                          border: "1px solid #E9D5FF",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#F3E8FF";
+                          e.currentTarget.style.borderColor = "#C084FC";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#FAF5FF";
+                          e.currentTarget.style.borderColor = "#E9D5FF";
+                        }}
+                      >
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
+                          <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN">🔍</span>
+                        </div>
+                        {b.isPkp ? (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              color: "#6B21A8",
+                            }}
+                          >
+                            PPN {b.tarifPpn}%: +{rupiah(b.nilaiPpnRp)}
+                          </span>
+                        ) : (
                           <span
                             style={{
                               fontSize: 9.5,
-                              padding: "1px 4px",
+                              padding: "1px 5px",
                               borderRadius: 4,
                               background: "#F1F5F9",
                               color: "#64748B",
                               fontWeight: 600,
                             }}
-                            title="Faktur ini bertipe Non-PKP"
+                            title="Faktur ini bertipe Non-PKP (Bebas PPN)"
                           >
-                            Non-PKP
+                            Non-PKP (PPN Rp 0)
                           </span>
                         )}
                       </div>
@@ -538,8 +630,15 @@ export default function RiwayatPenerimaan() {
                   <td style={{ textAlign: "right", padding: "10px 14px", color: "#15803D", fontSize: 14 }}>
                     {rupiah(totalJumlahSemua)}
                   </td>
-                  <td style={{ textAlign: "right", padding: "10px 14px", color: "#6B21A8", fontSize: 14 }}>
-                    {rupiah(totalJumlahPpnSemua)}
+                  <td
+                    style={{ textAlign: "right", padding: "10px 14px", color: "#6B21A8", fontSize: 14, cursor: "pointer" }}
+                    onClick={() => setModalPpnRingkasan(true)}
+                    title="Klik untuk melihat rincian total PPN"
+                  >
+                    <div>{rupiah(totalJumlahPpnSemua)}</div>
+                    <div style={{ fontSize: 11, color: "#7E22CE", fontWeight: 700 }}>
+                      +{rupiah(totalNilaiPpnSemua)} PPN 🔍
+                    </div>
                   </td>
                 </tr>
               </tfoot>
@@ -547,6 +646,396 @@ export default function RiwayatPenerimaan() {
           </div>
         )}
       </div>
+
+      {/* Modal Rincian PPN Barang Satuan */}
+      {modalPpnItem && (
+        <div
+          className="modal-overlay"
+          onClick={() => setModalPpnItem(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1050,
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              maxWidth: 480,
+              width: "100%",
+              overflow: "hidden",
+              boxShadow: "0 20px 40px -10px rgba(0,0,0,0.22)",
+              animation: "slideDown 0.2s ease",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #7E22CE, #6B21A8)",
+                padding: "16px 20px",
+                color: "#fff",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#E9D5FF" }}>
+                  Rincian Pajak Pertambahan Nilai (PPN)
+                </div>
+                <div style={{ fontSize: 17, fontWeight: 800, marginTop: 4 }}>
+                  {modalPpnItem.namaBarang}
+                </div>
+                <div style={{ fontSize: 12, color: "#F3E8FF", marginTop: 2 }}>
+                  Faktur #{modalPpnItem.noFaktur} &bull; {modalPpnItem.pbf}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalPpnItem(null)}
+                style={{
+                  background: "rgba(255,255,255,0.18)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 30,
+                  height: 30,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "18px 20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  background: "#F8FAFC",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  border: "1px solid #E2E8F0",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#64748B" }}>Kuantitas (Qty)</span>
+                  <span style={{ fontWeight: 700, color: "var(--ink)" }}>
+                    {modalPpnItem.jumlah} {modalPpnItem.satuan}
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  <span style={{ color: "#64748B" }}>Harga Beli Satuan</span>
+                  <span style={{ fontWeight: 600, color: "var(--ink)" }}>
+                    {rupiah(modalPpnItem.hargaSatuan)}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 13.5,
+                    paddingTop: 8,
+                    borderTop: "1px dashed #CBD5E1",
+                  }}
+                >
+                  <span style={{ color: "var(--ink)", fontWeight: 600 }}>
+                    Dasar Pengenaan Pajak (DPP)
+                  </span>
+                  <span style={{ fontWeight: 700, color: "var(--ink)" }}>
+                    {rupiah(modalPpnItem.jumlahRp)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Box Rincian PPN */}
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  background: modalPpnItem.isPkp ? "#FAF5FF" : "#F8FAFC",
+                  border: modalPpnItem.isPkp ? "1.5px solid #D8B4FE" : "1px solid #E2E8F0",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: modalPpnItem.isPkp ? "#6B21A8" : "#475569" }}>
+                    Status Pajak Supplier
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "2px 8px",
+                      borderRadius: 6,
+                      background: modalPpnItem.isPkp ? "#E9D5FF" : "#E2E8F0",
+                      color: modalPpnItem.isPkp ? "#6B21A8" : "#475569",
+                    }}
+                  >
+                    {modalPpnItem.isPkp ? `PKP (Tarif PPN ${modalPpnItem.tarifPpn}%)` : "Non-PKP (Bebas PPN)"}
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                  <span style={{ fontSize: 13, color: modalPpnItem.isPkp ? "#7E22CE" : "#64748B" }}>
+                    Besaran PPN {modalPpnItem.isPkp ? `(${modalPpnItem.tarifPpn}%)` : ""}
+                  </span>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: modalPpnItem.isPkp ? "#7E22CE" : "#64748B" }}>
+                    {modalPpnItem.isPkp ? `+${rupiah(modalPpnItem.nilaiPpnRp)}` : "Rp 0"}
+                  </span>
+                </div>
+
+                {modalPpnItem.isPkp && (
+                  <div style={{ fontSize: 11, color: "#9333EA", marginTop: 4, fontStyle: "italic" }}>
+                    Perhitungan: {rupiah(modalPpnItem.jumlahRp)} × {modalPpnItem.tarifPpn}% = {rupiah(modalPpnItem.nilaiPpnRp)}
+                  </div>
+                )}
+              </div>
+
+              {/* Total Akhir */}
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  background: "#FDF4FF",
+                  border: "1.5px solid #F0ABFC",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#86198F" }}>
+                    TOTAL AKHIR (DPP + PPN)
+                  </div>
+                  <div style={{ fontSize: 11, color: "#A21CAF", marginTop: 1 }}>
+                    Nilai yang dibayarkan ke Supplier
+                  </div>
+                </div>
+                <div style={{ fontSize: 19, fontWeight: 900, color: "#701A75" }}>
+                  {rupiah(modalPpnItem.jumlahPpnRp)}
+                </div>
+              </div>
+
+              {/* Tombol Aksi */}
+              <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const f = modalPpnItem.faktur;
+                    setModalPpnItem(null);
+                    setDetail(f);
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: 9,
+                    border: "1.5px solid #E9D5FF",
+                    background: "#FAF5FF",
+                    color: "#6B21A8",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Lihat Faktur Lengkap 📄
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalPpnItem(null)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 9,
+                    border: "none",
+                    background: "var(--magenta)",
+                    color: "#fff",
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ringkasan Total PPN Keseluruhan */}
+      {modalPpnRingkasan && (
+        <div
+          className="modal-overlay"
+          onClick={() => setModalPpnRingkasan(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.55)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1050,
+            padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              maxWidth: 520,
+              width: "100%",
+              overflow: "hidden",
+              boxShadow: "0 20px 40px -10px rgba(0,0,0,0.22)",
+              animation: "slideDown 0.2s ease",
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #7E22CE, #581C87)",
+                padding: "18px 22px",
+                color: "#fff",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#E9D5FF" }}>
+                  Ringkasan Pajak Penerimaan Barang
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>
+                  Total PPN: {rupiah(totalNilaiPpnSemua)}
+                </div>
+                <div style={{ fontSize: 12, color: "#F3E8FF", marginTop: 2 }}>
+                  Periode {formatTgl(dariTanggal)} s/d {formatTgl(sampaiTanggal)} &bull; {barisItemTampil.length} Item
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalPpnRingkasan(false)}
+                style={{
+                  background: "rgba(255,255,255,0.18)",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 30,
+                  height: 30,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "20px 22px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                <div style={{ background: "#F0FDF4", padding: "12px 14px", borderRadius: 12, border: "1px solid #BBF7D0" }}>
+                  <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700 }}>Total DPP (Harga Bersih)</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#15803D", marginTop: 3 }}>
+                    {rupiah(totalJumlahSemua)}
+                  </div>
+                </div>
+
+                <div style={{ background: "#FAF5FF", padding: "12px 14px", borderRadius: 12, border: "1px solid #E9D5FF" }}>
+                  <div style={{ fontSize: 11.5, color: "#6B21A8", fontWeight: 700 }}>Total PPN Masukan</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#7E22CE", marginTop: 3 }}>
+                    +{rupiah(totalNilaiPpnSemua)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Tagihan */}
+              <div
+                style={{
+                  background: "#FDF4FF",
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  border: "1.5px solid #F0ABFC",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#86198F" }}>
+                    TOTAL TAGIHAN (JUMLAH + PPN)
+                  </div>
+                  <div style={{ fontSize: 11, color: "#A21CAF", marginTop: 1 }}>
+                    Akumulasi seluruh faktur penerimaan
+                  </div>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#701A75" }}>
+                  {rupiah(totalJumlahPpnSemua)}
+                </div>
+              </div>
+
+              {/* Komposisi Faktur */}
+              <div style={{ background: "#F8FAFC", padding: "12px 14px", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--ink)", marginBottom: 8 }}>
+                  Status Pajak Faktur:
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
+                  <span style={{ color: "#64748B" }}>Faktur PKP (Kena Pajak PPN):</span>
+                  <span style={{ fontWeight: 700, color: "#6B21A8" }}>
+                    {totalFakturPkp} Faktur
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5 }}>
+                  <span style={{ color: "#64748B" }}>Faktur Non-PKP (Bebas PPN):</span>
+                  <span style={{ fontWeight: 700, color: "#64748B" }}>
+                    {Math.max(0, totalFakturUnik - totalFakturPkp)} Faktur
+                  </span>
+                </div>
+              </div>
+
+              {/* Tombol Tutup */}
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 18 }}>
+                <button
+                  type="button"
+                  onClick={() => setModalPpnRingkasan(false)}
+                  style={{
+                    padding: "9px 20px",
+                    borderRadius: 9,
+                    border: "none",
+                    background: "var(--magenta)",
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Detail Faktur */}
       {detail && (

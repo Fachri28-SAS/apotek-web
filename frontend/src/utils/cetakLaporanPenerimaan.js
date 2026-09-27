@@ -193,7 +193,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
               <th style="width: 65px;">No Batch</th>
               <th style="width: 78px;">Harga Satuan (Rp)</th>
               <th style="width: 82px;">Jumlah (Rp)</th>
-              <th style="width: 90px;">Jumlah + PPN 11%</th>
+              <th style="width: 90px;">Jumlah + PPN</th>
             </tr>
           </thead>
           <tbody>
