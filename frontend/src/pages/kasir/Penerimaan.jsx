@@ -107,6 +107,7 @@ export default function Penerimaan() {
       nama_obat: obat.nama,
       satuanOptions: obat.satuan,
       obat_satuan_id: satuan.id,
+      nama_satuan: satuan.nama_satuan || obat.satuan_dasar || "",
       qty: initialQty,
       kemasan: initialKemasan,
       harga_beli: satuan.harga_beli,
@@ -124,6 +125,9 @@ export default function Penerimaan() {
     setItems((prev) => prev.map((it) => {
       if (it.key !== key) return it;
       const updated = { ...it, [field]: value };
+      if (field === "qty") {
+        updated.kemasan = value;
+      }
       return updated;
     }));
   }
@@ -427,7 +431,7 @@ export default function Penerimaan() {
               <table className="obat-table" style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
-                    <th>Nama Obat</th><th>Terima</th><th>Kemasan</th><th>Harga Satuan</th>
+                    <th>Nama Obat</th><th>Jumlah Satuan</th><th>Harga Satuan</th>
                     <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
@@ -435,38 +439,33 @@ export default function Penerimaan() {
                 <tbody>
                   {items.map((it) => {
                     const badge = badgeHarga(Number(it.harga_beli), it.harga_beli_sebelumnya);
-                    const unitBeli = (Number(it.kemasan) > 0 && Number(it.qty) > 0)
-                      ? (Number(it.qty) * Number(it.harga_beli)) / Number(it.kemasan)
-                      : Number(it.harga_beli);
+                    const unitBeli = Number(it.harga_beli);
                     const hargaJualAktif = Number(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
                     const margin = hitungMarginPersen(unitBeli, hargaJualAktif);
                     const marginStat = getStatusMargin(margin);
-                    const subtotalItem = it.qty * it.harga_beli - Number(it.diskon || 0);
+                    const subtotalItem = Number(it.qty || 0) * Number(it.harga_beli || 0) - Number(it.diskon || 0);
 
                     return (
                       <tr key={it.key}>
                         <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
                         <td>
-                          <input
-                            type="number"
-                            min="1"
-                            className="cart-input-angka"
-                            style={{ width: 60 }}
-                            value={it.qty}
-                            onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
-                            title="Jumlah unit faktur yang diterima (misal 6)"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            min="1"
-                            className="cart-input-angka"
-                            style={{ width: 60 }}
-                            value={it.kemasan}
-                            onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
-                            title="Total isi kemasan yang masuk ke stok Data Obat (misal 60)"
-                          />
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                            <input
+                              type="number"
+                              min="1"
+                              className="cart-input-angka"
+                              style={{ width: 65, textAlign: "center", fontWeight: 700 }}
+                              value={it.qty}
+                              onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
+                              placeholder="1"
+                              title="Jumlah satuan obat yang diterima"
+                            />
+                            {it.nama_satuan && (
+                              <span style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 600 }}>
+                                {it.nama_satuan}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           <input type="number" min="0" step="any" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />

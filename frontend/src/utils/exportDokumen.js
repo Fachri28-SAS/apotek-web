@@ -438,8 +438,7 @@ export function cetakSatuFakturA4(faktur, { namaUser = "Petugas" } = {}) {
       <td style="border: 1px solid #555; padding: 4px 8px; font-weight: bold;">${it.nama_obat || "-"}</td>
       <td style="text-align: center; border: 1px solid #555; padding: 4px 6px;">${it.nomor_batch || "-"}</td>
       <td style="text-align: center; border: 1px solid #555; padding: 4px 6px;">${formatTgl(it.tanggal_exp)}</td>
-      <td style="text-align: right; border: 1px solid #555; padding: 4px 6px;">${it.qty || 1}</td>
-      <td style="text-align: right; border: 1px solid #555; padding: 4px 6px;">${it.kemasan ?? it.qty ?? 1}</td>
+      <td style="text-align: right; border: 1px solid #555; padding: 4px 6px; font-weight: bold;">${it.kemasan ?? it.qty ?? 1}</td>
       <td style="text-align: right; border: 1px solid #555; padding: 4px 8px;">${formatRp(it.harga_beli)}</td>
       <td style="text-align: right; border: 1px solid #555; padding: 4px 8px;">${Number(it.diskon) > 0 ? formatRp(it.diskon) : "—"}</td>
       <td style="text-align: right; border: 1px solid #555; padding: 4px 8px; font-weight: bold;">${formatRp(it.subtotal ?? (Number(it.qty || 1) * Number(it.harga_beli || 0)))}</td>
@@ -497,8 +496,7 @@ export function cetakSatuFakturA4(faktur, { namaUser = "Petugas" } = {}) {
               <th style="text-align: left;">Nama Obat</th>
               <th style="width: 75px;">Batch</th>
               <th style="width: 75px;">Exp</th>
-              <th style="width: 40px; text-align: right;">Qty</th>
-              <th style="width: 50px; text-align: right;">Kemasan</th>
+              <th style="width: 70px; text-align: right;">Jumlah Satuan</th>
               <th style="width: 80px; text-align: right;">Harga</th>
               <th style="width: 60px; text-align: right;">Diskon</th>
               <th style="width: 90px; text-align: right;">Subtotal</th>
@@ -540,8 +538,7 @@ export function exportSatuFakturWord(faktur, { namaUser = "Petugas" } = {}) {
       <td style="border: 1px solid #666; padding: 4px 6px; font-weight: bold;">${it.nama_obat || "-"}</td>
       <td style="text-align: center; border: 1px solid #666; padding: 4px;">${it.nomor_batch || "-"}</td>
       <td style="text-align: center; border: 1px solid #666; padding: 4px;">${formatTgl(it.tanggal_exp)}</td>
-      <td style="text-align: right; border: 1px solid #666; padding: 4px;">${it.qty || 1}</td>
-      <td style="text-align: right; border: 1px solid #666; padding: 4px;">${it.kemasan ?? it.qty ?? 1}</td>
+      <td style="text-align: right; border: 1px solid #666; padding: 4px; font-weight: bold;">${it.kemasan ?? it.qty ?? 1}</td>
       <td style="text-align: right; border: 1px solid #666; padding: 4px 6px;">${formatRp(it.harga_beli)}</td>
       <td style="text-align: right; border: 1px solid #666; padding: 4px 6px;">${Number(it.diskon) > 0 ? formatRp(it.diskon) : "—"}</td>
       <td style="text-align: right; border: 1px solid #666; padding: 4px 6px; font-weight: bold;">${formatRp(it.subtotal ?? (Number(it.qty || 1) * Number(it.harga_beli || 0)))}</td>
@@ -590,8 +587,7 @@ export function exportSatuFakturWord(faktur, { namaUser = "Petugas" } = {}) {
                 <th style="border: 1px solid #666; padding: 5px; text-align: left;">Nama Obat</th>
                 <th style="border: 1px solid #666; padding: 5px; width: 70px;">Batch</th>
                 <th style="border: 1px solid #666; padding: 5px; width: 70px;">Exp</th>
-                <th style="border: 1px solid #666; padding: 5px; width: 40px; text-align: right;">Qty</th>
-                <th style="border: 1px solid #666; padding: 5px; width: 50px; text-align: right;">Kemasan</th>
+                <th style="border: 1px solid #666; padding: 5px; width: 70px; text-align: right;">Jumlah Satuan</th>
                 <th style="border: 1px solid #666; padding: 5px; width: 75px; text-align: right;">Harga</th>
                 <th style="border: 1px solid #666; padding: 5px; width: 60px; text-align: right;">Diskon</th>
                 <th style="border: 1px solid #666; padding: 5px; width: 85px; text-align: right;">Subtotal</th>
@@ -641,8 +637,7 @@ export function exportSatuFakturExcel(faktur) {
       <td style="border: 1px solid #ccc; padding: 4px; font-weight: bold;">${it.nama_obat || "-"}</td>
       <td style="text-align: center; border: 1px solid #ccc; padding: 4px;">${it.nomor_batch || "-"}</td>
       <td style="text-align: center; border: 1px solid #ccc; padding: 4px;">${formatTgl(it.tanggal_exp)}</td>
-      <td style="text-align: right; border: 1px solid #ccc; padding: 4px;">${it.qty || 1}</td>
-      <td style="text-align: right; border: 1px solid #ccc; padding: 4px;">${it.kemasan ?? it.qty ?? 1}</td>
+      <td style="text-align: right; border: 1px solid #ccc; padding: 4px; font-weight: bold;">${it.kemasan ?? it.qty ?? 1}</td>
       <td style="text-align: right; border: 1px solid #ccc; padding: 4px;">${formatRp(it.harga_beli)}</td>
       <td style="text-align: right; border: 1px solid #ccc; padding: 4px;">${Number(it.diskon) > 0 ? formatRp(it.diskon) : "—"}</td>
       <td style="text-align: right; border: 1px solid #ccc; padding: 4px; font-weight: bold;">${formatRp(it.subtotal ?? (Number(it.qty || 1) * Number(it.harga_beli || 0)))}</td>
@@ -681,8 +676,7 @@ export function exportSatuFakturExcel(faktur) {
             <th style="border: 1px solid #1B5E20; padding: 5px; text-align: left;">Nama Obat</th>
             <th style="border: 1px solid #1B5E20; padding: 5px;">Batch</th>
             <th style="border: 1px solid #1B5E20; padding: 5px;">Exp</th>
-            <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Qty</th>
-            <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Kemasan</th>
+            <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Jumlah Satuan</th>
             <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Harga</th>
             <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Diskon</th>
             <th style="border: 1px solid #1B5E20; padding: 5px; text-align: right;">Subtotal</th>

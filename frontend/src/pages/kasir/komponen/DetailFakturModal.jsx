@@ -164,8 +164,7 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
               <thead>
                 <tr>
                   <th style={{ textAlign: "left" }}>Obat</th>
-                  <th style={{ textAlign: "right" }}>Qty</th>
-                  <th style={{ textAlign: "right" }}>Kemasan</th>
+                  <th style={{ textAlign: "right" }}>Jumlah Satuan</th>
                   <th style={{ textAlign: "right" }}>Harga Satuan</th>
                   <th style={{ textAlign: "right" }}>Diskon</th>
                   <th style={{ textAlign: "center" }}>Batch</th>
@@ -176,8 +175,7 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
                 {(data.items || []).map((it) => (
                   <tr key={it.id}>
                     <td className="obat-nama-cell" style={{ fontWeight: 700 }}>{it.nama_obat}</td>
-                    <td style={{ textAlign: "right" }}>{it.qty}</td>
-                    <td style={{ textAlign: "right" }}>{it.kemasan ?? it.qty}</td>
+                    <td style={{ textAlign: "right", fontWeight: 700 }}>{it.kemasan ?? it.qty}</td>
                     <td className="obat-harga-cell" style={{ textAlign: "right" }}>{rupiah(it.harga_beli)}</td>
                     <td className="obat-harga-cell" style={{ textAlign: "right" }}>
                       {Number(it.diskon) > 0 ? rupiah(it.diskon) : "—"}
