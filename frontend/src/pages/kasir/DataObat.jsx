@@ -25,7 +25,7 @@ function badgeHargaBeli(satuan) {
     ? Math.round((selisih / satuan.harga_beli_sebelumnya) * 100)
     : 0;
 
-  if (selisih === 0) return { warna: "hijau", teks: "✓ Tetap" };
+  if (selisih === 0) return null;
   if (selisih > 0) return { warna: "merah", teks: `▲ +${persen}%` };
   return { warna: "biru", teks: `▼ ${persen}%` };
 }

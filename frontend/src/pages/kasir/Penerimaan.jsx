@@ -23,7 +23,7 @@ function badgeHarga(baru, sebelumnya) {
   if (!sebelumnya || sebelumnya === 0) return null;
   const selisih = baru - sebelumnya;
   const persen = Math.round((selisih / sebelumnya) * 100);
-  if (selisih === 0) return { warna: "hijau", teks: "✓ Harga Tetap" };
+  if (selisih === 0) return null;
   if (selisih > 0) return { warna: "merah", teks: `▲ Naik ${rupiah(selisih)} (+${persen}%)` };
   return { warna: "biru", teks: `▼ Turun ${rupiah(Math.abs(selisih))} (${persen}%)` };
 }
