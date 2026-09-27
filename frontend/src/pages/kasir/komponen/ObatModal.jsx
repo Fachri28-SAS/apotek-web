@@ -180,7 +180,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
         await api(`/obat/${obat.id}`, {
           method: "PUT",
           body: JSON.stringify({
-            nama, kemasan, nomor_batch: nomorBatch || null,
+            nama, kemasan, satuan_dasar: satuanDasar || satuanDikirim[0]?.nama_satuan || "Strip", nomor_batch: nomorBatch || null,
             tanggal_exp: tanggalExp || null, stok_minimum: Number(stokMinimum),
             supplier_id: supplierId || null, perlu_resep: perluResep,
             aktif_dijual: aktifDijual, satuan: satuanDikirim,
@@ -356,10 +356,15 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
               <label>Satuan Dasar (buat hitung stok)</label>
               <input
                 value={satuanDasar}
-                onChange={(e) => setSatuanDasar(e.target.value)}
-                placeholder="Contoh: Tablet"
-                disabled={modeEdit}
-                required={!modeEdit}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSatuanDasar(val);
+                  if (!multiSatuan) {
+                    setSatuanTunggal((s) => ({ ...s, nama_satuan: val }));
+                  }
+                }}
+                placeholder="Contoh: Strip, Botol, Tube, Tablet"
+                required
               />
             </div>
 

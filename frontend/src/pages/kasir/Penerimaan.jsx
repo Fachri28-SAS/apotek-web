@@ -93,7 +93,11 @@ export default function Penerimaan() {
   }
 
   function tambahItem(obat) {
-    const satuan = obat.satuan[0];
+    const satuanDasarNama = (obat.satuan_dasar || "").toLowerCase();
+    const satuan = obat.satuan?.find((s) => s.nama_satuan.toLowerCase() === satuanDasarNama && !s.nama_satuan.toLowerCase().includes("box"))
+      || obat.satuan?.find((s) => !s.nama_satuan.toLowerCase().includes("box"))
+      || obat.satuan?.[0]
+      || { id: null, harga_beli: 0, harga_jual: 0, nama_satuan: obat.satuan_dasar || "Strip" };
     const initialQty = 1;
     const initialKemasan = 1;
     const hargaBeliAwal = Number(satuan.harga_beli || 0);
@@ -460,7 +464,32 @@ export default function Penerimaan() {
                               placeholder="1"
                               title="Jumlah satuan obat yang diterima"
                             />
-                            {it.nama_satuan && (
+                            {it.satuanOptions && it.satuanOptions.length > 1 ? (
+                              <select
+                                className="cart-input-angka"
+                                style={{ fontSize: 11, fontWeight: 700, padding: "2px 4px", borderRadius: 4, border: "1px solid var(--line)" }}
+                                value={it.obat_satuan_id}
+                                onChange={(e) => {
+                                  const sid = Number(e.target.value);
+                                  const sat = it.satuanOptions.find((o) => o.id === sid);
+                                  if (sat) {
+                                    setItems((prev) => prev.map((item) => {
+                                      if (item.key !== it.key) return item;
+                                      return {
+                                        ...item,
+                                        obat_satuan_id: sat.id,
+                                        nama_satuan: sat.nama_satuan,
+                                        harga_beli: sat.harga_beli,
+                                      };
+                                    }));
+                                  }
+                                }}
+                              >
+                                {it.satuanOptions.map((s) => (
+                                  <option key={s.id} value={s.id}>{s.nama_satuan}</option>
+                                ))}
+                              </select>
+                            ) : (
                               <span style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 600 }}>
                                 {it.nama_satuan}
                               </span>
