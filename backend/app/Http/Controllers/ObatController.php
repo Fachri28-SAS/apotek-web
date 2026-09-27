@@ -151,6 +151,7 @@ class ObatController extends Controller
         $data = $r->validate([
             'nama' => 'sometimes|string|max:255',
             'kemasan' => 'nullable|string',
+            'satuan_dasar' => 'nullable|string|max:50',
             'nomor_batch' => 'nullable|string|max:50',
             'tanggal_exp' => 'nullable|date',
             'stok_minimum' => 'sometimes|integer|min:0',
@@ -194,14 +195,12 @@ class ObatController extends Controller
         foreach ($satuanInput ?? [] as $i => $s) {
             if (empty($s['nama_satuan'])) continue;
 
-            // Dicocokkan berdasarkan NAMA satuan (dijamin unik per obat
-            // oleh database), BUKAN berdasarkan `id` yang dikirim frontend.
-            // Ini bikin proses ini kebal dari kasus id kosong/tidak
-            // terkirim — tidak akan pernah salah bikin baris duplikat
-            // untuk satuan yang sebenarnya sudah ada.
-            $satuanLama = $obat->satuan()->where('nama_satuan', $s['nama_satuan'])->first();
+            $satuanLama = !empty($s['id'])
+                ? $obat->satuan()->find($s['id'])
+                : $obat->satuan()->where('nama_satuan', $s['nama_satuan'])->first();
 
             $updateData = [
+                'nama_satuan' => $s['nama_satuan'],
                 'harga_beli' => $s['harga_beli'] ?? 0,
                 'harga_jual' => $s['harga_jual'] ?? 0,
             ];
