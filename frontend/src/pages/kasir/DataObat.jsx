@@ -989,9 +989,9 @@ export default function DataObat() {
             <span style={{ fontSize: 22, fontWeight: 900, color: "var(--magenta-dark)" }}>
               {rupiah(totalNilaiKeseluruhan)}
             </span>
-            <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-              Potensi Nilai Jual: <strong style={{ color: "var(--ink)" }}>{rupiah(totalNilaiJualKeseluruhan)}</strong>
-            </span>
+            <div style={{ fontSize: 13.5, color: "var(--ink-soft)", marginTop: 2 }}>
+              Potensi Nilai Jual: <strong style={{ color: "var(--ink)", fontWeight: 800 }}>{rupiah(totalNilaiJualKeseluruhan)}</strong>
+            </div>
           </div>
 
           <div style={{
@@ -1024,8 +1024,8 @@ export default function DataObat() {
                 +{persenMarginKeseluruhan.toFixed(1)}%
               </span>
             </div>
-            <div style={{ fontSize: 11, color: "#166534" }}>
-              Potensi Pendapatan: <strong>+{rupiah(totalPotensiLaba)}</strong>
+            <div style={{ fontSize: 13.5, color: "#166534", marginTop: 2 }}>
+              Potensi Pendapatan: <strong style={{ fontWeight: 800 }}>+{rupiah(totalPotensiLaba)}</strong>
             </div>
           </div>
         </div>
