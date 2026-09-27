@@ -1470,6 +1470,7 @@ export default function DataObat() {
                   </span>
                 </div>
               </th>
+              <th style={{ width: 72, minWidth: 72, textAlign: "center", padding: "7px 5px" }}>Stok</th>
               {/* Kolom Margin (Bisa disembunyikan via tombol Sembunyikan) */}
               {tampilkanMargin && (
                 <th style={{ width: 85, minWidth: 85, textAlign: "center", padding: "7px 4px" }}>
@@ -1499,7 +1500,6 @@ export default function DataObat() {
                   </div>
                 </th>
               )}
-              <th style={{ width: 72, minWidth: 72, textAlign: "center", padding: "7px 5px" }}>Stok</th>
               <th style={{ width: 105, minWidth: 105, textAlign: "right", padding: "7px 6px" }}>Total Nilai</th>
               <th style={{ width: 92, minWidth: 92, textAlign: "center", padding: "7px 5px" }}>Kadaluwarsa</th>
               <th style={{ width: 86, minWidth: 86, textAlign: "center", padding: "7px 4px" }}>Aksi</th>
@@ -1772,45 +1772,7 @@ export default function DataObat() {
                     )}
                   </td>
 
-                  {/* 8. MARGIN % (Jika OFF, kolom ini lenyap total dan Stok bergeser ke kanan Harga Jual) */}
-                  {tampilkanMargin && (
-                    <td className="obat-margin-cell" style={{ textAlign: "center", padding: "6px 4px" }}>
-                      {mStat.status !== "kosong" ? (
-                        <div style={{ display: "inline-flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
-                          <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 11, padding: "2px 6px" }}>
-                            {mStat.label}
-                          </span>
-                          {isAdmin && (mStat.status === "rugi" || mStat.status === "tipis") && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handlePerbaikiSatuObat(obat);
-                              }}
-                              style={{
-                                background: "#F5F3FF",
-                                border: "1px solid #7C3AED",
-                                color: "#6D28D9",
-                                borderRadius: 4,
-                                padding: "1px 5px",
-                                fontSize: 9,
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                whiteSpace: "nowrap",
-                              }}
-                              title="Otomatis hitung margin 25% dan kelipatan 500"
-                            >
-                              ⚡ Jadi 25%
-                            </button>
-                          )}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                  )}
-
-                  {/* 9. STOK (Bisa diedit langsung di situ dengan klik) */}
+                  {/* 8. STOK (Bisa diedit langsung di situ dengan klik) */}
                   <td style={{ textAlign: "center", padding: "6px 5px" }}>
                     {isEditingStok ? (
                       <div
@@ -1905,6 +1867,44 @@ export default function DataObat() {
                       </div>
                     )}
                   </td>
+
+                  {/* 9. MARGIN % (Jika OFF, kolom ini lenyap total) */}
+                  {tampilkanMargin && (
+                    <td className="obat-margin-cell" style={{ textAlign: "center", padding: "6px 4px" }}>
+                      {mStat.status !== "kosong" ? (
+                        <div style={{ display: "inline-flex", flexDirection: "column", gap: 2, alignItems: "center" }}>
+                          <span className={`margin-badge ${mStat.warna}`} style={{ fontSize: 11, padding: "2px 6px" }}>
+                            {mStat.label}
+                          </span>
+                          {isAdmin && (mStat.status === "rugi" || mStat.status === "tipis") && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePerbaikiSatuObat(obat);
+                              }}
+                              style={{
+                                background: "#F5F3FF",
+                                border: "1px solid #7C3AED",
+                                color: "#6D28D9",
+                                borderRadius: 4,
+                                padding: "1px 5px",
+                                fontSize: 9,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                whiteSpace: "nowrap",
+                              }}
+                              title="Otomatis hitung margin 25% dan kelipatan 500"
+                            >
+                              ⚡ Jadi 25%
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  )}
 
                   {/* 10. TOTAL NILAI */}
                   <td style={{ textAlign: "right", whiteSpace: "nowrap", padding: "6px 6px" }}>
