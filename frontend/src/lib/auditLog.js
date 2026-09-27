@@ -1,56 +1,16 @@
-// Utility Manajemen Riwayat Perubahan (Audit Trail Log) untuk Apotek Bima Farma
-const STORAGE_KEY = "bima_audit_log_perubahan";
+/**
+ * Utility Audit Log — Apotek Bima Farma
+ * Setiap perubahan dikirim ke Laravel backend /api/audit-logs
+ * (diproxy oleh Vercel ke api.apotekbimafarma.com)
+ * sehingga log terpusat di MySQL, lintas perangkat.
+ */
+import { api } from "./api";
 
-let channel = null;
-try {
-  if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-    channel = new BroadcastChannel("bima_audit_log_channel");
-  }
-} catch {
-  // ignore
-}
-
-function notifyLogChanged() {
-  if (typeof window !== "undefined") {
-    try {
-      window.dispatchEvent(new CustomEvent("bima_audit_log_updated"));
-    } catch {}
-    try {
-      channel?.postMessage({ type: "AUDIT_LOG_UPDATED", time: Date.now() });
-    } catch {}
-  }
-}
-
-export function getRiwayatPerubahan() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-
-    // Filter otomatis: bersihkan data mock lama
-    const realLogs = parsed.filter(
-      (item) =>
-        item &&
-        !String(item.id).startsWith("LOG-INIT") &&
-        !String(item.id).startsWith("SRV-PEN") &&
-        item.petugas !== "Sistem Apotek" &&
-        item.nama_akun !== "Sistem Apotek" &&
-        item.petugas !== "Petugas Gudang" &&
-        item.nama_akun !== "Petugas Gudang"
-    );
-
-    if (realLogs.length !== parsed.length) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(realLogs));
-    }
-
-    return realLogs;
-  } catch {
-    return [];
-  }
-}
-
-export function tambahLogPerubahan({
+/**
+ * Kirim satu entri log ke database via Laravel backend.
+ * Fire-and-forget: tidak memblokir UI jika gagal.
+ */
+export async function tambahLogPerubahan({
   nama_akun,
   role_akun,
   kategori = "Umum",
@@ -65,37 +25,62 @@ export function tambahLogPerubahan({
   oleh,
   petugas,
 }) {
+  const namaAkunFinal = nama_akun || oleh || petugas || "Admin";
+  const itemFinal = judul || item || "-";
+  const sebelumFinal =
+    sebelum !== undefined && sebelum !== null
+      ? String(sebelum)
+      : detailLama !== undefined && detailLama !== null
+      ? String(detailLama)
+      : "-";
+  const sesudahFinal =
+    sesudah !== undefined && sesudah !== null
+      ? String(sesudah)
+      : detailBaru !== undefined && detailBaru !== null
+      ? String(detailBaru)
+      : "-";
+
   try {
-    const list = getRiwayatPerubahan();
-    const namaAkunFinal = nama_akun || oleh || petugas || "Admin";
-    const itemFinal = judul || item || "-";
-    const sebelumFinal = sebelum !== undefined && sebelum !== null ? String(sebelum) : (detailLama !== undefined && detailLama !== null ? String(detailLama) : "-");
-    const sesudahFinal = sesudah !== undefined && sesudah !== null ? String(sesudah) : (detailBaru !== undefined && detailBaru !== null ? String(detailBaru) : "-");
-
-    const itemBaru = {
-      id: "LOG-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
-      waktu: new Date().toISOString(),
-      nama_akun: namaAkunFinal,
-      role_akun: role_akun || "kasir",
-      kategori,
-      aksi,
-      judul: itemFinal,
-      detailLama: sebelumFinal,
-      detailBaru: sesudahFinal,
-      keterangan,
-    };
-
-    const updated = [itemBaru, ...list].slice(0, 1000); // Simpan hingga 1000 log riwayat terbaru
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    notifyLogChanged();
-    return itemBaru;
+    await api("/audit-logs", {
+      method: "POST",
+      body: JSON.stringify({
+        waktu: new Date().toISOString(),
+        nama_akun: namaAkunFinal,
+        role_akun: role_akun || "kasir",
+        kategori,
+        aksi,
+        judul: itemFinal,
+        sebelum: sebelumFinal,
+        sesudah: sesudahFinal,
+        keterangan,
+      }),
+    });
   } catch (e) {
-    console.warn("Gagal mencatat log perubahan:", e);
-    return null;
+    console.warn("Gagal mencatat audit log:", e);
   }
 }
 
-export function hapusSemuaLog() {
-  localStorage.removeItem(STORAGE_KEY);
-  notifyLogChanged();
+/**
+ * Ambil semua log dari database (admin only).
+ * Returns array of log entries (sudah diurutkan dari terbaru ke terlama).
+ */
+export async function getRiwayatPerubahan() {
+  try {
+    const rows = await api("/audit-logs");
+    return Array.isArray(rows) ? rows : [];
+  } catch (e) {
+    console.warn("Gagal mengambil audit log:", e);
+    return [];
+  }
+}
+
+/**
+ * Hapus seluruh log dari database (admin only).
+ */
+export async function hapusSemuaLog() {
+  try {
+    await api("/audit-logs", { method: "DELETE" });
+  } catch (e) {
+    console.warn("Gagal menghapus audit log:", e);
+  }
 }

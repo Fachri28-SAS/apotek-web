@@ -29,59 +29,29 @@ export default function RiwayatPerubahan() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(25);
 
-  // Ambil log riwayat murni dari sistem tanpa mock/dummy data secara realtime
+  // Ambil log dari database MySQL (lintas perangkat, realtime)
   useEffect(() => {
     muatLog();
 
-    // 1. Dengarkan event internal tab yang sama
-    function onUpdated() {
-      muatLog();
-    }
-    window.addEventListener("bima_audit_log_updated", onUpdated);
+    // Refresh saat user kembali ke tab ini
+    function onFocus() { muatLog(); }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
 
-    // 2. Dengarkan perubahan storage dari tab/jendela lain
-    function onStorage(e) {
-      if (e.key === "bima_audit_log_perubahan" || !e.key) {
-        muatLog();
-      }
-    }
-    window.addEventListener("storage", onStorage);
-
-    // 3. Dengarkan broadcast channel jika didukung browser
-    let channel = null;
-    try {
-      if ("BroadcastChannel" in window) {
-        channel = new BroadcastChannel("bima_audit_log_channel");
-        channel.onmessage = () => muatLog();
-      }
-    } catch {}
-
-    // 4. Dengarkan saat user kembali ke tab ini (focus / visibility)
-    window.addEventListener("focus", onUpdated);
-    document.addEventListener("visibilitychange", onUpdated);
-
-    // 5. Polling halus tiap 2 detik untuk memastikan sinkronisasi sempurna
-    const interval = setInterval(muatLog, 2000);
+    // Polling tiap 10 detik agar data selalu fresh
+    const interval = setInterval(muatLog, 10000);
 
     return () => {
-      window.removeEventListener("bima_audit_log_updated", onUpdated);
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", onUpdated);
-      document.removeEventListener("visibilitychange", onUpdated);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
       clearInterval(interval);
-      try {
-        channel?.close();
-      } catch {}
     };
   }, []);
 
-  function muatLog() {
+  async function muatLog() {
     try {
-      const realLogs = getRiwayatPerubahan();
-      const sorted = [...realLogs].sort(
-        (a, b) => new Date(b.waktu).getTime() - new Date(a.waktu).getTime()
-      );
-      setLogs(sorted);
+      const rows = await getRiwayatPerubahan();
+      setLogs(Array.isArray(rows) ? rows : []);
     } catch (e) {
       console.error("Gagal memuat audit log:", e);
     } finally {
@@ -89,12 +59,14 @@ export default function RiwayatPerubahan() {
     }
   }
 
-  function handleBersihkanLog() {
+  async function handleBersihkanLog() {
     if (!window.confirm("Bersihkan seluruh catatan riwayat perubahan saat ini? Tindakan ini tidak dapat dibatalkan.")) {
       return;
     }
-    hapusSemuaLog();
+    setLoading(true);
+    await hapusSemuaLog();
     setLogs([]);
+    setLoading(false);
   }
 
   // Filter logs

@@ -12,6 +12,7 @@ use App\Http\Controllers\TokoController;
 use App\Http\Controllers\StokMutasiController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\DuitkuController;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/ganti-password', [AuthController::class, 'gantiPassword']);
+
+    // ---- Audit Log (Kasir boleh POST, Admin boleh GET & DELETE) ----
+    Route::post('/audit-logs', [AuditLogController::class, 'store']);
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/audit-logs', [AuditLogController::class, 'index']);
+        Route::delete('/audit-logs', [AuditLogController::class, 'destroyAll']);
+    });
 
     // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
     Route::middleware('role:admin,kasir')->group(function () {
