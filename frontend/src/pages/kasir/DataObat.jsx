@@ -105,8 +105,9 @@ export default function DataObat() {
   const [scopeCetak, setScopeCetak] = useState("halaman");
 
   // State Edit Harga Langsung (Inline Quick Edit)
-  const [editingKey, setEditingKey] = useState(null); // string: `${obatId}_${satuanId}`
+  const [editingKey, setEditingKey] = useState(null); // string: `jual_${obatId}_${satuanId}` atau `beli_${obatId}_${satuanId}`
   const [inputHargaJual, setInputHargaJual] = useState("");
+  const [inputHargaBeli, setInputHargaBeli] = useState("");
   const [savingKey, setSavingKey] = useState(null);
 
   // Deteksi obat dengan margin bermasalah (< 25%) ATAU harga jual belum genap kelipatan 500
@@ -216,7 +217,7 @@ export default function DataObat() {
   function mulaiEditHarga(obat, satuan) {
     const targetSatuan = satuan || obat.satuan?.[0];
     if (!targetSatuan) return;
-    const key = `${obat.id}_${targetSatuan.id}`;
+    const key = `jual_${obat.id}_${targetSatuan.id}`;
     setEditingKey(key);
     setInputHargaJual(String(Math.round(Number(targetSatuan.harga_jual || 0))));
   }
@@ -234,7 +235,7 @@ export default function DataObat() {
     }
 
     const hargaLama = Number(targetSatuan.harga_jual || 0);
-    const key = `${obat.id}_${targetSatuan.id}`;
+    const key = `jual_${obat.id}_${targetSatuan.id}`;
     setSavingKey(key);
 
     try {
@@ -278,18 +279,101 @@ export default function DataObat() {
         kategori: "Ganti Harga Obat",
         aksi: "Ubah",
         judul: `${obat.nama} (${targetSatuan.nama_satuan})`,
-        sebelum: rupiah(hargaLama),
-        sesudah: rupiah(hargaBaru),
+        sebelum: `Harga Jual: ${rupiah(hargaLama)}`,
+        sesudah: `Harga Jual: ${rupiah(hargaBaru)}`,
         keterangan: hargaLama !== hargaBaru
-          ? `Ubah harga jual satuan ${targetSatuan.nama_satuan} via klik ceklis (${namaAkun})`
-          : `Simpan konfirmasi harga jual satuan ${targetSatuan.nama_satuan} via klik ceklis (${namaAkun})`,
+          ? `Ubah harga jual satuan ${targetSatuan.nama_satuan} via klik langsung (${namaAkun})`
+          : `Simpan konfirmasi harga jual satuan ${targetSatuan.nama_satuan} via klik langsung (${namaAkun})`,
       });
 
       setEditingKey(null);
-      setNotifSukses(`✓ Harga ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
+      setNotifSukses(`✓ Harga jual ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
       setTimeout(() => setNotifSukses(""), 4000);
     } catch (err) {
-      alert("Gagal mengubah harga: " + (err.message || "Terjadi kesalahan"));
+      alert("Gagal mengubah harga jual: " + (err.message || "Terjadi kesalahan"));
+    } finally {
+      setSavingKey(null);
+    }
+  }
+
+  // --- LOGIKA EDIT HARGA BELI LANGSUNG DI SITU (INLINE BUY PRICE EDIT) ---
+  function mulaiEditHargaBeli(obat, satuan) {
+    const targetSatuan = satuan || obat.satuan?.[0];
+    if (!targetSatuan) return;
+    const key = `beli_${obat.id}_${targetSatuan.id}`;
+    setEditingKey(key);
+    setInputHargaBeli(String(Math.round(Number(targetSatuan.harga_beli || 0))));
+  }
+
+  function batalEditHargaBeli() {
+    setEditingKey(null);
+    setInputHargaBeli("");
+  }
+
+  async function simpanEditHargaBeli(obat, targetSatuan, hargaBaruStr) {
+    const hargaBaru = Math.round(Number(hargaBaruStr || 0));
+    if (isNaN(hargaBaru) || hargaBaru < 0) {
+      alert("Harga beli harus berupa angka valid (minimal 0).");
+      return;
+    }
+
+    const hargaLama = Number(targetSatuan.harga_beli || 0);
+    const key = `beli_${obat.id}_${targetSatuan.id}`;
+    setSavingKey(key);
+
+    try {
+      const satuanBaru = (obat.satuan || []).map((s) => {
+        const isTarget = String(s.id) === String(targetSatuan.id) || (s.nama_satuan === targetSatuan.nama_satuan);
+        return {
+          id: s.id,
+          nama_satuan: s.nama_satuan,
+          faktor: s.faktor || 1,
+          harga_beli: isTarget ? hargaBaru : s.harga_beli,
+          harga_jual: s.harga_jual,
+          is_default: s.is_default,
+        };
+      });
+
+      const res = await api(`/obat/${obat.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ nama: obat.nama, satuan: satuanBaru }),
+      });
+
+      const updateList = res?.satuan || satuanBaru;
+      setDaftar((prev) =>
+        prev.map((o) => (o.id === obat.id ? { ...o, satuan: updateList } : o))
+      );
+
+      // Update cache di storage
+      try {
+        const cached = getCachedObat();
+        const updatedCache = cached.map((o) =>
+          o.id === obat.id ? { ...o, satuan: updateList } : o
+        );
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(updatedCache));
+      } catch {}
+
+      // Catat ke riwayat perubahan (Audit Log) dengan Nama Akun yang Login
+      const namaAkun = user?.nama || user?.username || (isAdmin ? "Admin" : "Kasir");
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || (isAdmin ? "admin" : "kasir"),
+        kategori: "Ganti Harga Obat",
+        aksi: "Ubah",
+        judul: `${obat.nama} (${targetSatuan.nama_satuan})`,
+        sebelum: `Harga Beli: ${rupiah(hargaLama)}`,
+        sesudah: `Harga Beli: ${rupiah(hargaBaru)}`,
+        keterangan: hargaLama !== hargaBaru
+          ? `Ubah harga beli satuan ${targetSatuan.nama_satuan} via klik langsung (${namaAkun})`
+          : `Simpan konfirmasi harga beli satuan ${targetSatuan.nama_satuan} via klik langsung (${namaAkun})`,
+      });
+
+      setEditingKey(null);
+      setNotifSukses(`✓ Harga beli ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
+      setTimeout(() => setNotifSukses(""), 4000);
+    } catch (err) {
+      alert("Gagal mengubah harga beli: " + (err.message || "Terjadi kesalahan"));
     } finally {
       setSavingKey(null);
     }
@@ -944,13 +1028,14 @@ export default function DataObat() {
             const nilaiUang = stokNum * beliNum;
             const persenStr = formatPersen(nilaiUang, totalNilaiKeseluruhan);
 
-            const isEditHarga = def && editingKey === `${obat.id}_${def.id}`;
+            const isEditHargaJual = def && editingKey === `jual_${obat.id}_${def.id}`;
+            const isEditHargaBeli = def && editingKey === `beli_${obat.id}_${def.id}`;
 
             return (
               <div
                 className="list-card"
                 key={obat.id}
-                onClick={() => !isEditHarga && bukaEdit(obat)}
+                onClick={() => !isEditHargaJual && !isEditHargaBeli && bukaEdit(obat)}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, width: "100%" }}>
                   <span
@@ -968,11 +1053,90 @@ export default function DataObat() {
                   <div className="body" style={{ flex: 1 }}>
                     <div className="t1" style={{ fontSize: 14.5 }}>{obat.nama}</div>
                     
-                    {/* Harga Jual dengan Kemampuan Edit Langsung di Mobile */}
-                    <div style={{ margin: "5px 0" }} onClick={(e) => e.stopPropagation()}>
-                      {isEditHarga ? (
-                        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                          <span style={{ fontSize: 12, fontWeight: 700 }}>Rp</span>
+                    {/* Harga Beli & Harga Jual dengan Kemampuan Edit Langsung di Mobile */}
+                    <div style={{ margin: "5px 0", display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }} onClick={(e) => e.stopPropagation()}>
+                      {/* 1. Harga Beli Mobile */}
+                      {isEditHargaBeli ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#2563EB" }}>Beli Rp</span>
+                          <input
+                            type="number"
+                            value={inputHargaBeli}
+                            onChange={(e) => setInputHargaBeli(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") simpanEditHargaBeli(obat, def, inputHargaBeli);
+                              if (e.key === "Escape") batalEditHargaBeli();
+                            }}
+                            autoFocus
+                            style={{
+                              width: 85,
+                              padding: "3px 6px",
+                              borderRadius: 6,
+                              border: "2px solid #2563EB",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              outline: "none",
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => simpanEditHargaBeli(obat, def, inputHargaBeli)}
+                            disabled={savingKey === `beli_${obat.id}_${def.id}`}
+                            style={{
+                              background: "#16A34A",
+                              color: "#fff",
+                              border: "none",
+                              borderRadius: 5,
+                              padding: "4px 6px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {savingKey === `beli_${obat.id}_${def.id}` ? "…" : "✓"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={batalEditHargaBeli}
+                            style={{
+                              background: "#E2E8F0",
+                              color: "#475569",
+                              border: "none",
+                              borderRadius: 5,
+                              padding: "4px 6px",
+                              fontSize: 11,
+                              cursor: "pointer",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => mulaiEditHargaBeli(obat, def)}
+                          title="Ketuk untuk ubah harga beli langsung"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            padding: "2px 6px",
+                            borderRadius: 6,
+                            background: "rgba(37, 99, 235, 0.06)",
+                            border: "1px dashed #93C5FD",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, color: "#1E40AF", fontSize: 12 }}>
+                            Beli: {rupiah(def?.harga_beli || 0)}
+                          </span>
+                          <span style={{ fontSize: 9, color: "#2563EB" }}>✏️</span>
+                        </div>
+                      )}
+
+                      {/* 2. Harga Jual Mobile */}
+                      {isEditHargaJual ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "var(--magenta)" }}>Jual Rp</span>
                           <input
                             type="number"
                             value={inputHargaJual}
@@ -983,11 +1147,11 @@ export default function DataObat() {
                             }}
                             autoFocus
                             style={{
-                              width: 95,
-                              padding: "4px 8px",
+                              width: 85,
+                              padding: "3px 6px",
                               borderRadius: 6,
                               border: "2px solid var(--magenta)",
-                              fontSize: 13,
+                              fontSize: 12,
                               fontWeight: 700,
                               outline: "none",
                             }}
@@ -995,19 +1159,19 @@ export default function DataObat() {
                           <button
                             type="button"
                             onClick={() => simpanEditHarga(obat, def, inputHargaJual)}
-                            disabled={savingKey === `${obat.id}_${def.id}`}
+                            disabled={savingKey === `jual_${obat.id}_${def.id}`}
                             style={{
                               background: "#16A34A",
                               color: "#fff",
                               border: "none",
-                              borderRadius: 6,
-                              padding: "5px 8px",
-                              fontSize: 12,
+                              borderRadius: 5,
+                              padding: "4px 6px",
+                              fontSize: 11,
                               fontWeight: 700,
                               cursor: "pointer",
                             }}
                           >
-                            {savingKey === `${obat.id}_${def.id}` ? "…" : "✓"}
+                            {savingKey === `jual_${obat.id}_${def.id}` ? "…" : "✓"}
                           </button>
                           <button
                             type="button"
@@ -1016,9 +1180,9 @@ export default function DataObat() {
                               background: "#E2E8F0",
                               color: "#475569",
                               border: "none",
-                              borderRadius: 6,
-                              padding: "5px 8px",
-                              fontSize: 12,
+                              borderRadius: 5,
+                              padding: "4px 6px",
+                              fontSize: 11,
                               cursor: "pointer",
                             }}
                           >
@@ -1032,18 +1196,18 @@ export default function DataObat() {
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 5,
-                            padding: "3px 8px",
+                            gap: 4,
+                            padding: "2px 6px",
                             borderRadius: 6,
                             background: "rgba(147, 51, 234, 0.06)",
                             border: "1px dashed #D8B4FE",
                             cursor: "pointer",
                           }}
                         >
-                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>
-                            {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""}
+                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 12 }}>
+                            Jual: {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""}
                           </span>
-                          <span style={{ fontSize: 10, color: "var(--magenta)" }}>✏️</span>
+                          <span style={{ fontSize: 9, color: "var(--magenta)" }}>✏️</span>
                         </div>
                       )}
                     </div>
@@ -1145,7 +1309,15 @@ export default function DataObat() {
               <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Kemasan</th>
               <th style={{ width: 65, minWidth: 65, padding: "7px 5px" }}>Satuan</th>
               <th style={{ width: 75, minWidth: 75, textAlign: "center", padding: "7px 5px" }}>Batch</th>
-              <th style={{ width: 98, minWidth: 98, textAlign: "right", padding: "7px 6px" }}>Harga Beli</th>
+              {/* Kolom Harga Beli dengan Keterangan Edit Langsung */}
+              <th style={{ width: 105, minWidth: 105, textAlign: "right", padding: "7px 6px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
+                  <span>Harga Beli</span>
+                  <span style={{ fontSize: 10.5, color: "#2563EB", fontWeight: 800 }} title="Bisa langsung diedit di sini">
+                    ✏️
+                  </span>
+                </div>
+              </th>
               {/* Kolom Harga Jual dengan Keterangan Edit Langsung */}
               <th style={{ width: 108, minWidth: 108, textAlign: "right", padding: "7px 6px" }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
@@ -1226,8 +1398,10 @@ export default function DataObat() {
               const nilaiUang = stokNum * beliNum;
 
               // Key unik inline edit untuk obat dan satuannya
-              const inlineEditKey = def ? `${obat.id}_${def.id}` : null;
+              const inlineEditKey = def ? `jual_${obat.id}_${def.id}` : null;
               const isEditing = inlineEditKey && editingKey === inlineEditKey;
+              const inlineEditBeliKey = def ? `beli_${obat.id}_${def.id}` : null;
+              const isEditingBeli = inlineEditBeliKey && editingKey === inlineEditBeliKey;
 
               return (
                 <tr key={obat.id} className={!obat.aktif_dijual ? "obat-row-nonaktif" : ""}>
@@ -1262,15 +1436,105 @@ export default function DataObat() {
                   {/* 5. BATCH */}
                   <td className="obat-batch-cell" style={{ textAlign: "center", padding: "6px 5px" }}>{obat.nomor_batch || "-"}</td>
 
-                  {/* 6. HARGA BELI */}
+                  {/* 6. HARGA BELI - EDIT LANGSUNG DI SITU (INLINE QUICK EDIT) */}
                   <td className="obat-harga-cell" style={{ textAlign: "right", padding: "6px 6px" }}>
-                    <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end" }}>
-                      <span>{hargaBeli}</span>
-                      {(() => {
-                        const badge = badgeHargaBeli(def);
-                        return badge ? <div className={`harga-badge ${badge.warna}`} style={{ marginTop: 2 }}>{badge.teks}</div> : null;
-                      })()}
-                    </div>
+                    {isEditingBeli ? (
+                      <div
+                        style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--ink-soft)" }}>Rp</span>
+                        <input
+                          type="number"
+                          value={inputHargaBeli}
+                          onChange={(e) => setInputHargaBeli(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") simpanEditHargaBeli(obat, def, inputHargaBeli);
+                            if (e.key === "Escape") batalEditHargaBeli();
+                          }}
+                          autoFocus
+                          style={{
+                            width: 80,
+                            padding: "2px 5px",
+                            borderRadius: 6,
+                            border: "2px solid #2563EB",
+                            fontSize: 12,
+                            fontWeight: 800,
+                            outline: "none",
+                            textAlign: "right",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => simpanEditHargaBeli(obat, def, inputHargaBeli)}
+                          disabled={savingKey === inlineEditBeliKey}
+                          title="Simpan perubahan harga beli (Enter)"
+                          style={{
+                            background: "#16A34A",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 6px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {savingKey === inlineEditBeliKey ? "…" : "✓"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={batalEditHargaBeli}
+                          title="Batal (Esc)"
+                          style={{
+                            background: "#E2E8F0",
+                            color: "#475569",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 5px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-end" }}>
+                        <div
+                          onClick={() => mulaiEditHargaBeli(obat, def)}
+                          title="Klik untuk ubah harga beli langsung"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            cursor: "pointer",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            background: "rgba(37, 99, 235, 0.05)",
+                            border: "1px dashed transparent",
+                            transition: "all 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "#2563EB";
+                            e.currentTarget.style.background = "rgba(37, 99, 235, 0.1)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "transparent";
+                            e.currentTarget.style.background = "rgba(37, 99, 235, 0.05)";
+                          }}
+                        >
+                          <span style={{ fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>
+                            {hargaBeli}
+                          </span>
+                          <span style={{ fontSize: 10, color: "#2563EB", opacity: 0.7 }}>✏️</span>
+                        </div>
+                        {(() => {
+                          const badge = badgeHargaBeli(def);
+                          return badge ? <div className={`harga-badge ${badge.warna}`} style={{ marginTop: 2 }}>{badge.teks}</div> : null;
+                        })()}
+                      </div>
+                    )}
                   </td>
 
                   {/* 7. HARGA JUAL - EDIT LANGSUNG DI SITU (INLINE QUICK EDIT) */}
