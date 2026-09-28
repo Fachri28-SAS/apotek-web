@@ -13,16 +13,21 @@ function cekKunciValid(input) {
 }
 
 export default function Login() {
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem("bf_ingat_username") || "";
-  });
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [ingatUsername, setIngatUsername] = useState(() => {
-    return !!localStorage.getItem("bf_ingat_username");
-  });
+  const [ingatUsername, setIngatUsername] = useState(false);
   const [error, setError] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+
+  // Bersihkan sisa nama pengguna yang tersimpan agar input selalu kosong saat halaman dibuka
+  useEffect(() => {
+    try {
+      localStorage.removeItem("bf_ingat_username");
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Status Izin Perangkat (Client Authorization)
   const [terotorisasi, setTerotorisasi] = useState(() => {
@@ -247,7 +252,7 @@ export default function Login() {
                   <input
                     id="username"
                     type="text"
-                    autoComplete="username"
+                    autoComplete="off"
                     placeholder="Masukkan nama pengguna"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}

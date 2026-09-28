@@ -232,7 +232,7 @@ export default function Kasir() {
         </div>
       </div>
 
-      {/* Floating Sticky Cart Bar di Mobile (Sesuai Preview Layar 3) */}
+      {/* Floating Sticky Cart Bar di Mobile */}
       {tabAktif.items.length > 0 && (
         <div className="cart-sticky mobile-only">
           <div className="l">
@@ -242,14 +242,29 @@ export default function Kasir() {
           <button
             type="button"
             className="btn-pay"
+            disabled={loading}
             onClick={() => {
-              const el = document.querySelector(".kasir-jual-kanan");
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth" });
+              const kurang = tabAktif.metodeBayar === "tunai" && Number(tabAktif.uangDiterima || 0) < total;
+              if (kurang) {
+                const el = document.querySelector(".payment-panel");
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth" });
+                }
+                const inputUang = document.querySelector(".payment-field input[placeholder='0']");
+                if (inputUang) {
+                  inputUang.focus();
+                }
+                return;
               }
+              // Jika uang sudah cukup/pas atau QRIS, langsung proses pembayaran tanpa pop up
+              simpanTransaksi();
             }}
           >
-            Bayar →
+            {loading
+              ? "Menyimpan…"
+              : tabAktif.metodeBayar === "tunai" && Number(tabAktif.uangDiterima || 0) < total
+              ? "Isi Bayar ↓"
+              : "Bayar & Cetak ✓"}
           </button>
         </div>
       )}

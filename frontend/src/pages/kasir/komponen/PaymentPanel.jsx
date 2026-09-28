@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { rupiah } from "../../../utils/format";
 
 const METODE = [
@@ -27,6 +27,7 @@ export default function PaymentPanel({
   loading,
   disabled,
 }) {
+  const [bukaInfoTambahan, setBukaInfoTambahan] = useState(() => Boolean(tab.noInvoice || tab.catatan));
   const kurang = tab.metodeBayar === "tunai" && Number(tab.uangDiterima || 0) < total;
   const tipeDiskonTransaksi = tab.diskonTipe || "rp";
   const diskonWrapRef = useRef(null);
@@ -71,22 +72,60 @@ export default function PaymentPanel({
         />
       </div>
 
-      <div className="payment-field">
-        <label>No. Invoice (opsional — kosong = otomatis)</label>
-        <input
-          type="text"
-          value={tab.noInvoice}
-          onChange={(e) => onChange("noInvoice", e.target.value)}
-        />
-      </div>
+      {/* Accordion / Collapsible untuk No. Invoice & Catatan agar hemat tempat */}
+      <div style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          onClick={() => setBukaInfoTambahan((prev) => !prev)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "#F8FAFC",
+            border: "1px dashed var(--line)",
+            borderRadius: 8,
+            padding: "8px 12px",
+            color: "var(--ink-soft)",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          title="Klik untuk membuka atau menyembunyikan No Invoice & Catatan"
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 11, color: "var(--magenta)" }}>{bukaInfoTambahan ? "▼" : "▶"}</span>
+            <span>No. Invoice &amp; Catatan (opsional)</span>
+          </span>
+          <span style={{ fontSize: 11, color: "var(--magenta)", fontWeight: 700 }}>
+            {bukaInfoTambahan ? "Tutup ▲" : "+ Buka ▼"}
+          </span>
+        </button>
 
-      <div className="payment-field">
-        <label>Catatan (opsional)</label>
-        <textarea
-          rows={2}
-          value={tab.catatan}
-          onChange={(e) => onChange("catatan", e.target.value)}
-        />
+        {bukaInfoTambahan && (
+          <div style={{ marginTop: 8, padding: "10px 12px", background: "#FDFCFE", border: "1px solid var(--line)", borderRadius: 8 }}>
+            <div className="payment-field" style={{ marginBottom: 8 }}>
+              <label style={{ fontSize: 11.5 }}>No. Invoice (opsional — kosong = otomatis)</label>
+              <input
+                type="text"
+                value={tab.noInvoice}
+                onChange={(e) => onChange("noInvoice", e.target.value)}
+                placeholder="Otomatis bila kosong"
+              />
+            </div>
+
+            <div className="payment-field" style={{ marginBottom: 0 }}>
+              <label style={{ fontSize: 11.5 }}>Catatan Transaksi (opsional)</label>
+              <textarea
+                rows={2}
+                value={tab.catatan}
+                onChange={(e) => onChange("catatan", e.target.value)}
+                placeholder="Catatan tambahan..."
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="payment-row">
