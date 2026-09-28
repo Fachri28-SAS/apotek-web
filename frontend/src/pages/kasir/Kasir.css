@@ -27,24 +27,25 @@
 }
 .kasir-sidebar .logo-area {
   display: flex; align-items: center; gap: 10px;
-  height: 77px; padding: 0 20px; box-sizing: border-box;
+  height: 80px; padding: 0 16px; box-sizing: border-box;
   border-bottom: 1px solid var(--line); flex-shrink: 0;
 }
 .kasir-sidebar .logo-area svg { width: 32px; height: 32px; flex-shrink: 0; }
-.kasir-sidebar .logo-apotek { font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; color: var(--green); }
-.kasir-sidebar .logo-nama { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--magenta); line-height: 1.05; }
+.kasir-sidebar .logo-apotek { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; color: var(--green); }
+.kasir-sidebar .logo-nama { font-family: 'Fraunces', serif; font-weight: 700; font-size: 15px; color: var(--magenta); line-height: 1.05; }
+.kasir-sidebar .logo-jalan { font-size: 10px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; line-height: 1.2; }
 
-.kasir-menu { display: block; padding: 16px 12px; flex: 1; overflow-y: auto; }
+.kasir-menu { display: block; padding: 10px 8px; flex: 1; overflow-y: auto; }
 .kasir-menu-item {
-  display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 11px;
-  font-size: 14px; font-weight: 600; color: var(--ink-soft); cursor: pointer;
-  transition: .15s ease; text-decoration: none; margin-bottom: 3px;
+  display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 9px;
+  font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer;
+  transition: .15s ease; text-decoration: none; margin-bottom: 2px;
 }
-.kasir-menu-item .menu-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.kasir-menu-item .menu-icon { width: 16.5px; height: 16.5px; flex-shrink: 0; }
 .kasir-menu-item:hover { background: var(--magenta-tint); color: var(--magenta-dark); }
 .kasir-menu-item.active {
   background: var(--magenta); color: #fff;
-  box-shadow: 0 8px 18px rgba(166, 75, 199, 0.28);
+  box-shadow: 0 4px 12px rgba(166, 75, 199, 0.25);
 }
 .kasir-menu-badge {
   margin-left: auto;

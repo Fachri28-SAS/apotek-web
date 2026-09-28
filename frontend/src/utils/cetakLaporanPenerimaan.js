@@ -98,7 +98,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
     <html>
       <head>
         <meta charset="utf-8">
-        <title>DAFTAR PENERIMAAN BARANG</title>
+        <title></title>
         <style>
           @page {
             size: A4 landscape;
@@ -278,7 +278,7 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
     <html>
       <head>
         <meta charset="utf-8">
-        <title>BUKU BAYAR FAKTUR PBF</title>
+        <title></title>
         <style>
           @page {
             size: A4 portrait;

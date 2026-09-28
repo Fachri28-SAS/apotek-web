@@ -150,9 +150,10 @@ export default function KasirShell({ children }) {
       <aside className={`kasir-sidebar ${sidebarMobileOpen ? "open" : ""}`}>
         <div className="logo-area">
           <svg><use href="#cross-mark" /></svg>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="logo-apotek">APOTEK</div>
             <div className="logo-nama">BIMA FARMA</div>
+            <div className="logo-jalan">Jl. Tanimulya Raya No. 1</div>
           </div>
           {/* Tombol close sidebar di mobile */}
           <button

@@ -122,7 +122,7 @@ export function cetakDokumenA4({
     <html>
       <head>
         <meta charset="utf-8">
-        <title>${judul}</title>
+        <title></title>
         <style>
           @page {
             size: A4 ${orientation};
