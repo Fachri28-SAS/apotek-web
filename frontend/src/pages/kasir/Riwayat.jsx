@@ -76,9 +76,9 @@ export default function Riwayat() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Riwayat Penjualan</h1>
+          <h1 style={{ fontSize: 24 }}>Data Penjualan</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${labelRentang} · ${daftar.length} transaksi · total ${rupiah(totalOmzet)}`}
+            {loading ? "Memuat…" : `${labelRentang} · ${daftar.length} transaksi`}
           </p>
         </div>
       </div>

@@ -205,13 +205,7 @@ export default function RiwayatPenerimaan() {
       rupiah(b.jumlahPpnRp),
     ]);
 
-    const footers = [
-      [
-        { label: `TOTAL (${rows.length} ITEM) :`, colspan: 10, align: "right" },
-        { label: rupiah(totalJumlahSemua), align: "right" },
-        { label: rupiah(totalJumlahPpnSemua), align: "right" },
-      ],
-    ];
+    const footers = [];
 
     const periodeTeks = dariTanggal && sampaiTanggal ? `${dariTanggal} s/d ${sampaiTanggal}` : "Semua Periode";
 
@@ -221,10 +215,10 @@ export default function RiwayatPenerimaan() {
   function handleExcel() {
     const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
     exportExcel({
-      filename: `buku-penerimaan-barang-fisik`,
-      judul: "BUKU PENERIMAAN BARANG FISIK",
+      filename: `daftar-penerimaan-barang`,
+      judul: "DAFTAR PENERIMAAN BARANG",
       periode: periodeTeks,
-      keterangan: `Rekapitulasi Fisik Barang Masuk per Item`,
+      keterangan: `APOTEK BIMA FARMA`,
       headers,
       rows,
       footers,
@@ -234,10 +228,10 @@ export default function RiwayatPenerimaan() {
   function handleWord() {
     const { headers, rows, footers, periodeTeks } = siapkanDataExportPenerimaan();
     exportWord({
-      filename: `buku-penerimaan-barang-fisik`,
-      judul: "BUKU PENERIMAAN BARANG FISIK",
+      filename: `daftar-penerimaan-barang`,
+      judul: "DAFTAR PENERIMAAN BARANG",
       periode: periodeTeks,
-      keterangan: `Rekapitulasi Fisik Barang Masuk per Item`,
+      keterangan: `APOTEK BIMA FARMA`,
       headers,
       rows,
       footers,
@@ -250,11 +244,11 @@ export default function RiwayatPenerimaan() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Buku Penerimaan Barang Fisik</h1>
+          <h1 style={{ fontSize: 24 }}>Data Penerimaan Barang</h1>
           <p className="halaman-sub">
             {loading
               ? "Memuat data obat masuk…"
-              : `${barisItemTampil.length} baris barang · ${totalFakturUnik} faktur · Total Nilai: ${rupiah(totalJumlahSemua)}`}
+              : `${barisItemTampil.length} baris barang · ${totalFakturUnik} faktur`}
           </p>
         </div>
       </div>
@@ -551,26 +545,6 @@ export default function RiwayatPenerimaan() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot>
-                <tr style={{ background: "#FAF5FF", fontWeight: 800, borderTop: "2px solid #E9D5FF" }}>
-                  <td colSpan={10} style={{ textAlign: "right", padding: "10px 14px", color: "var(--ink)" }}>
-                    TOTAL KESELURUHAN ({barisItemTampil.length} Item) :
-                  </td>
-                  <td style={{ textAlign: "right", padding: "10px 14px", color: "#15803D", fontSize: 14 }}>
-                    {rupiah(totalJumlahSemua)}
-                  </td>
-                  <td
-                    style={{ textAlign: "right", padding: "10px 14px", color: "#6B21A8", fontSize: 14, cursor: "pointer" }}
-                    onClick={() => setModalPpnRingkasan(true)}
-                    title="Klik untuk melihat rincian total PPN"
-                  >
-                    <div>{rupiah(totalJumlahPpnSemua)}</div>
-                    <div style={{ fontSize: 11, color: "#7E22CE", fontWeight: 700 }}>
-                      +{rupiah(totalNilaiPpnSemua)} PPN 🔍
-                    </div>
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         )}

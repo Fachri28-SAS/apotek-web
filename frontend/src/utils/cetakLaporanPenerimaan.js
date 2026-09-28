@@ -98,7 +98,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
     <html>
       <head>
         <meta charset="utf-8">
-        <title>BUKU PENERIMAAN BARANG FISIK</title>
+        <title>DAFTAR PENERIMAAN BARANG</title>
         <style>
           @page {
             size: A4 landscape;
@@ -119,21 +119,15 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
             border-bottom: 2px solid #000;
             padding-bottom: 6px;
           }
+          .judul-laporan {
+            font-size: 13.5px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+          }
           .nama-apotek {
             font-size: 15px;
             font-weight: bold;
-            letter-spacing: 0.5px;
-          }
-          .alamat-apotek {
-            font-size: 9.5px;
-            margin-top: 2px;
-            color: #222;
-          }
-          .judul-laporan {
-            font-size: 12.5px;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-top: 6px;
             letter-spacing: 0.5px;
           }
           .meta-row {
@@ -169,14 +163,12 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
       </head>
       <body>
         <div class="header-center">
+          <div class="judul-laporan">DAFTAR PENERIMAAN BARANG</div>
           <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat &middot; Telp. 081223604900</div>
-          <div class="judul-laporan">BUKU PENERIMAAN BARANG FISIK</div>
         </div>
 
         <div class="meta-row">
           <div>Periode: <strong>${periodeTeks}</strong> &middot; Total: <strong>${barisItem.length} Item Masuk</strong></div>
-          <div>Dicetak: ${tanggalCetak} &middot; Petugas: ${namaUser}</div>
         </div>
 
         <table>
@@ -199,17 +191,10 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           <tbody>
             ${rowsHtml}
           </tbody>
-          <tfoot>
-            <tr style="background: #f7f7f7; font-weight: bold;">
-              <td colspan="10" style="text-align: right;">TOTAL KESELURUHAN :</td>
-              <td style="text-align: right;">${formatRp(totalJumlahRp)}</td>
-              <td style="text-align: right;">${formatRp(totalJumlahPpnRp)}</td>
-            </tr>
-          </tfoot>
         </table>
 
         <div class="footer-row">
-          <div>Apotek Bima Farma &middot; Arsip Buku Penerimaan</div>
+          <div>Apotek Bima Farma &middot; Data Penerimaan Barang</div>
           <div>Halaman 1</div>
         </div>
       </body>

@@ -212,7 +212,7 @@ export default function Penerimaan() {
     <KasirShell>
       <div className="halaman-header" style={{ marginBottom: 12 }}>
         <div>
-          <h1 style={{ fontSize: 22, margin: 0 }}>Penerimaan Barang</h1>
+          <h1 style={{ fontSize: 22, margin: 0 }}>Input Penerimaan Barang</h1>
           <p className="halaman-sub" style={{ margin: "2px 0 0" }}>Catat faktur pembelian dari supplier</p>
         </div>
       </div>
