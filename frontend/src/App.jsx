@@ -20,7 +20,7 @@ import PembayaranOnline from "./pages/kasir/PembayaranOnline";
 import Laporan from "./pages/kasir/Laporan";
 import LaporanPengeluaran from "./pages/kasir/LaporanPengeluaran";
 import KelolaUser from "./pages/kasir/KelolaUser";
-import RiwayatPerubahan from "./pages/kasir/RiwayatPerubahan";
+
 
 function App() {
   return (
@@ -77,14 +77,7 @@ function App() {
                 </RutePrivat>
               }
             />
-            <Route
-              path="/kasir/riwayat-perubahan"
-              element={
-                <RutePrivat rolesBoleh={["admin"]}>
-                  <RiwayatPerubahan />
-                </RutePrivat>
-              }
-            />
+
           </Routes>
         </AuthProvider>
       </ErrorBoundary>
