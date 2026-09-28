@@ -17,39 +17,24 @@ const BASE_URL = (() => {
 
 function getToken() {
   if (typeof window === "undefined") return null;
-  let token = sessionStorage.getItem("bimafarma_token");
-  if (!token) {
-    token = localStorage.getItem("bimafarma_token");
-    if (token) {
-      try {
-        sessionStorage.setItem("bimafarma_token", token);
-      } catch {
-        // ignore
-      }
-    }
-  }
-  return token;
+  // HANYA gunakan sessionStorage agar sesi otomatis tertutup saat browser/tab ditutup
+  return sessionStorage.getItem("bimafarma_token");
 }
 
-function setToken(token, ingat = true) {
+function setToken(token) {
+  // Selalu bersihkan token dari localStorage agar tidak tersimpan permanen
+  try {
+    localStorage.removeItem("bimafarma_token");
+  } catch {
+    // ignore
+  }
+
   if (!token) {
     sessionStorage.removeItem("bimafarma_token");
-    try {
-      localStorage.removeItem("bimafarma_token");
-    } catch {
-      // ignore
-    }
     return;
   }
 
   sessionStorage.setItem("bimafarma_token", token);
-  if (ingat) {
-    try {
-      localStorage.setItem("bimafarma_token", token);
-    } catch {
-      // ignore
-    }
-  }
 }
 
 /**
