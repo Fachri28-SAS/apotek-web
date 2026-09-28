@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pembayaran;
+use App\Models\Penjualan;
 use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PembayaranOnlineController extends Controller
 {
@@ -281,6 +283,108 @@ class PembayaranOnlineController extends Controller
             'message' => 'Pesanan ditolak dan dibatalkan.',
             'pembayaran' => $pembayaran->fresh(),
         ]);
+    }
+
+    /**
+     * DELETE /api/pembayaran-online/bersihkan-semua
+     * Khusus Admin: Menghapus seluruh data pesanan online uji coba
+     * agar bersih saat diserahterimakan kepada client.
+     */
+    public function bersihkanSemuaPesananOnline(Request $r, StokService $stok)
+    {
+        return DB::transaction(function () use ($stok) {
+            $penjualans = Penjualan::where('sumber', 'online')->get();
+            $jumlah = $penjualans->count();
+
+            foreach ($penjualans as $penjualan) {
+                // Kembalikan stok obat jika pesanan sempat dikonfirmasi lunas
+                if ($penjualan->status === 'lunas') {
+                    foreach ($penjualan->items as $it) {
+                        try {
+                            $stok->ubah(
+                                $it->obat_id,
+                                ($it->qty * $it->faktor),
+                                'masuk',
+                                'batal_penjualan',
+                                $penjualan->id,
+                                "Reset Uji Coba: Bersihkan pesanan online {$penjualan->no_struk}"
+                            );
+                        } catch (\Throwable $th) {
+                            // ignore jika obat sudah terhapus
+                        }
+                    }
+                }
+
+                // Hapus bukti transfer di storage disk jika ada
+                foreach ($penjualan->pembayarans as $pembayaran) {
+                    if ($pembayaran->bukti_path && Storage::disk('public')->exists($pembayaran->bukti_path)) {
+                        Storage::disk('public')->delete($pembayaran->bukti_path);
+                    }
+                    $pembayaran->delete();
+                }
+
+                $penjualan->items()->delete();
+                $penjualan->delete();
+            }
+
+            // Bersihkan sisa pembayaran manual_qris / duitku tanpa penjualan jika ada
+            $sisaPembayaran = Pembayaran::whereDoesntHave('penjualan')
+                ->whereIn('provider', ['manual_qris', 'duitku'])
+                ->get();
+            foreach ($sisaPembayaran as $sp) {
+                if ($sp->bukti_path && Storage::disk('public')->exists($sp->bukti_path)) {
+                    Storage::disk('public')->delete($sp->bukti_path);
+                }
+                $sp->delete();
+            }
+
+            return response()->json([
+                'message' => "Berhasil membersihkan {$jumlah} pesanan online uji coba. Riwayat pesanan online kini bersih!",
+                'jumlah_dibersihkan' => $jumlah,
+            ]);
+        });
+    }
+
+    /**
+     * DELETE /api/pembayaran-online/{pembayaran}
+     * Khusus Admin: Menghapus satu data pesanan online tertentu
+     */
+    public function destroy(Pembayaran $pembayaran, StokService $stok)
+    {
+        return DB::transaction(function () use ($pembayaran, $stok) {
+            $penjualan = $pembayaran->penjualan;
+
+            if ($penjualan && $penjualan->status === 'lunas') {
+                foreach ($penjualan->items as $it) {
+                    try {
+                        $stok->ubah(
+                            $it->obat_id,
+                            ($it->qty * $it->faktor),
+                            'masuk',
+                            'batal_penjualan',
+                            $penjualan->id,
+                            "Reset Uji Coba: Hapus pesanan {$penjualan->no_struk}"
+                        );
+                    } catch (\Throwable $th) {
+                        // ignore
+                    }
+                }
+            }
+
+            if ($pembayaran->bukti_path && Storage::disk('public')->exists($pembayaran->bukti_path)) {
+                Storage::disk('public')->delete($pembayaran->bukti_path);
+            }
+            $pembayaran->delete();
+
+            if ($penjualan && $penjualan->sumber === 'online') {
+                $penjualan->items()->delete();
+                $penjualan->delete();
+            }
+
+            return response()->json([
+                'message' => 'Pesanan online berhasil dihapus.',
+            ]);
+        });
     }
 
     private function batalkanYangKadaluwarsa(): void

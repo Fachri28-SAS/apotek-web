@@ -112,6 +112,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
         Route::post('/pengeluaran', [PengeluaranController::class, 'store']);
         Route::delete('/pengeluaran/{id}', [PengeluaranController::class, 'destroy']);
+        Route::delete('/pembayaran-online/bersihkan-semua', [PembayaranOnlineController::class, 'bersihkanSemuaPesananOnline']);
+        Route::delete('/pembayaran-online/{pembayaran}', [PembayaranOnlineController::class, 'destroy']);
         Route::get('/users/kelola', [UserController::class, 'kelola']);
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{user}', [UserController::class, 'update']);
