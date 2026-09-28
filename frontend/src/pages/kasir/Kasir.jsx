@@ -260,11 +260,7 @@ export default function Kasir() {
               simpanTransaksi();
             }}
           >
-            {loading
-              ? "Menyimpan…"
-              : tabAktif.metodeBayar === "tunai" && Number(tabAktif.uangDiterima || 0) < total
-              ? "Isi Bayar ↓"
-              : "Bayar & Cetak ✓"}
+            {loading ? "Menyimpan…" : "Simpan"}
           </button>
         </div>
       )}

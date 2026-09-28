@@ -1706,10 +1706,13 @@
     right: 12px;
     background: #1C1924;
     border-radius: 16px;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 10px 16px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 12px;
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
     z-index: 950;
     animation: slideUpCart 0.2s ease-out;
@@ -1720,30 +1723,40 @@
   }
   .cart-sticky .l {
     color: #fff;
+    min-width: 0;
+    flex: 1;
   }
   .cart-sticky .l .n {
     font-size: 11px;
     color: #A9A2B2;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .cart-sticky .l .v {
     font-family: 'Fraunces', serif;
     font-weight: 700;
     font-size: 18px;
     color: #fff;
+    white-space: nowrap;
+    line-height: 1.2;
   }
   .cart-sticky .btn-pay {
+    flex-shrink: 0;
+    white-space: nowrap;
     background: var(--magenta);
     color: #fff;
     font-weight: 700;
-    font-size: 13px;
-    padding: 10px 20px;
+    font-size: 14px;
+    padding: 10px 22px;
     border-radius: 100px;
     border: none;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(166, 75, 199, 0.4);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: all 0.2s ease;
   }
