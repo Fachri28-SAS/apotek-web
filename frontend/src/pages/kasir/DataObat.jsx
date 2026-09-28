@@ -668,11 +668,10 @@ export default function DataObat() {
     const headers = [
       { label: "NO", align: "center", width: "45px" },
       { label: "Nama Obat", align: "left" },
-      { label: "Satuan", align: "left" },
       { label: "No. Batch", align: "center" },
+      { label: "Stok", align: "center" },
       { label: "Harga Beli", align: "right" },
       { label: "Harga Jual", align: "right" },
-      { label: "Stok", align: "right" },
       { label: "Total Nilai", align: "right" },
       { label: "Kadaluwarsa", align: "center" },
     ];
@@ -683,7 +682,6 @@ export default function DataObat() {
     const rows = dataSumber.map((obat, idx) => {
       const noUrut = (scope === "halaman" && perPage !== "semua") ? startIndex + idx + 1 : idx + 1;
       const def = obat.satuan?.find((s) => s.is_default) || obat.satuan?.[0];
-      const satuanNames = obat.satuan?.map((s) => s.nama_satuan).join(" / ");
       const expStr = obat.tanggal_exp
         ? new Date(obat.tanggal_exp).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
         : "-";
@@ -697,11 +695,10 @@ export default function DataObat() {
       return [
         noUrut,
         obat.nama,
-        satuanNames || "-",
         obat.nomor_batch || "-",
+        `${obat.stok} ${obat.satuan_dasar || ""}`,
         rupiah(def?.harga_beli),
         rupiah(def?.harga_jual),
-        `${obat.stok} ${obat.satuan_dasar || ""}`,
         rupiah(nilaiUang),
         expStr,
       ];
@@ -869,13 +866,11 @@ export default function DataObat() {
               {sembunyikan ? "🙈" : "👁️"}
             </span>
           </div>
-          <p className="halaman-sub">
-            {filterMarginTipis
-              ? `Menampilkan ${daftarTampil.length} obat dengan margin bermasalah (< 25%)`
-              : loading && daftar.length === 0
-              ? "Menghubungkan ke database apotek…"
-              : `${totalData.toLocaleString("id-ID")} obat terdaftar ${loading ? "· (Menyinkronkan…)" : ""}`}
-          </p>
+          {filterMarginTipis && (
+            <p className="halaman-sub">
+              Menampilkan {daftarTampil.length} obat dengan margin bermasalah (&lt; 25%)
+            </p>
+          )}
         </div>
         <div className="halaman-header-aksi" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           {errorMsg && (
@@ -1744,8 +1739,8 @@ export default function DataObat() {
               {/* 1. NO DI PALING DEPAN */}
               <th style={{ width: 36, minWidth: 36, textAlign: "center", padding: "7px 4px" }}>NO</th>
               <th style={{ minWidth: 160, padding: "7px 8px" }}>Nama Obat</th>
-              <th style={{ width: 75, minWidth: 75, padding: "7px 5px" }}>Satuan</th>
               <th style={{ width: 75, minWidth: 75, textAlign: "center", padding: "7px 5px" }}>Batch</th>
+              <th style={{ width: 80, minWidth: 80, textAlign: "center", padding: "7px 5px" }}>Stok</th>
               {/* Kolom Harga Beli dengan Keterangan Edit Langsung */}
               <th style={{ width: 105, minWidth: 105, textAlign: "right", padding: "7px 6px" }}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
@@ -1764,7 +1759,6 @@ export default function DataObat() {
                   </span>
                 </div>
               </th>
-              <th style={{ width: 72, minWidth: 72, textAlign: "center", padding: "7px 5px" }}>Stok</th>
               {/* Kolom Margin (Bisa disembunyikan via tombol Sembunyikan) */}
               {tampilkanMargin && (
                 <th style={{ width: 85, minWidth: 85, textAlign: "center", padding: "7px 4px" }}>
@@ -1802,7 +1796,7 @@ export default function DataObat() {
           <tbody>
             {loading && daftar.length === 0 && (
               <tr>
-                <td colSpan={tampilkanMargin ? 11 : 10} className="obat-table-info" style={{ padding: "30px 16px" }}>
+                <td colSpan={tampilkanMargin ? 10 : 9} className="obat-table-info" style={{ padding: "30px 16px" }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                     <div style={{ fontWeight: 700, color: "var(--magenta-dark)", fontSize: 14 }}>
                       Sedang menyinkronkan data katalog obat dari server apotek…
@@ -1814,7 +1808,7 @@ export default function DataObat() {
             )}
             {!loading && daftarHalaman.length === 0 && (
               <tr>
-                <td colSpan={tampilkanMargin ? 11 : 10} className="obat-table-info">
+                <td colSpan={tampilkanMargin ? 10 : 9} className="obat-table-info">
                   {search ? `Tidak ada obat yang cocok dengan pencarian "${search}".` : "Tidak ada data obat."}
                 </td>
               </tr>
@@ -1847,23 +1841,6 @@ export default function DataObat() {
                     }}
                   />
                 </td>
-                <td style={{ padding: "6px 5px" }}>
-                  <input
-                    type="text"
-                    placeholder="Strip/Botol"
-                    value={satuanBaru}
-                    onChange={(e) => setSatuanBaru(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "5px 6px",
-                      borderRadius: 6,
-                      border: "1.5px solid var(--line)",
-                      fontWeight: 600,
-                      fontSize: 12,
-                      background: "#fff",
-                    }}
-                  />
-                </td>
                 <td style={{ padding: "6px 5px", textAlign: "center" }}>
                   <input
                     type="text"
@@ -1880,6 +1857,41 @@ export default function DataObat() {
                       background: "#fff",
                     }}
                   />
+                </td>
+                <td style={{ padding: "6px 4px", textAlign: "center" }}>
+                  <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={stokBaru}
+                      onChange={(e) => setStokBaru(e.target.value)}
+                      style={{
+                        width: 45,
+                        padding: "5px 4px",
+                        borderRadius: 6,
+                        border: "1.5px solid var(--line)",
+                        textAlign: "center",
+                        fontWeight: 700,
+                        fontSize: 12,
+                        background: "#fff",
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Satuan"
+                      value={satuanBaru}
+                      onChange={(e) => setSatuanBaru(e.target.value)}
+                      title="Satuan obat (cth: Strip, Pcs, Botol)"
+                      style={{
+                        width: 45,
+                        padding: "5px 3px",
+                        borderRadius: 6,
+                        border: "1.5px solid var(--line)",
+                        fontSize: 11,
+                        background: "#fff",
+                      }}
+                    />
+                  </div>
                 </td>
                 <td style={{ padding: "6px 6px", textAlign: "right" }}>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
@@ -1929,24 +1941,7 @@ export default function DataObat() {
                     />
                   </div>
                 </td>
-                <td style={{ padding: "6px 5px", textAlign: "center" }}>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={stokBaru}
-                    onChange={(e) => setStokBaru(e.target.value)}
-                    style={{
-                      width: 52,
-                      padding: "5px 6px",
-                      borderRadius: 6,
-                      border: "1.5px solid var(--line)",
-                      textAlign: "center",
-                      fontWeight: 700,
-                      fontSize: 12,
-                      background: "#fff",
-                    }}
-                  />
-                </td>
+
                 {tampilkanMargin && (
                   <td style={{ textAlign: "center", padding: "6px 4px" }}>
                     {hargaBeliBaru && hargaJualBaru ? (
@@ -2065,11 +2060,104 @@ export default function DataObat() {
                     </div>
                   </td>
 
-                  {/* 3. SATUAN */}
-                  <td style={{ fontWeight: 600, padding: "6px 6px" }}>{satuanNames}</td>
-
-                  {/* 5. BATCH */}
+                  {/* 3. BATCH (Pindah ke posisi kolom Satuan sebelumnya) */}
                   <td className="obat-batch-cell" style={{ textAlign: "center", padding: "6px 5px" }}>{obat.nomor_batch || "-"}</td>
+
+                  {/* 4. STOK (Pindah ke posisi kolom Batch sebelumnya, menampilkan stok & satuan) */}
+                  <td style={{ textAlign: "center", padding: "6px 5px" }}>
+                    {isEditingStok ? (
+                      <div
+                        style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "center" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="number"
+                          value={inputStok}
+                          onChange={(e) => setInputStok(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") simpanEditStok(obat, inputStok);
+                            if (e.key === "Escape") batalEditStok();
+                          }}
+                          autoFocus
+                          style={{
+                            width: 60,
+                            padding: "2px 4px",
+                            borderRadius: 6,
+                            border: "2px solid #059669",
+                            fontSize: 12,
+                            fontWeight: 800,
+                            outline: "none",
+                            textAlign: "center",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => simpanEditStok(obat, inputStok)}
+                          disabled={savingKey === inlineEditStokKey}
+                          title="Simpan perubahan stok (Enter)"
+                          style={{
+                            background: "#16A34A",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 6px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {savingKey === inlineEditStokKey ? "…" : "✓"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={batalEditStok}
+                          title="Batal (Esc)"
+                          style={{
+                            background: "#E2E8F0",
+                            color: "#475569",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "3px 5px",
+                            cursor: "pointer",
+                            fontSize: 10.5,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
+                        <div
+                          onClick={() => mulaiEditStok(obat)}
+                          title="Klik untuk ubah stok langsung di sini"
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            cursor: "pointer",
+                            padding: "2px 6px",
+                            borderRadius: 4,
+                            background: "rgba(16, 185, 129, 0.05)",
+                            border: "1px dashed transparent",
+                            transition: "all 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "#059669";
+                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "transparent";
+                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
+                          }}
+                        >
+                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>{obat.stok}</span>{" "}
+                          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
+                          <span style={{ fontSize: 10, color: "#059669", opacity: 0.7 }}>✏️</span>
+                        </div>
+                        {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis" style={{ marginTop: 2 }}>MENIPIS</div>}
+                      </div>
+                    )}
+                  </td>
 
                   {/* 6. HARGA BELI - EDIT LANGSUNG DI SITU (INLINE QUICK EDIT) */}
                   <td className="obat-harga-cell" style={{ textAlign: "right", padding: "6px 6px" }}>
@@ -2262,101 +2350,7 @@ export default function DataObat() {
                     )}
                   </td>
 
-                  {/* 8. STOK (Bisa diedit langsung di situ dengan klik) */}
-                  <td style={{ textAlign: "center", padding: "6px 5px" }}>
-                    {isEditingStok ? (
-                      <div
-                        style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "center" }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <input
-                          type="number"
-                          value={inputStok}
-                          onChange={(e) => setInputStok(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") simpanEditStok(obat, inputStok);
-                            if (e.key === "Escape") batalEditStok();
-                          }}
-                          autoFocus
-                          style={{
-                            width: 60,
-                            padding: "2px 4px",
-                            borderRadius: 6,
-                            border: "2px solid #059669",
-                            fontSize: 12,
-                            fontWeight: 800,
-                            outline: "none",
-                            textAlign: "center",
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => simpanEditStok(obat, inputStok)}
-                          disabled={savingKey === inlineEditStokKey}
-                          title="Simpan perubahan stok (Enter)"
-                          style={{
-                            background: "#16A34A",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 4,
-                            padding: "3px 6px",
-                            cursor: "pointer",
-                            fontSize: 10.5,
-                            fontWeight: 800,
-                          }}
-                        >
-                          {savingKey === inlineEditStokKey ? "…" : "✓"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={batalEditStok}
-                          title="Batal (Esc)"
-                          style={{
-                            background: "#E2E8F0",
-                            color: "#475569",
-                            border: "none",
-                            borderRadius: 4,
-                            padding: "3px 5px",
-                            cursor: "pointer",
-                            fontSize: 10.5,
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
-                        <div
-                          onClick={() => mulaiEditStok(obat)}
-                          title="Klik untuk ubah stok langsung di sini"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            cursor: "pointer",
-                            padding: "2px 6px",
-                            borderRadius: 4,
-                            background: "rgba(16, 185, 129, 0.05)",
-                            border: "1px dashed transparent",
-                            transition: "all 0.15s",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor = "#059669";
-                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor = "transparent";
-                            e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
-                          }}
-                        >
-                          <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>{obat.stok}</span>{" "}
-                          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
-                          <span style={{ fontSize: 10, color: "#059669", opacity: 0.7 }}>✏️</span>
-                        </div>
-                        {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis" style={{ marginTop: 2 }}>MENIPIS</div>}
-                      </div>
-                    )}
-                  </td>
+
 
                   {/* 9. MARGIN % (Jika OFF, kolom ini lenyap total) */}
                   {tampilkanMargin && (

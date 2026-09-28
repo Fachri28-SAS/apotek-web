@@ -245,11 +245,6 @@ export default function RiwayatPenerimaan() {
       <div className="halaman-header">
         <div>
           <h1 style={{ fontSize: 24 }}>Data Penerimaan Barang</h1>
-          <p className="halaman-sub">
-            {loading
-              ? "Memuat data obat masuk…"
-              : `${barisItemTampil.length} baris barang · ${totalFakturUnik} faktur`}
-          </p>
         </div>
       </div>
 
