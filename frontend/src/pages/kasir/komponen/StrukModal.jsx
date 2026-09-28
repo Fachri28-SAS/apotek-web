@@ -6,16 +6,16 @@ import { rupiah } from "../../../utils/format";
  * Dirancang khusus agar teks kanan (harga, subtotal, total) TIDAK TERPOTONG ke samping
  * dan ada feed space di bagian bawah agar saat merobek kertas di cutter fisik tidak merobek tulisan.
  */
-function buatHtmlStruk(data, ukuranKertas = "50mm") {
+function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
   const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
   const is80 = ukuranKertas === "80mm";
 
   // Lebar printable area aman agar tepi kanan tidak terpotong:
-  // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 40mm.
-  // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 46mm.
+  // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 38mm.
+  // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 44mm.
   // - 80mm: kertas roll 80mm, area head cetak ~72mm. Safe width: 72mm.
-  const printWidth = is50 ? "40mm" : is58 ? "46mm" : "72mm";
+  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "72mm";
   const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
   const baseFontSize = is50 ? "8.2px" : is58 ? "9.5px" : "11px";
   const headerFontSize = is50 ? "10.5px" : is58 ? "12px" : "14px";
@@ -92,7 +92,8 @@ function buatHtmlStruk(data, ukuranKertas = "50mm") {
             width: ${printWidth} !important;
             max-width: ${printWidth} !important;
             margin: 0 !important;
-            padding: 1mm 0.5mm 0 0.5mm !important;
+            margin-left: ${offsetKiri}mm !important;
+            padding: 1mm 0 0 0 !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize};
             line-height: 1.25;
@@ -249,12 +250,12 @@ function buatHtmlStruk(data, ukuranKertas = "50mm") {
  * Mencetak struk kasir secara bersih menggunakan iframe terisolasi
  * Disesuaikan khusus untuk printer thermal (58mm EPPOS EP58M / Panda / MiniPOS dsb)
  */
-function cetakStruk(data, ukuranKertas = "50mm") {
+function cetakStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
   if (!data) return;
 
   const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
-  const htmlStruk = buatHtmlStruk(data, ukuranKertas);
+  const htmlStruk = buatHtmlStruk(data, ukuranKertas, offsetKiri);
 
   let iframe = document.getElementById("print-struk-frame");
   if (!iframe) {
@@ -267,7 +268,7 @@ function cetakStruk(data, ukuranKertas = "50mm") {
     iframe.style.border = "none";
     document.body.appendChild(iframe);
   }
-  iframe.style.width = is50 ? "41mm" : is58 ? "48mm" : "74mm";
+  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "74mm";
 
   const doc = iframe.contentWindow.document;
   doc.open();
@@ -293,9 +294,15 @@ function cetakStruk(data, ukuranKertas = "50mm") {
 }
 
 export default function StrukModal({ data, onClose, autoPrint = false }) {
-  // Pilihan ukuran kertas (default 50mm sesuai kertas kasir)
+  // Pilihan ukuran kertas (default 58mm untuk EPPOS)
   const [ukuranKertas, setUkuranKertas] = useState(() => {
-    return localStorage.getItem("struk_ukuran_kertas") || "50mm";
+    return localStorage.getItem("struk_ukuran_kertas") || "58mm";
+  });
+
+  // Offset posisi horizontal kertas (default -4mm agar langsung pas di printer EPPOS dan tidak menjorok ke kanan)
+  const [offsetKiri, setOffsetKiri] = useState(() => {
+    const saved = localStorage.getItem("struk_offset_kiri");
+    return saved !== null ? Number(saved) : -4;
   });
 
   function gantiUkuran(val) {
@@ -303,15 +310,20 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
     localStorage.setItem("struk_ukuran_kertas", val);
   }
 
+  function gantiOffset(val) {
+    setOffsetKiri(val);
+    localStorage.setItem("struk_offset_kiri", val);
+  }
+
   useEffect(() => {
     // Hanya cetak otomatis jika autoPrint secara eksplisit bernilai true
     if (data && autoPrint) {
       const timer = setTimeout(() => {
-        cetakStruk(data, ukuranKertas);
+        cetakStruk(data, ukuranKertas, offsetKiri);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [data, autoPrint, ukuranKertas]);
+  }, [data, autoPrint, ukuranKertas, offsetKiri]);
 
   if (!data) return null;
 
@@ -357,19 +369,37 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "10px 18px",
+            padding: "8px 18px",
             borderBottom: "1px solid var(--line)",
             background: "#F8FAFC",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11.5, color: "var(--ink)", fontWeight: 800 }}>Ukuran Kertas</span>
-            <span style={{ fontSize: 10, color: "var(--ink-soft)" }}>
-              {is50 ? "50mm (Anti Geser Kanan)" : is58 ? "EPPOS 58mm" : "Thermal 80mm"}
+            <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 800 }}>Ukuran Kertas</span>
+            <span style={{ fontSize: 9.5, color: "var(--ink-soft)" }}>
+              {is50 ? "50mm Mini Roll" : is58 ? "58mm (EPPOS Standar)" : "Thermal 80mm"}
             </span>
           </div>
 
           <div style={{ display: "inline-flex", gap: 3, background: "#E2E8F0", padding: 3, borderRadius: 8 }}>
+            <button
+              type="button"
+              onClick={() => gantiUkuran("58mm")}
+              style={{
+                border: "none",
+                background: ukuranKertas === "58mm" ? "var(--magenta)" : "transparent",
+                color: ukuranKertas === "58mm" ? "#fff" : "var(--ink)",
+                fontWeight: 700,
+                fontSize: 10.5,
+                padding: "4px 8px",
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Standar Printer Thermal EPPOS EP58M / 58mm"
+            >
+              58 mm (EPPOS)
+            </button>
             <button
               type="button"
               onClick={() => gantiUkuran("50mm")}
@@ -378,8 +408,8 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 background: ukuranKertas === "50mm" ? "var(--magenta)" : "transparent",
                 color: ukuranKertas === "50mm" ? "#fff" : "var(--ink)",
                 fontWeight: 700,
-                fontSize: 11,
-                padding: "5px 10px",
+                fontSize: 10.5,
+                padding: "4px 8px",
                 borderRadius: 6,
                 cursor: "pointer",
                 transition: "all 0.15s ease",
@@ -390,32 +420,14 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             </button>
             <button
               type="button"
-              onClick={() => gantiUkuran("58mm")}
-              style={{
-                border: "none",
-                background: ukuranKertas === "58mm" ? "var(--magenta)" : "transparent",
-                color: ukuranKertas === "58mm" ? "#fff" : "var(--ink)",
-                fontWeight: 700,
-                fontSize: 11,
-                padding: "5px 10px",
-                borderRadius: 6,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              title="Standar Printer Thermal EPPOS EP58M / 58mm"
-            >
-              58 mm
-            </button>
-            <button
-              type="button"
               onClick={() => gantiUkuran("80mm")}
               style={{
                 border: "none",
                 background: ukuranKertas === "80mm" ? "var(--magenta)" : "transparent",
                 color: ukuranKertas === "80mm" ? "#fff" : "var(--ink)",
                 fontWeight: 700,
-                fontSize: 11,
-                padding: "5px 10px",
+                fontSize: 10.5,
+                padding: "4px 8px",
                 borderRadius: 6,
                 cursor: "pointer",
                 transition: "all 0.15s ease",
@@ -424,6 +436,57 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             >
               80 mm
             </button>
+          </div>
+        </div>
+
+        {/* Pemilih Posisi Cetak (Geser Kiri/Kanan) */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 18px",
+            borderBottom: "1px solid var(--line)",
+            background: "#F1F5F9",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "var(--ink)" }}>Posisi Cetak</span>
+            <span style={{ fontSize: 9.5, color: "var(--ink-soft)" }}>
+              {offsetKiri < 0
+                ? `Geser ${Math.abs(offsetKiri)}mm ke Kiri (Pas di EPPOS)`
+                : offsetKiri === 0
+                ? "Tengah / Normal (0mm)"
+                : `Geser ${offsetKiri}mm ke Kanan`}
+            </span>
+          </div>
+
+          <div style={{ display: "inline-flex", gap: 2, background: "#E2E8F0", padding: 2, borderRadius: 6 }}>
+            {[
+              { val: -5, label: "◀ -5mm" },
+              { val: -4, label: "◀ -4mm" },
+              { val: -2, label: "◀ -2mm" },
+              { val: 0, label: "Normal" },
+            ].map((p) => (
+              <button
+                key={p.val}
+                type="button"
+                onClick={() => gantiOffset(p.val)}
+                style={{
+                  border: "none",
+                  background: offsetKiri === p.val ? "var(--magenta)" : "transparent",
+                  color: offsetKiri === p.val ? "#fff" : "var(--ink)",
+                  fontWeight: 700,
+                  fontSize: 10,
+                  padding: "4px 6px",
+                  borderRadius: 5,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -625,16 +688,33 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
           </div>
         </div>
 
+        {/* Banner Tips Chrome Margin EPPOS */}
+        <div
+          style={{
+            margin: "12px 18px 0",
+            padding: "9px 13px",
+            background: "#FEF3C7",
+            border: "1px solid #FDE68A",
+            borderRadius: 8,
+            fontSize: 11,
+            color: "#92400E",
+            lineHeight: 1.45,
+          }}
+        >
+          💡 <strong>Tips Printer EPPOS agar teks tidak mepet kanan:</strong><br />
+          Saat jendela print Chrome muncul ➔ Klik <strong>Setelan lainnya (More settings)</strong> ➔ Ubah <strong>Margin (Margins)</strong> ke <strong>"Tidak ada" (None)</strong>.
+        </div>
+
         <div className="struk-actions" style={{ padding: "12px 18px", background: "#FFFFFF" }}>
           <button className="btn-outline" onClick={onClose}>
             Tutup
           </button>
           <button
             className="btn-primary"
-            onClick={() => cetakStruk(data, ukuranKertas)}
+            onClick={() => cetakStruk(data, ukuranKertas, offsetKiri)}
             style={{ fontWeight: 800 }}
           >
-            🖨️ Cetak Struk ({ukuranKertas})
+            🖨️ Cetak Struk ({ukuranKertas}{offsetKiri !== 0 ? ` ${offsetKiri}mm` : ""})
           </button>
         </div>
       </div>
@@ -685,8 +765,9 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             left: 0 !important;
             top: 0 !important;
             margin: 0 !important;
-            width: ${is50 ? "40mm" : is58 ? "46mm" : "72mm"} !important;
-            max-width: ${is50 ? "40mm" : is58 ? "46mm" : "72mm"} !important;
+            margin-left: ${offsetKiri}mm !important;
+            width: ${is50 ? "38mm" : is58 ? "44mm" : "72mm"} !important;
+            max-width: ${is50 ? "38mm" : is58 ? "44mm" : "72mm"} !important;
             padding: 1mm 1mm ${is50 ? "15mm" : is58 ? "18mm" : "20mm"} 0.5mm !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
             font-size: ${is50 ? "8.2px" : is58 ? "9.5px" : "11px"} !important;
