@@ -17,9 +17,9 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
   // - 80mm: kertas roll 80mm, area head cetak ~72mm. Safe width: 72mm.
   const printWidth = is50 ? "38mm" : is58 ? "44mm" : "72mm";
   const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
-  const baseFontSize = is50 ? "8.2px" : is58 ? "9.5px" : "11px";
-  const headerFontSize = is50 ? "10.5px" : is58 ? "12px" : "14px";
-  const subFontSize = is50 ? "7.5px" : is58 ? "8.5px" : "10px";
+  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "13px";
+  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "17px";
+  const subFontSize = is50 ? "9px" : is58 ? "10px" : "11.5px";
   const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "20mm";
 
   const tglObj = data.created_at || data.tanggal ? new Date(data.created_at || data.tanggal) : new Date();
@@ -186,7 +186,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
         <div class="struk-garis-dash"></div>
 
         <!-- Rincian Total Belanja -->
-        <div class="struk-baris" style="font-weight: 800; font-size: ${is50 ? "9.2px" : is58 ? "10.5px" : "12px"}; margin-top: 2px;">
+        <div class="struk-baris" style="font-weight: 800; font-size: ${is50 ? "11.5px" : is58 ? "13px" : "15px"}; margin-top: 2px;">
           <span>TOTAL (${totalQty} ITEM)</span>
           <span>${Number(data.total || 0).toLocaleString("id-ID")}</span>
         </div>
@@ -235,7 +235,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
         <div class="struk-center" style="font-size: ${subFontSize}; line-height: 1.35; margin-top: 4px;">
           <div style="font-weight: 700;">Terima Kasih Atas Kunjungan Anda</div>
           <div>Semoga Lekas Sembuh!</div>
-          <div style="font-size: 7.5px; margin-top: 2px;">Barang yg sudah dibeli tdk dapat ditukar/dikembalikan</div>
+          <div style="font-size: ${is50 ? "8px" : "8.8px"}; margin-top: 2px;">Barang yg sudah dibeli tdk dapat ditukar/dikembalikan</div>
           <div style="font-weight: 700; margin-top: 2px;">CS Apotek: 0821-2702-6272</div>
         </div>
 
@@ -503,7 +503,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
               boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
               border: "1px solid #CBD5E1",
               fontFamily: "'Consolas', 'Courier New', Courier, monospace",
-              fontSize: is50 ? 8.8 : is58 ? 10 : 11.5,
+              fontSize: is50 ? 10.5 : is58 ? 11.5 : 13,
               lineHeight: 1.25,
               color: "#000000",
             }}
@@ -514,7 +514,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 src="/logo-bima-farma.png"
                 alt="Logo Apotek Bima Farma"
                 style={{
-                  maxHeight: 28,
+                  maxHeight: 32,
                   maxWidth: "85%",
                   objectFit: "contain",
                   margin: "0 auto 3px auto",
@@ -525,10 +525,10 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                   e.target.style.display = "none";
                 }}
               />
-              <div style={{ fontSize: is50 ? 11 : is58 ? 12 : 14, fontWeight: 800, letterSpacing: 0.5 }}>
+              <div style={{ fontSize: is50 ? 13.5 : is58 ? 15 : 17, fontWeight: 800, letterSpacing: 0.5 }}>
                 APOTEK BIMA FARMA
               </div>
-              <div style={{ fontSize: is50 ? 7.8 : is58 ? 8.5 : 10, color: "#111", lineHeight: 1.25, marginTop: 1 }}>
+              <div style={{ fontSize: is50 ? 9 : is58 ? 10 : 11.5, color: "#111", lineHeight: 1.25, marginTop: 1 }}>
                 Jl. Tanimulya Raya No. 1, Ngamprah<br />
                 Kab. Bandung Barat · WA: 0812-2360-4900
               </div>
@@ -574,7 +574,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                     <div
                       style={{
                         fontWeight: 700,
-                        fontSize: is58 ? 10 : 11,
+                        fontSize: is58 ? 11.5 : 13,
                         textTransform: "uppercase",
                         wordBreak: "break-word",
                         lineHeight: 1.25,
@@ -587,7 +587,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "baseline",
-                        fontSize: is58 ? 9.5 : 11,
+                        fontSize: is58 ? 11 : 12.5,
                         marginTop: 1,
                       }}
                     >
@@ -603,7 +603,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          fontSize: is58 ? 8.5 : 9.5,
+                          fontSize: is58 ? 9.5 : 10.5,
                           color: "#000",
                         }}
                       >
@@ -621,20 +621,20 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             {/* Rincian Total */}
             <div
               className="struk-baris"
-              style={{ fontWeight: 800, fontSize: is58 ? 10.5 : 12, marginTop: 2 }}
+              style={{ fontWeight: 800, fontSize: is58 ? 13 : 15, marginTop: 2 }}
             >
               <span>TOTAL ({totalQty} ITEM)</span>
               <span>{Number(data.total).toLocaleString("id-ID")}</span>
             </div>
 
             {diskonTransaksi > 0 && (
-              <div className="struk-baris" style={{ fontSize: is58 ? 8.5 : 10 }}>
+              <div className="struk-baris" style={{ fontSize: is58 ? 9.5 : 11 }}>
                 <span>Diskon Tambahan</span>
                 <span>-{diskonTransaksi.toLocaleString("id-ID")}</span>
               </div>
             )}
 
-            <div className="struk-baris" style={{ fontSize: is58 ? 9.5 : 11 }}>
+            <div className="struk-baris" style={{ fontSize: is58 ? 11 : 12.5 }}>
               <span>{data.metode_bayar === "tunai" ? "Uang Diterima" : "Nominal Bayar"}</span>
               <span>
                 {data.metode_bayar === "tunai"
@@ -644,12 +644,12 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             </div>
 
             {data.metode_bayar === "tunai" ? (
-              <div className="struk-baris" style={{ fontSize: is58 ? 9.5 : 11, fontWeight: 700 }}>
+              <div className="struk-baris" style={{ fontSize: is58 ? 11.5 : 13, fontWeight: 700 }}>
                 <span>Kembalian</span>
                 <span>{Number(data.kembalian || 0).toLocaleString("id-ID")}</span>
               </div>
             ) : (
-              <div className="struk-baris" style={{ fontSize: is58 ? 9.5 : 11, fontWeight: 700 }}>
+              <div className="struk-baris" style={{ fontSize: is58 ? 11.5 : 13, fontWeight: 700 }}>
                 <span>Status</span>
                 <span>LUNAS</span>
               </div>
@@ -660,11 +660,11 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             {/* Footer Ucapan Terima Kasih */}
             <div
               className="struk-center"
-              style={{ fontSize: is58 ? 8.5 : 9.5, color: "#000", marginTop: 4, lineHeight: 1.35 }}
+              style={{ fontSize: is58 ? 10 : 11.5, color: "#000", marginTop: 4, lineHeight: 1.35 }}
             >
               <div style={{ fontWeight: 700 }}>Terima Kasih Atas Kunjungan Anda</div>
               <div>Semoga Lekas Sembuh!</div>
-              <div style={{ fontSize: is58 ? 7.5 : 8.5, marginTop: 2 }}>
+              <div style={{ fontSize: is58 ? 8.8 : 9.5, marginTop: 2 }}>
                 Barang yg sudah dibeli tdk dapat ditukar/dikembalikan
               </div>
               <div style={{ marginTop: 2, fontWeight: 700 }}>CS Apotek: 0821-2702-6272</div>
@@ -770,7 +770,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             max-width: ${is50 ? "38mm" : is58 ? "44mm" : "72mm"} !important;
             padding: 1mm 1mm ${is50 ? "15mm" : is58 ? "18mm" : "20mm"} 0.5mm !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
-            font-size: ${is50 ? "8.2px" : is58 ? "9.5px" : "11px"} !important;
+            font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "13px"} !important;
             color: #000000 !important;
             background: #ffffff !important;
             border: none !important;
