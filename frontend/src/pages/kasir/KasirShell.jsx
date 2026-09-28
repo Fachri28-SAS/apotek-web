@@ -269,7 +269,7 @@ export default function KasirShell({ children }) {
                       ? "Selamat sore"
                       : "Selamat malam"}
                   </div>
-                  <h2 className="topbar-title" style={{ fontSize: "clamp(17px, 3.5vw, 20px)" }}>
+                  <h2 className="topbar-title" style={{ fontSize: "clamp(18px, 4vw, 22px)" }}>
                     {user?.nama || "Apotek Bima Farma"}
                   </h2>
                 </div>

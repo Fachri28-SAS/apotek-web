@@ -62,8 +62,8 @@ export default function Dashboard() {
       {/* Header Desktop */}
       <div className="halaman-header desktop-only">
         <div>
-          <h1 style={{ fontSize: 24 }}>Halo, {user?.nama?.split(" ")[0]} 👋</h1>
-          <p className="halaman-sub">Ringkasan apotek hari ini</p>
+          <h1 style={{ fontSize: 26 }}>Halo, {user?.nama?.split(" ")[0]} 👋</h1>
+          <p className="halaman-sub" style={{ fontSize: 14.5 }}>Ringkasan apotek hari ini</p>
         </div>
       </div>
 

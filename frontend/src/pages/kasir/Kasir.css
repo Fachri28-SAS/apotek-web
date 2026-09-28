@@ -213,9 +213,9 @@
 .kpi-card.kuning .kpi-icon { background: #FDF3E3; color: #C4881A; }
 .kpi-card.hijau .kpi-icon { background: var(--green-tint); color: var(--green-dark); }
 .kpi-card.biru .kpi-icon { background: #EBF2FE; color: #1A56B8; }
-.kpi-angka { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
-.kpi-label { font-size: 13.5px; font-weight: 700; margin-top: 2px; }
-.kpi-sub { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+.kpi-angka { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; line-height: 1.1; }
+.kpi-label { font-size: 15px; font-weight: 700; margin-top: 3px; }
+.kpi-sub { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
 .kpi-margin-badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
@@ -1425,12 +1425,12 @@
     line-height: 1.25;
   }
   .topbar-greet-sub {
-    font-size: 11.5px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--ink-soft);
   }
   .topbar-left .topbar-title {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .bell-btn-mobile {
@@ -1490,7 +1490,7 @@
     gap: 3px;
     color: var(--ink-soft);
     text-decoration: none;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     padding: 4px 0;
     transition: color 0.15s ease;
@@ -1519,8 +1519,8 @@
     box-shadow: 0 3px 12px rgba(33, 27, 38, 0.04);
   }
   .kpi-card2 .ic {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
     background: var(--magenta-tint);
     color: var(--magenta-dark);
@@ -1530,8 +1530,8 @@
     margin-bottom: 10px;
   }
   .kpi-card2 .ic svg {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
   }
   .kpi-card2.warn .ic {
     background: #FEE2E2;
@@ -1540,29 +1540,30 @@
   .kpi-card2 .val {
     font-family: 'Fraunces', serif;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 20.5px;
     color: var(--ink);
-    line-height: 1.1;
+    line-height: 1.15;
   }
   .kpi-card2 .lbl {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--ink-soft);
     font-weight: 600;
-    margin-top: 3px;
+    margin-top: 4px;
+    line-height: 1.25;
   }
 
   /* ---------- SECTION HEADINGS & LIST CARDS ---------- */
   .section-title-mobile {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 800;
-    margin: 18px 0 10px;
+    margin: 20px 0 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: var(--ink);
   }
   .section-title-mobile span.link {
-    font-size: 12px;
+    font-size: 13.5px;
     color: var(--magenta-dark);
     font-weight: 700;
     cursor: pointer;
@@ -1571,7 +1572,7 @@
   .list-card {
     background: var(--surface);
     border-radius: 14px;
-    padding: 12px 14px;
+    padding: 13px 15px;
     margin-bottom: 9px;
     display: flex;
     align-items: center;
@@ -1585,8 +1586,8 @@
     transform: scale(0.98);
   }
   .list-card .ic {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     border-radius: 11px;
     background: var(--magenta-tint);
     color: var(--magenta-dark);
@@ -1596,15 +1597,15 @@
     flex-shrink: 0;
   }
   .list-card .ic svg {
-    width: 18px;
-    height: 18px;
+    width: 19px;
+    height: 19px;
   }
   .list-card .body {
     flex: 1;
     min-width: 0;
   }
   .list-card .t1 {
-    font-size: 13.5px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--ink);
     white-space: nowrap;
@@ -1612,12 +1613,12 @@
     text-overflow: ellipsis;
   }
   .list-card .t2 {
-    font-size: 11.5px;
+    font-size: 13px;
     color: var(--ink-soft);
-    margin-top: 2px;
+    margin-top: 3px;
   }
   .list-card .t3 {
-    font-size: 13.5px;
+    font-size: 15.5px;
     font-weight: 800;
     font-family: 'Fraunces', serif;
     text-align: right;
@@ -1625,9 +1626,9 @@
     white-space: nowrap;
   }
   .badge-mini {
-    font-size: 10px;
+    font-size: 11.5px;
     font-weight: 800;
-    padding: 3px 8px;
+    padding: 4px 10px;
     border-radius: 100px;
     white-space: nowrap;
   }
