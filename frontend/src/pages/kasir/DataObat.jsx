@@ -723,10 +723,20 @@ export default function DataObat() {
     return { headers, rows, footers, keterangan };
   }
 
+  const KOP_CETAK_DATA_OBAT = `
+    <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 6px;">
+      <div style="font-size: 15px; font-weight: bold; letter-spacing: 0.5px; color: #000; text-transform: uppercase;">DAFTAR OBAT</div>
+      <div style="font-size: 13.5px; font-weight: bold; letter-spacing: 0.5px; color: #000; margin-top: 2px;">APOTEK BIMA FARMA</div>
+      <div style="font-size: 10.5px; color: #222; margin-top: 2px;">
+        Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat
+      </div>
+    </div>
+  `;
+
   function handleCetakDataObat() {
     const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     cetakDokumenA4({
-      judul: "LAPORAN DATA OBAT",
+      judul: "DAFTAR OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       keterangan,
       headers,
@@ -734,14 +744,16 @@ export default function DataObat() {
       footers,
       orientation: "landscape",
       namaUser: user?.nama || "Petugas",
+      customKop: KOP_CETAK_DATA_OBAT,
+      sembunyikanJudulDokumen: true,
     });
   }
 
   function handleExcelDataObat() {
     const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     exportExcel({
-      filename: `data-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
-      judul: "LAPORAN DATA OBAT",
+      filename: `daftar-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
+      judul: "DAFTAR OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       keterangan,
       headers,
@@ -753,8 +765,8 @@ export default function DataObat() {
   function handleWordDataObat() {
     const { headers, rows, footers, keterangan } = siapkanDataExport(scopeCetak);
     exportWord({
-      filename: `data-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
-      judul: "LAPORAN DATA OBAT",
+      filename: `daftar-obat-apotek-bima-farma-${scopeCetak === "halaman" ? `hal-${currentPage}` : "semua"}`,
+      judul: "DAFTAR OBAT",
       periode: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }),
       keterangan,
       headers,
@@ -762,6 +774,8 @@ export default function DataObat() {
       footers,
       orientation: "landscape",
       namaUser: user?.nama || "Petugas",
+      customKop: KOP_CETAK_DATA_OBAT,
+      sembunyikanJudulDokumen: true,
     });
   }
 

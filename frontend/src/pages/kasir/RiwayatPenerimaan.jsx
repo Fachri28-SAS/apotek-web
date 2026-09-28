@@ -255,72 +255,7 @@ export default function RiwayatPenerimaan() {
 
       {error && <div className="login-error">{error}</div>}
 
-      {/* Ringkasan KPI Barang Masuk */}
-      <div className="kpi-grid-4" style={{ marginBottom: 16 }}>
-        <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 14, border: "1px solid var(--line)" }}>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Item Masuk</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>
-            {barisItemTampil.length} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>Barang</span>
-          </div>
-        </div>
-        <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 14, border: "1px solid var(--line)" }}>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Faktur Masuk</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "var(--magenta-dark)", marginTop: 4 }}>
-            {totalFakturUnik} <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-soft)" }}>Faktur</span>
-          </div>
-        </div>
-        <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 14, border: "1px solid #BBF7D0" }}>
-          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}>Total Jumlah (Rp)</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#15803D", marginTop: 4 }}>
-            {rupiah(totalJumlahSemua)}
-          </div>
-        </div>
-        <div
-          onClick={() => setModalPpnRingkasan(true)}
-          title="Klik untuk melihat rincian kalkulasi total PPN"
-          style={{
-            background: "#FAF5FF",
-            padding: "14px 18px",
-            borderRadius: 14,
-            border: "1px solid #E9D5FF",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#C084FC";
-            e.currentTarget.style.boxShadow = "0 4px 14px rgba(126, 34, 206, 0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#E9D5FF";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12, color: "#6B21A8", fontWeight: 600 }}>Total Jumlah + PPN</div>
-            <span
-              style={{
-                fontSize: 10.5,
-                background: "#E9D5FF",
-                color: "#6B21A8",
-                padding: "2px 6px",
-                borderRadius: 6,
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 3,
-              }}
-            >
-              Rincian PPN 🔍
-            </span>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#7E22CE", marginTop: 4 }}>
-            {rupiah(totalJumlahPpnSemua)}
-          </div>
-          <div style={{ fontSize: 11.5, color: "#7E22CE", fontWeight: 700, marginTop: 4 }}>
-            {totalNilaiPpnSemua > 0 ? `Termasuk PPN: +${rupiah(totalNilaiPpnSemua)}` : "Semua Faktur Non-PKP"}
-          </div>
-        </div>
-      </div>
+
 
       <div className="panel">
         <div className="panel-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>

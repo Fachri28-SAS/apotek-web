@@ -47,6 +47,8 @@ export function cetakDokumenA4({
   footers = [],
   orientation = "portrait",
   namaUser = "Petugas",
+  customKop = null,
+  sembunyikanJudulDokumen = false,
 }) {
   if (!rows || rows.length === 0) {
     alert("Tidak ada data untuk dicetak.");
@@ -166,8 +168,8 @@ export function cetakDokumenA4({
         </style>
       </head>
       <body>
-        ${KOP_HTML}
-        <div class="judul-dokumen">${judul}</div>
+        ${customKop || KOP_HTML}
+        ${sembunyikanJudulDokumen ? "" : `<div class="judul-dokumen">${judul}</div>`}
 
         <div class="meta-row">
           <div>${periode ? `Periode: <strong>${periode}</strong>` : `Jumlah Data: ${rows.length}`}</div>
@@ -275,9 +277,15 @@ export function exportExcel({
       </head>
       <body>
         <table border="0">
+          ${judul.toUpperCase() === "DAFTAR OBAT" ? `
+          <tr><td colspan="${colSpan}" style="text-align: center; font-size: 13pt; font-weight: bold;">DAFTAR OBAT</td></tr>
+          <tr><td colspan="${colSpan}" style="text-align: center; font-size: 12pt; font-weight: bold;">APOTEK BIMA FARMA</td></tr>
+          <tr><td colspan="${colSpan}" style="text-align: center; font-size: 9pt; color: #444;">Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat</td></tr>
+          ` : `
           <tr><td colspan="${colSpan}" style="text-align: center; font-size: 13pt; font-weight: bold;">APOTEK BIMA FARMA</td></tr>
           <tr><td colspan="${colSpan}" style="text-align: center; font-size: 9pt; color: #444;">Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat</td></tr>
           <tr><td colspan="${colSpan}" style="text-align: center; font-size: 11pt; font-weight: bold; padding: 8px 0;">${judul.toUpperCase()}</td></tr>
+          `}
           ${periode ? `<tr><td colspan="${colSpan}" style="font-size: 9.5pt; font-weight: bold;">Periode: ${periode}</td></tr>` : ""}
           <thead><tr>${thHtml}</tr></thead>
           <tbody>${trHtml}</tbody>
@@ -290,8 +298,8 @@ export function exportExcel({
   const blob = new Blob([content], { type: "application/vnd.ms-excel;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
   a.download = `${filename}-${new Date().toISOString().slice(0, 10)}.xls`;
+  a.href = url;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -308,6 +316,8 @@ export function exportWord({
   footers = [],
   orientation = "portrait",
   namaUser = "Petugas",
+  customKop = null,
+  sembunyikanJudulDokumen = false,
 }) {
   if (!rows || rows.length === 0) {
     alert("Tidak ada data untuk diekspor.");
@@ -382,10 +392,12 @@ export function exportWord({
       </head>
       <body>
         <div class="Section1">
-          ${KOP_HTML}
+          ${customKop || KOP_HTML}
+          ${sembunyikanJudulDokumen ? "" : `
           <div style="text-align: center; font-size: 12pt; font-weight: bold; text-decoration: underline; margin-bottom: 6pt;">
             ${judul.toUpperCase()}
           </div>
+          `}
           <div style="display: flex; justify-content: space-between; font-size: 9.5pt; margin-bottom: 6pt;">
             <div>${periode ? `Periode: <strong>${periode}</strong>` : ""}</div>
             <div style="text-align: right;">Tanggal: ${getWaktuCetak()}</div>
