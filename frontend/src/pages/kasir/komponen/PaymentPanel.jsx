@@ -27,7 +27,7 @@ export default function PaymentPanel({
   loading,
   disabled,
 }) {
-  const [bukaInfoTambahan, setBukaInfoTambahan] = useState(() => Boolean(tab.noInvoice || tab.catatan));
+  const [bukaInfoTambahan, setBukaInfoTambahan] = useState(() => Boolean(tab.namaPembeli || tab.noInvoice || tab.catatan));
   const kurang = tab.metodeBayar === "tunai" && Number(tab.uangDiterima || 0) < total;
   const tipeDiskonTransaksi = tab.diskonTipe || "rp";
   const diskonWrapRef = useRef(null);
@@ -62,17 +62,7 @@ export default function PaymentPanel({
 
   return (
     <div className="payment-panel">
-      <div className="payment-field">
-        <label>Nama Pembeli (opsional)</label>
-        <input
-          type="text"
-          value={tab.namaPembeli}
-          onChange={(e) => onChange("namaPembeli", e.target.value)}
-          placeholder="Contoh: Bu Siti"
-        />
-      </div>
-
-      {/* Accordion / Collapsible untuk No. Invoice & Catatan agar hemat tempat */}
+      {/* Accordion / Collapsible untuk Pembeli, Invoice & Catatan agar tampilan kasir bersih dan hemat tempat */}
       <div style={{ marginBottom: 12 }}>
         <button
           type="button"
@@ -92,11 +82,11 @@ export default function PaymentPanel({
             cursor: "pointer",
             transition: "all 0.15s ease",
           }}
-          title="Klik untuk membuka atau menyembunyikan No Invoice & Catatan"
+          title="Klik untuk membuka atau menyembunyikan data pembeli, invoice & catatan"
         >
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 11, color: "var(--magenta)" }}>{bukaInfoTambahan ? "▼" : "▶"}</span>
-            <span>No. Invoice &amp; Catatan (opsional)</span>
+            <span>Nama Pembeli, Invoice &amp; Catatan (opsional)</span>
           </span>
           <span style={{ fontSize: 11, color: "var(--magenta)", fontWeight: 700 }}>
             {bukaInfoTambahan ? "Tutup ▲" : "+ Buka ▼"}
@@ -105,6 +95,16 @@ export default function PaymentPanel({
 
         {bukaInfoTambahan && (
           <div style={{ marginTop: 8, padding: "10px 12px", background: "#FDFCFE", border: "1px solid var(--line)", borderRadius: 8 }}>
+            <div className="payment-field" style={{ marginBottom: 8 }}>
+              <label style={{ fontSize: 11.5 }}>Nama Pembeli (opsional)</label>
+              <input
+                type="text"
+                value={tab.namaPembeli}
+                onChange={(e) => onChange("namaPembeli", e.target.value)}
+                placeholder="Contoh: Bu Siti"
+              />
+            </div>
+
             <div className="payment-field" style={{ marginBottom: 8 }}>
               <label style={{ fontSize: 11.5 }}>No. Invoice (opsional — kosong = otomatis)</label>
               <input
