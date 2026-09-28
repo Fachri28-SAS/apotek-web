@@ -46,9 +46,10 @@ export default function Toko() {
   const [pesananGantung, setPesananGantung] = useState(null);
   const [tutupBannerGantung, setTutupBannerGantung] = useState(false);
   const [loadingBatal, setLoadingBatal] = useState(false);
-  const [showModalBatalDrawer, setShowModalBatalDrawer] = useState(false);
-  const [alasanBatalDrawer, setAlasanBatalDrawer] = useState("Salah pilih obat / salah jumlah");
-  const [alasanLainDrawer, setAlasanLainDrawer] = useState("");
+  const [showModalBatal, setShowModalBatal] = useState(false);
+  const [targetBatalTracking, setTargetBatalTracking] = useState(null);
+  const [alasanBatal, setAlasanBatal] = useState("Salah pilih obat / salah jumlah");
+  const [alasanLain, setAlasanLain] = useState("");
 
   // Pagination Toko: 15 produk per halaman (3 baris x 5 kolom di desktop)
   const [halaman, setHalaman] = useState(1);
@@ -351,44 +352,36 @@ export default function Toko() {
     return () => clearInterval(timer);
   }, [tahap, order?.kode_tracking, order?.pembayaran?.status, order?.status_penjualan, order?.status]);
 
-  async function handleEksekusiBatalDrawer() {
-    if (!order?.kode_tracking) return;
+  function bukaModalBatal(kodeTracking) {
+    const target = kodeTracking || pesananGantung?.kode_tracking || order?.kode_tracking;
+    setTargetBatalTracking(target);
+    setAlasanBatal("Salah pilih obat / salah jumlah");
+    setAlasanLain("");
+    setShowModalBatal(true);
+  }
+
+  async function handleEksekusiBatal() {
+    const tracking = targetBatalTracking || order?.kode_tracking || pesananGantung?.kode_tracking;
+    if (!tracking) return;
     setLoadingBatal(true);
     setError("");
     try {
       const finalAlasan =
-        alasanBatalDrawer === "Lainnya" ? (alasanLainDrawer.trim() || "Dibatalkan oleh pembeli") : alasanBatalDrawer;
-      await api(`/pesanan/${order.kode_tracking}/batal`, {
+        alasanBatal === "Lainnya" ? (alasanLain.trim() || "Dibatalkan oleh pembeli") : alasanBatal;
+      await api(`/pesanan/${tracking}/batal`, {
         method: "POST",
         body: JSON.stringify({ alasan: finalAlasan }),
       });
       localStorage.removeItem("apotek_pending_order");
       setPesananGantung(null);
-      setShowModalBatalDrawer(false);
-      setOrder(null);
-      setBuktiBase64(null);
-      setBuktiPreview(null);
-      setTahap("keranjang");
-      setDrawerOpen(false);
-      alert("Pesanan Anda telah berhasil dibatalkan.");
-    } catch (err) {
-      setError(err.message || "Gagal membatalkan pesanan.");
-    } finally {
-      setLoadingBatal(false);
-    }
-  }
-
-  async function handleBatalkanPesananGantung(kodeTracking) {
-    const yakin = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
-    if (!yakin) return;
-    setLoadingBatal(true);
-    try {
-      await api(`/pesanan/${kodeTracking}/batal`, {
-        method: "POST",
-        body: JSON.stringify({ alasan: "Dibatalkan oleh pembeli dari halaman toko" }),
-      });
-      localStorage.removeItem("apotek_pending_order");
-      setPesananGantung(null);
+      setShowModalBatal(false);
+      if (order?.kode_tracking === tracking) {
+        setOrder(null);
+        setBuktiBase64(null);
+        setBuktiPreview(null);
+        setTahap("keranjang");
+        setDrawerOpen(false);
+      }
       alert("Pesanan berhasil dibatalkan.");
     } catch (err) {
       alert(err.message || "Gagal membatalkan pesanan.");
@@ -490,7 +483,7 @@ export default function Toko() {
               </a>
               <button
                 type="button"
-                onClick={() => handleBatalkanPesananGantung(pesananGantung.kode_tracking)}
+                onClick={() => bukaModalBatal(pesananGantung.kode_tracking)}
                 disabled={loadingBatal}
                 style={{
                   padding: "7px 12px",
@@ -1120,7 +1113,7 @@ export default function Toko() {
                     </a>
                     <button
                       type="button"
-                      onClick={() => setShowModalBatalDrawer(true)}
+                      onClick={() => bukaModalBatal(order?.kode_tracking)}
                       style={{
                         padding: "9px 12px",
                         borderRadius: 10,
@@ -1135,6 +1128,23 @@ export default function Toko() {
                       ✕ Batalkan
                     </button>
                   </div>
+
+                  <a
+                    href="https://wa.me/6282127026272?text=Halo%20CS%20Apotek%20Bima%20Farma%2C%20saya%20mengalami%20kendala%20saat%20pembayaran%20QRIS..."
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "block",
+                      textAlign: "center",
+                      marginTop: 10,
+                      fontSize: 11.5,
+                      color: "#059669",
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
+                  >
+                    💬 Butuh bantuan pembayaran? Chat CS (0821-2702-6272)
+                  </a>
                 </div>
               )}
             </div>
@@ -1330,12 +1340,12 @@ export default function Toko() {
         </div>
       )}
 
-      {/* Modal Konfirmasi Pembatalan Pesanan Drawer */}
-      {showModalBatalDrawer && (
+      {/* Modal Konfirmasi Alasan Pembatalan Pesanan */}
+      {showModalBatal && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="modal-batal-drawer-title"
+          aria-labelledby="modal-batal-title"
           style={{
             position: "fixed",
             inset: 0,
@@ -1347,7 +1357,7 @@ export default function Toko() {
             padding: 16,
             zIndex: 10000,
           }}
-          onClick={() => !loadingBatal && setShowModalBatalDrawer(false)}
+          onClick={() => !loadingBatal && setShowModalBatal(false)}
         >
           <div
             style={{
@@ -1379,24 +1389,25 @@ export default function Toko() {
                 ✕
               </div>
               <div>
-                <h3 id="modal-batal-drawer-title" style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111827" }}>
+                <h3 id="modal-batal-title" style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111827" }}>
                   Batalkan Pesanan Ini?
                 </h3>
                 <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748B" }}>
-                  Stok yang sempat terpesan akan segera dikembalikan.
+                  Bantu kami memahami alasan pembatalan Anda:
                 </p>
               </div>
             </div>
 
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>
-                Alasan Pembatalan:
+                Pilih Alasan Pembatalan:
               </label>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {[
-                  "Ingin mengubah pesanan / barang lain",
-                  "Kendala pembayaran QRIS / E-Wallet",
-                  "Salah memasukkan alamat atau data pembeli",
+                  "Salah pilih obat / salah jumlah",
+                  "Ingin ganti metode pembayaran",
+                  "Kendala teknis / error saat bayar QRIS",
+                  "Waktu pengiriman terlalu lama / berubah pikiran",
                   "Lainnya",
                 ].map((opt) => (
                   <label
@@ -1407,30 +1418,30 @@ export default function Toko() {
                       gap: 8,
                       fontSize: 12.5,
                       color: "#1F2937",
-                      padding: "7px 10px",
+                      padding: "8px 10px",
                       borderRadius: 8,
-                      background: alasanBatalDrawer === opt ? "#F8FAFC" : "transparent",
-                      border: alasanBatalDrawer === opt ? "1.5px solid #CBD5E1" : "1px solid transparent",
+                      background: alasanBatal === opt ? "#F8FAFC" : "transparent",
+                      border: alasanBatal === opt ? "1.5px solid #CBD5E1" : "1px solid transparent",
                       cursor: "pointer",
                     }}
                   >
                     <input
                       type="radio"
-                      name="alasanBatalDrawer"
+                      name="alasanBatal"
                       value={opt}
-                      checked={alasanBatalDrawer === opt}
-                      onChange={() => setAlasanBatalDrawer(opt)}
+                      checked={alasanBatal === opt}
+                      onChange={() => setAlasanBatal(opt)}
                     />
                     <span>{opt}</span>
                   </label>
                 ))}
               </div>
 
-              {alasanBatalDrawer === "Lainnya" && (
+              {alasanBatal === "Lainnya" && (
                 <textarea
-                  value={alasanLainDrawer}
-                  onChange={(e) => setAlasanLainDrawer(e.target.value)}
-                  placeholder="Tuliskan alasan pembatalan Anda..."
+                  value={alasanLain}
+                  onChange={(e) => setAlasanLain(e.target.value)}
+                  placeholder="Tuliskan keterangan alasan pembatalan Anda..."
                   rows={2}
                   style={{
                     width: "100%",
@@ -1448,7 +1459,7 @@ export default function Toko() {
             <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 18 }}>
               <button
                 type="button"
-                onClick={() => setShowModalBatalDrawer(false)}
+                onClick={() => setShowModalBatal(false)}
                 disabled={loadingBatal}
                 style={{
                   padding: "9px 16px",
@@ -1461,11 +1472,11 @@ export default function Toko() {
                   cursor: "pointer",
                 }}
               >
-                Batal (Kembali)
+                Kembali
               </button>
               <button
                 type="button"
-                onClick={handleEksekusiBatalDrawer}
+                onClick={handleEksekusiBatal}
                 disabled={loadingBatal}
                 style={{
                   padding: "9px 18px",
@@ -1481,7 +1492,7 @@ export default function Toko() {
                   gap: 6,
                 }}
               >
-                {loadingBatal ? "Memproses..." : "Ya, Batalkan Pesanan"}
+                {loadingBatal ? "Membatalkan..." : "Ya, Batalkan Pesanan"}
               </button>
             </div>
           </div>

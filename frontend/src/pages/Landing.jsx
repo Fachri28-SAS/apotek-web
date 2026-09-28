@@ -35,6 +35,7 @@ export default function Landing() {
       <Hero />
       <TokoPreview />
       <Lokasi />
+      <BantuanCS />
       <Footer onOpenCaraBayar={() => setModalCaraBayar(true)} />
       {modalCaraBayar && <ModalCaraBayar onClose={() => setModalCaraBayar(false)} />}
     </div>
@@ -297,6 +298,173 @@ function Lokasi() {
   );
 }
 
+/* ==================== PUSAT BANTUAN & CUSTOMER SERVICE ==================== */
+function BantuanCS() {
+  const [nama, setNama] = useState("");
+  const [kategori, setKategori] = useState("Kendala Pembayaran QRIS");
+  const [pesan, setPesan] = useState("");
+
+  const CS_WA = "6282127026272";
+  const CS_DISPLAY = "0821-2702-6272";
+
+  function handleKirimPesan(e) {
+    e.preventDefault();
+    const isi = `Halo CS Apotek Bima Farma,%0A%0ASaya ingin bertanya / melaporkan kendala:%0A- *Nama:* ${nama.trim() || "Pelanggan"}%0A- *Kategori:* ${kategori}%0A- *Pesan:* ${pesan.trim() || "-"}`;
+    window.open(`https://wa.me/${CS_WA}?text=${isi}`, "_blank");
+  }
+
+  function quickPillClick(topik, defaultPesan) {
+    setKategori(topik);
+    setPesan(defaultPesan);
+  }
+
+  return (
+    <section id="bantuan-cs" className="sec sec-bantuan-cs">
+      <div className="wrap">
+        <div style={{ textAlign: "center", maxWidth: 680, margin: "0 auto" }}>
+          <span className="eyebrow magenta">Layanan Pelanggan &amp; Bantuan</span>
+          <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", marginTop: 8, color: "var(--ink)" }}>
+            Butuh Bantuan atau Mengalami Kendala?
+          </h2>
+          <p style={{ color: "var(--ink-soft)", fontSize: 15, marginTop: 6, lineHeight: 1.5 }}>
+            Tim Customer Service Apotek Bima Farma siap membantu Anda dengan cepat, mulai dari kendala pembayaran web, pembatalan pesanan, ketersediaan obat, hingga konsultasi resep dokter.
+          </p>
+        </div>
+
+        <div className="bantuan-cs-grid">
+          {/* Card 1: CS Langsung */}
+          <div className="cs-info-card">
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                <span className="cs-badge-online">
+                  <span className="cs-dot-pulsing"></span>
+                  CS Online Setiap Hari
+                </span>
+                <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
+                  07.00 - 22.00 WIB
+                </span>
+              </div>
+
+              <h3 style={{ fontSize: 20, color: "var(--ink)", marginTop: 16, marginBottom: 8 }}>
+                Hubungi Customer Service Resmi
+              </h3>
+              <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, margin: 0 }}>
+                Mengalami kesulitan saat belanja online, pesanan pending, salah transfer, atau ingin membatalkan pesanan? Chat langsung dengan tim Customer Service kami:
+              </p>
+
+              <div className="cs-nomor-box">
+                <div>
+                  <div className="cs-nomor-label">Nomor WhatsApp CS Resmi</div>
+                  <div className="cs-nomor-val">{CS_DISPLAY}</div>
+                </div>
+                <div style={{ fontSize: 28 }}>💬</div>
+              </div>
+            </div>
+
+            <div>
+              <a
+                href={`https://wa.me/${CS_WA}?text=Halo%20CS%20Apotek%20Bima%20Farma%2C%20saya%20ingin%20berkonsultasi%20%2F%20butuh%20bantuan...`}
+                target="_blank"
+                rel="noreferrer"
+                className="cs-btn-wa"
+              >
+                <span>💬</span>
+                <span>Chat WhatsApp CS Sekarang</span>
+              </a>
+              <div style={{ textAlign: "center", marginTop: 10, fontSize: 11.5, color: "var(--ink-soft)" }}>
+                Respon cepat &bull; Pelayanan ramah &amp; terpercaya
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Form Cepat Kirim Kendala */}
+          <div className="cs-form-card">
+            <h3 style={{ fontSize: 18, color: "var(--ink)", margin: "0 0 6px" }}>
+              📝 Kirim Laporan Kendala atau Pertanyaan
+            </h3>
+            <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 16px" }}>
+              Pilih kendala Anda di bawah ini untuk langsung terhubung ke WhatsApp CS dengan pesan terformat:
+            </p>
+
+            <form onSubmit={handleKirimPesan}>
+              <div className="cs-form-group">
+                <label>Nama Anda (Opsional):</label>
+                <input
+                  type="text"
+                  className="cs-input"
+                  placeholder="Contoh: Bpk. Rian / Ibu Dewi"
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
+                />
+              </div>
+
+              <div className="cs-form-group">
+                <label>Kategori Kendala / Pertanyaan:</label>
+                <select
+                  className="cs-select"
+                  value={kategori}
+                  onChange={(e) => setKategori(e.target.value)}
+                >
+                  <option value="Kendala Pembayaran QRIS">💳 Kendala Pembayaran QRIS (M-Banking / E-Wallet)</option>
+                  <option value="Ingin Batalkan / Ubah Pesanan">❌ Ingin Membatalkan atau Mengubah Pesanan</option>
+                  <option value="Tanya Ketersediaan / Stok Obat">💊 Tanya Ketersediaan / Stok Obat</option>
+                  <option value="Konsultasi Resep Dokter">🩺 Konsultasi Resep Dokter</option>
+                  <option value="Kendala Teknis / Error di Web">⚠️ Kendala Teknis / Error di Website</option>
+                  <option value="Lainnya">💬 Pertanyaan Lainnya</option>
+                </select>
+
+                <div className="cs-quick-pills">
+                  <button
+                    type="button"
+                    className="cs-quick-pill"
+                    onClick={() => quickPillClick("Kendala Pembayaran QRIS", "Halo CS, saldo saya terpotong saat scan QRIS namun status di web belum terverifikasi. Mohon bantuannya.")}
+                  >
+                    💳 QRIS Terpotong
+                  </button>
+                  <button
+                    type="button"
+                    className="cs-quick-pill"
+                    onClick={() => quickPillClick("Ingin Batalkan / Ubah Pesanan", "Halo CS, saya ingin membatalkan/mengubah pesanan saya. Kode tracking: ")}
+                  >
+                    ❌ Batal Pesanan
+                  </button>
+                  <button
+                    type="button"
+                    className="cs-quick-pill"
+                    onClick={() => quickPillClick("Tanya Ketersediaan / Stok Obat", "Halo CS, apakah obat ini tersedia di apotek: ")}
+                  >
+                    💊 Cek Stok Obat
+                  </button>
+                </div>
+              </div>
+
+              <div className="cs-form-group">
+                <label>Detail Kendala atau Pesan:</label>
+                <textarea
+                  className="cs-textarea"
+                  rows={3}
+                  placeholder="Tuliskan kendala Anda, no struk/tracking, atau obat yang ditanyakan..."
+                  value={pesan}
+                  onChange={(e) => setPesan(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ width: "100%", borderRadius: 10, padding: "12px", fontSize: 14 }}
+              >
+                Kirim Pesan ke WhatsApp CS &rarr;
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ==================== FOOTER ==================== */
 function Footer({ onOpenCaraBayar }) {
   return (
@@ -338,8 +506,9 @@ function Footer({ onOpenCaraBayar }) {
                    <div>
             <h5>Kontak</h5>
             <ul>
+              <li><strong>Customer Service (CS):</strong> <a href="https://wa.me/6282127026272" target="_blank" rel="noreferrer" style={{ color: "#F0A9D2", fontWeight: 700 }}>0821-2702-6272</a></li>
+              <li><strong>WhatsApp / Telp Apotek:</strong> 0812-2360-4900</li>
               <li><strong>Email:</strong> <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#F0A9D2", textDecoration: "underline" }}>bimafarmaapotek2@gmail.com</a></li>
-              <li><strong>WhatsApp / Telp:</strong> 0812-2360-4900</li>
               <li><strong>Alamat:</strong> Jl. Tanimulya Raya No. 1, Haji Gofur, Ngamprah, Kab. Bandung Barat</li>
               <li><strong>Jam Buka:</strong> Setiap hari, 07.00–22.00 WIB</li>
             </ul>
@@ -485,13 +654,13 @@ function ModalCaraBayar({ onClose }) {
 
           {/* Kontak Bantuan */}
           <div className="cb-support-box">
-            <span>Butuh bantuan pemesanan?</span>
+            <span>Butuh bantuan pemesanan atau kendala bayar?</span>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
-              <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
-                💬 WhatsApp: 0812-2360-4900
+              <a href="https://wa.me/6282127026272" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
+                💬 CS WhatsApp: 0821-2702-6272
               </a>
-              <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "underline" }}>
-                ✉️ bimafarmaapotek2@gmail.com
+              <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
+                📞 Telp Apotek: 0812-2360-4900
               </a>
             </div>
           </div>

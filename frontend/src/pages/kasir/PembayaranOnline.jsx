@@ -175,10 +175,16 @@ export default function PembayaranOnline() {
           🟢 Riwayat Selesai
         </button>
         <button
+          className={`kasir-tab ${tabAktif === "dibatalkan" ? "active" : ""}`}
+          onClick={() => setTabAktif("dibatalkan")}
+        >
+          ❌ Dibatalkan
+        </button>
+        <button
           className={`kasir-tab ${tabAktif === "semua" ? "active" : ""}`}
           onClick={() => setTabAktif("semua")}
         >
-          Semua Pesanan Lunas
+          Semua Pesanan
         </button>
       </div>
 
@@ -188,6 +194,7 @@ export default function PembayaranOnline() {
           <h3>
             {tabAktif === "perlu_disiapkan" && "Pesanan yang Harus Disiapkan"}
             {tabAktif === "selesai" && "Pesanan Selesai / Sudah Diambil"}
+            {tabAktif === "dibatalkan" && "Pesanan yang Dibatalkan"}
             {tabAktif === "semua" && "Semua Pesanan Online"}
             {" "}({daftar.length})
           </h3>
@@ -201,11 +208,13 @@ export default function PembayaranOnline() {
         ) : daftar.length === 0 ? (
           <div className="panel-kosong" style={{ padding: "40px 20px" }}>
             <div style={{ fontSize: 36, marginBottom: 8 }}>
-              {tabAktif === "perlu_disiapkan" ? "🎉" : "📋"}
+              {tabAktif === "perlu_disiapkan" ? "🎉" : tabAktif === "dibatalkan" ? "🛡️" : "📋"}
             </div>
             <strong>
               {tabAktif === "perlu_disiapkan"
                 ? "Semua pesanan sudah selesai disiapkan!"
+                : tabAktif === "dibatalkan"
+                ? "Belum ada pesanan yang dibatalkan."
                 : "Belum ada riwayat pesanan dalam kategori ini."}
             </strong>
             <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "4px 0 0" }}>
@@ -217,6 +226,7 @@ export default function PembayaranOnline() {
             {daftar.map((p) => {
               const items = p.penjualan?.items || [];
               const expanded = itemExpanded[p.id] !== false; // Default expanded agar kasir langsung tahu obat apa yang harus diambil
+              const isBatal = p.status_penjualan === "batal" || p.status_pembayaran === "gagal" || p.status_pembayaran === "expired";
               const isSelesai = p.status_penjualan === "selesai";
 
               return (
@@ -229,9 +239,9 @@ export default function PembayaranOnline() {
                     gap: 12,
                     padding: 18,
                     borderRadius: 14,
-                    borderColor: isSelesai ? "var(--line)" : "#C084FC",
-                    background: isSelesai ? "var(--surface)" : "#FAF5FF",
-                    boxShadow: isSelesai ? "none" : "0 4px 14px rgba(168, 85, 247, 0.08)",
+                    borderColor: isBatal ? "#FCA5A5" : isSelesai ? "var(--line)" : "#C084FC",
+                    background: isBatal ? "#FFF8F8" : isSelesai ? "var(--surface)" : "#FAF5FF",
+                    boxShadow: isSelesai ? "none" : isBatal ? "none" : "0 4px 14px rgba(168, 85, 247, 0.08)",
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
@@ -254,26 +264,44 @@ export default function PembayaranOnline() {
                             Track: {p.penjualan.kode_tracking}
                           </span>
                         )}
-                        <span
-                          style={{
-                            fontSize: 11.5,
-                            fontWeight: 800,
-                            padding: "3px 10px",
-                            borderRadius: 100,
-                            background: p.status_pembayaran === "menunggu_verifikasi" ? "#FEF3C7" : "var(--green-tint)",
-                            color: p.status_pembayaran === "menunggu_verifikasi" ? "#B45309" : "var(--green-dark)",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                          }}
-                        >
-                          {p.status_pembayaran === "menunggu_verifikasi" ? "⏳ Menunggu Verifikasi Bukti" : "✓ Lunas (QRIS Bima Farma)"}
-                        </span>
+                        {isBatal ? (
+                          <span
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: 800,
+                              padding: "3px 10px",
+                              borderRadius: 100,
+                              background: "#FEE2E2",
+                              color: "#DC2626",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            ✕ Dibatalkan
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: 800,
+                              padding: "3px 10px",
+                              borderRadius: 100,
+                              background: p.status_pembayaran === "menunggu_verifikasi" ? "#FEF3C7" : "var(--green-tint)",
+                              color: p.status_pembayaran === "menunggu_verifikasi" ? "#B45309" : "var(--green-dark)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            {p.status_pembayaran === "menunggu_verifikasi" ? "⏳ Menunggu Verifikasi Bukti" : "✓ Lunas (QRIS Bima Farma)"}
+                          </span>
+                        )}
                         {isSelesai ? (
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", background: "var(--bg)", padding: "3px 8px", borderRadius: 6 }}>
                             ✓ Sudah Diambil / Selesai
                           </span>
-                        ) : p.status_pembayaran === "menunggu_verifikasi" ? (
+                        ) : isBatal ? null : p.status_pembayaran === "menunggu_verifikasi" ? (
                           <span style={{ fontSize: 11.5, fontWeight: 800, color: "#D97706", background: "#FFFBEB", padding: "3px 8px", borderRadius: 6 }}>
                             🔍 Periksa Bukti
                           </span>
@@ -283,6 +311,28 @@ export default function PembayaranOnline() {
                           </span>
                         )}
                       </div>
+
+                      {isBatal && (
+                        <div
+                          style={{
+                            marginBottom: 8,
+                            padding: "8px 12px",
+                            borderRadius: 8,
+                            background: "#FEF2F2",
+                            border: "1px solid #FECACA",
+                            color: "#991B1B",
+                            fontSize: 12.5,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <span>⚠️</span>
+                          <div>
+                            <strong>Alasan Pembatalan:</strong> {p.alasan_batal || p.catatan_verifikasi || "Dibatalkan oleh pembeli"}
+                          </div>
+                        </div>
+                      )}
 
                       <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--ink)", marginBottom: 2 }}>
                         Pembeli: {p.penjualan?.nama_pembeli || "Pelanggan"} ·{" "}
@@ -341,7 +391,7 @@ export default function PembayaranOnline() {
                     {/* Tombol Aksi Kanan */}
                     <div className="pesanan-online-actions" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       {/* Kasus 1: Menunggu Verifikasi Kasir */}
-                      {p.status_pembayaran === "menunggu_verifikasi" && (
+                      {p.status_pembayaran === "menunggu_verifikasi" && !isBatal && (
                         <>
                           <button
                             type="button"
@@ -388,7 +438,7 @@ export default function PembayaranOnline() {
                       )}
 
                       {/* Cetak Struk (Tersedia jika sudah lunas/selesai) */}
-                      {(p.status_pembayaran === "sukses" || isSelesai) && (
+                      {(p.status_pembayaran === "sukses" || isSelesai) && !isBatal && (
                         <button
                           type="button"
                           onClick={() => setStruk(p.penjualan)}

@@ -560,3 +560,163 @@ header nav { display: flex; align-items: center; justify-content: space-between;
   }
 }
 
+/* ---------- BANTUAN & CS SECTION ---------- */
+.sec-bantuan-cs {
+  padding: 60px 0;
+  background: linear-gradient(180deg, var(--bg) 0%, #FAF5FF 100%);
+  border-top: 1px solid var(--line);
+}
+
+.bantuan-cs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 28px;
+}
+
+@media (max-width: 860px) {
+  .bantuan-cs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cs-info-card {
+  background: #FFFFFF;
+  border: 1px solid #E9D5FF;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cs-badge-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+.cs-dot-pulsing {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.cs-nomor-box {
+  margin: 18px 0;
+  background: #FAF5FF;
+  border: 1.5px dashed var(--magenta);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cs-nomor-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--magenta-dark);
+}
+
+.cs-nomor-val {
+  font-size: 24px;
+  font-weight: 900;
+  font-family: 'Fraunces', serif;
+  color: var(--magenta);
+}
+
+.cs-btn-wa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #25D366;
+  color: #FFFFFF;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cs-btn-wa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(37, 211, 102, 0.38);
+}
+
+.cs-form-card {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.cs-form-group {
+  margin-bottom: 14px;
+}
+.cs-form-group label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.cs-input, .cs-select, .cs-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: #FAFAFA;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.cs-input:focus, .cs-select:focus, .cs-textarea:focus {
+  outline: none;
+  border-color: var(--magenta);
+  background: #FFFFFF;
+}
+
+.cs-quick-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.cs-quick-pill {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cs-quick-pill:hover {
+  background: var(--magenta-tint);
+  border-color: var(--magenta);
+  color: var(--magenta-dark);
+}
+
+

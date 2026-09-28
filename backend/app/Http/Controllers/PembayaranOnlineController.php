@@ -17,21 +17,35 @@ class PembayaranOnlineController extends Controller
     {
         $this->batalkanYangKadaluwarsa();
 
-        // HANYA pesanan yang SUDAH UPLOAD BUKTI atau SUDAH SUKSES LUNAS
-        // (Pesanan pending yang belum upload bukti/iseng TIDAK ditampilkan)
-        $query = Pembayaran::with(['penjualan.items'])
-            ->where(function ($q) {
+        $tab = $r->input('tab', 'perlu_disiapkan');
+        $query = Pembayaran::with(['penjualan.items']);
+
+        if ($tab === 'dibatalkan') {
+            // Pesanan online yang dibatalkan customer atau pembayaran gagal/expired
+            $query->where(function ($q) {
+                $q->whereIn('status', ['gagal', 'expired'])
+                  ->orWhereHas('penjualan', function ($sub) {
+                      $sub->where('status', 'batal');
+                  })
+                  ->orWhere('catatan_verifikasi', 'LIKE', 'Dibatalkan%');
+            });
+        } elseif ($tab === 'selesai') {
+            $query->where('status', 'sukses')
+                  ->where('catatan_verifikasi', 'selesai');
+        } elseif ($tab === 'semua') {
+            $query->where(function ($q) {
                 $q->where('status', 'sukses')
                   ->orWhere(function ($sub) {
                       $sub->whereIn('status', ['menunggu_verifikasi', 'kurang_bayar'])
                           ->whereNotNull('bukti_path');
+                  })
+                  ->orWhereIn('status', ['gagal', 'expired'])
+                  ->orWhereHas('penjualan', function ($sub) {
+                      $sub->where('status', 'batal');
                   });
             });
-
-        $tab = $r->input('tab', 'perlu_disiapkan');
-
-        if ($tab === 'perlu_disiapkan') {
-            // Menunggu verifikasi bukti kasir ATAU sudah sukses tapi belum ditandai selesai disiapkan
+        } else {
+            // Default: 'perlu_disiapkan'
             $query->where(function ($q) {
                 $q->where('status', 'menunggu_verifikasi')
                   ->orWhere(function ($sub) {
@@ -42,15 +56,18 @@ class PembayaranOnlineController extends Controller
                           });
                   });
             });
-        } elseif ($tab === 'selesai') {
-            $query->where('catatan_verifikasi', 'selesai');
         }
 
         $daftar = $query->orderByDesc('id')->get()->map(fn ($p) => [
             'id' => $p->id,
             'status' => $p->status,
             'status_pembayaran' => $p->status,
-            'status_penjualan' => $p->catatan_verifikasi === 'selesai' ? 'selesai' : ($p->penjualan?->status ?? 'lunas'),
+            'status_penjualan' => ($p->penjualan?->status === 'batal' || in_array($p->status, ['gagal', 'expired']))
+                ? 'batal'
+                : ($p->catatan_verifikasi === 'selesai' ? 'selesai' : ($p->penjualan?->status ?? 'lunas')),
+            'alasan_batal' => str_starts_with($p->catatan_verifikasi ?? '', 'Dibatalkan')
+                ? $p->catatan_verifikasi
+                : ($p->penjualan?->status === 'batal' ? ($p->catatan_verifikasi ?: 'Dibatalkan oleh pembeli') : null),
             'metode' => $p->metode ?: 'QRIS Bima Farma',
             'provider' => $p->provider,
             'jumlah' => (float) $p->jumlah,
