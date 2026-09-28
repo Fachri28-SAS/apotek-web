@@ -49,6 +49,7 @@ Route::get('/pesanan-cari', [TokoController::class, 'cari']);
 Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']);
 Route::get('/pesanan/{kode_tracking}/status', [TokoController::class, 'statusByTracking']);
 Route::post('/pesanan/{kode_tracking}/bukti', [TokoController::class, 'uploadBuktiByTracking']);
+Route::post('/pesanan/{kode_tracking}/batal', [TokoController::class, 'batalkanByTracking']);
 
 // Endpoint Login Kasir & Admin
 Route::post('/login', [AuthController::class, 'login']);

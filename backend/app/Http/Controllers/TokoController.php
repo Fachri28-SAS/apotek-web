@@ -348,4 +348,54 @@ class TokoController extends Controller
             'jumlah_item' => $p->items->sum('qty'),
         ]));
     }
+
+    /**
+     * POST /api/pesanan/{kode_tracking}/batal
+     * PUBLIK — Customer membatalkan pesanan online (hanya bisa jika belum lunas).
+     */
+    public function batalkanByTracking(Request $r, string $kode_tracking)
+    {
+        $penjualan = Penjualan::where('kode_tracking', strtoupper($kode_tracking))
+            ->with('pembayaran')
+            ->firstOrFail();
+
+        $pembayaran = $penjualan->pembayaran;
+
+        if ($penjualan->status === 'batal' || $pembayaran?->status === 'gagal' || $pembayaran?->status === 'expired') {
+            return response()->json([
+                'message' => 'Pesanan ini sudah dibatalkan sebelumnya.',
+                'status_penjualan' => 'batal',
+                'status_pembayaran' => 'gagal',
+            ]);
+        }
+
+        if ($pembayaran && $pembayaran->status === 'sukses') {
+            abort(422, 'Pesanan sudah lunas dan sedang diproses apotek. Untuk pembatalan atau pengembalian dana, silakan hubungi kasir via WhatsApp.');
+        }
+
+        if ($penjualan->status === 'selesai' || $pembayaran?->catatan_verifikasi === 'selesai') {
+            abort(422, 'Pesanan sudah selesai disiapkan atau diserahkan, tidak dapat dibatalkan.');
+        }
+
+        $alasan = $r->input('alasan', 'Dibatalkan oleh pembeli.');
+
+        if ($pembayaran) {
+            $pembayaran->update([
+                'status' => 'gagal',
+                'catatan_verifikasi' => 'Dibatalkan oleh pembeli: ' . $alasan,
+            ]);
+        }
+
+        $penjualan->update([
+            'status' => 'batal',
+        ]);
+
+        return response()->json([
+            'message' => 'Pesanan berhasil dibatalkan.',
+            'status_penjualan' => 'batal',
+            'status_pembayaran' => 'gagal',
+            'catatan_verifikasi' => 'Dibatalkan oleh pembeli: ' . $alasan,
+        ]);
+    }
 }
+

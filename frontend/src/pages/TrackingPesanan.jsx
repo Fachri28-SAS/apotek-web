@@ -31,6 +31,34 @@ export default function TrackingPesanan() {
   const [salinTeks, setSalinTeks] = useState(false);
   const [qrisBesar, setQrisBesar] = useState(false);
 
+  // Batalkan pesanan state
+  const [batalLoading, setBatalLoading] = useState(false);
+  const [showModalBatal, setShowModalBatal] = useState(false);
+  const [alasanBatal, setAlasanBatal] = useState("Salah pilih obat / salah jumlah");
+  const [alasanLain, setAlasanLain] = useState("");
+
+  const isBatal = statusPembayaran === "gagal" || statusPembayaran === "expired" || statusPenjualan === "batal";
+
+  async function handleBatalkanPesanan() {
+    setBatalLoading(true);
+    setError("");
+    try {
+      const finalAlasan = alasanBatal === "Lainnya" ? (alasanLain.trim() || "Dibatalkan oleh pembeli") : alasanBatal;
+      const res = await api(`/pesanan/${kodeTracking}/batal`, {
+        method: "POST",
+        body: JSON.stringify({ alasan: finalAlasan }),
+      });
+      setStatusPembayaran("gagal");
+      setStatusPenjualan("batal");
+      setCatatanVerifikasi(res.catatan_verifikasi || `Dibatalkan oleh pembeli: ${finalAlasan}`);
+      setShowModalBatal(false);
+    } catch (err) {
+      setError(err.message || "Gagal membatalkan pesanan.");
+    } finally {
+      setBatalLoading(false);
+    }
+  }
+
   // 1. Muat data awal pesanan
   function muatDataAwal() {
     setLoading(true);
@@ -345,20 +373,61 @@ export default function TrackingPesanan() {
           <div className="tracking-card">
             <div className="tracking-card-head">
               <h3>
-                {statusPembayaran === "sukses"
+                {isBatal
+                  ? "Status Pesanan"
+                  : statusPembayaran === "sukses"
                   ? "Struk & Status Pembayaran"
                   : statusPembayaran === "menunggu_verifikasi"
                   ? "Verifikasi Pembayaran"
                   : "Pembayaran QRIS"}
               </h3>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--magenta-dark)" }}>
-                {statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: isBatal ? "#DC2626" : "var(--magenta-dark)" }}>
+                {isBatal ? "✕ Batal" : statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
               </span>
             </div>
 
             <div className="qris-payment-panel">
-              {/* KONDISI 1: SUDAH LUNAS / TERKONFIRMASI */}
-              {statusPembayaran === "sukses" ? (
+              {/* KONDISI 0: DIBATALKAN */}
+              {isBatal ? (
+                <div>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "24px 16px",
+                      background: "#FEF2F2",
+                      borderRadius: 14,
+                      border: "1.5px solid #FCA5A5",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <div style={{ fontSize: 36, marginBottom: 8 }}>🚫</div>
+                    <h4 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#DC2626" }}>
+                      Pesanan Telah Dibatalkan
+                    </h4>
+                    <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "#991B1B", lineHeight: 1.5 }}>
+                      {catatanVerifikasi || "Pesanan obat ini telah dibatalkan dan pembayaran QRIS tidak berlaku lagi."}
+                    </p>
+                    <Link
+                      to="/toko"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "9px 18px",
+                        background: "var(--magenta)",
+                        color: "#fff",
+                        borderRadius: 8,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        textDecoration: "none",
+                      }}
+                    >
+                      ← Belanja Obat Lainnya di Toko
+                    </Link>
+                  </div>
+                  <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
+                </div>
+              ) : statusPembayaran === "sukses" ? (
                 <div>
                   <div style={{ textAlign: "center", padding: "16px", background: "var(--green-tint)", borderRadius: 14, border: "1.5px solid #86EFAC", marginBottom: 14 }}>
                     <div style={{ fontSize: 32, marginBottom: 4 }}>✅</div>
@@ -386,6 +455,19 @@ export default function TrackingPesanan() {
                       </div>
                     )}
                   </div>
+
+                  <div style={{ padding: "10px 14px", background: "#F8FAFC", borderRadius: 10, border: "1px solid #E2E8F0", fontSize: 12, color: "#475569", textAlign: "center", marginBottom: 14 }}>
+                    <span style={{ display: "block", marginBottom: 4 }}>Sudah telanjur transfer dan ingin membatalkan?</span>
+                    <a
+                      href={`https://wa.me/6281223604900?text=${encodeURIComponent(`Halo Apotek Bima Farma, saya ingin mengajukan pembatalan dan refund pesanan ${pesanan.no_struk} (${pesanan.kode_tracking}).`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#059669", fontWeight: 700, textDecoration: "underline" }}
+                    >
+                      💬 Hubungi Kasir via WhatsApp untuk Refund ↗
+                    </a>
+                  </div>
+
                   <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
                 </div>
               ) : (
@@ -630,6 +712,32 @@ export default function TrackingPesanan() {
                     </button>
                   </form>
 
+                  {/* Tombol Batalkan Pesanan */}
+                  <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px dashed #CBD5E1", textAlign: "center" }}>
+                    <p style={{ margin: "0 0 8px", fontSize: 12, color: "var(--ink-soft)" }}>
+                      Salah pesan obat atau ingin mengubah pesanan?
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowModalBatal(true)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "7px 14px",
+                        borderRadius: 8,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: "#FFF",
+                        border: "1.5px solid #FCA5A5",
+                        color: "#DC2626",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕ Batalkan Pesanan Ini
+                    </button>
+                  </div>
+
                   {/* Struk Digital Preview */}
                   <KartuStrukDigital pesanan={pesanan} items={pesanan.items} />
                 </div>
@@ -748,6 +856,127 @@ export default function TrackingPesanan() {
                 }}
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Konfirmasi Pembatalan Pesanan */}
+      {showModalBatal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 99999,
+            padding: 16,
+          }}
+          onClick={() => !batalLoading && setShowModalBatal(false)}
+        >
+          <div
+            style={{
+              background: "#FFF",
+              borderRadius: 16,
+              padding: 24,
+              maxWidth: 420,
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 38, marginBottom: 8 }}>⚠️</div>
+              <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>
+                Batalkan Pesanan Ini?
+              </h3>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--ink-soft)", lineHeight: 1.5 }}>
+                Pesanan <strong>{pesanan.no_struk}</strong> akan dibatalkan dan pembayaran QRIS akan dinonaktifkan.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                Pilih Alasan Pembatalan:
+              </label>
+              <select
+                value={alasanBatal}
+                onChange={(e) => setAlasanBatal(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  border: "1.5px solid #CBD5E1",
+                  fontSize: 13,
+                  outline: "none",
+                  marginBottom: 8,
+                }}
+              >
+                <option value="Salah pilih obat / salah jumlah">Salah pilih obat / salah jumlah</option>
+                <option value="Ingin mengganti alamat pengiriman">Ingin mengganti alamat pengiriman</option>
+                <option value="Ingin beli langsung ke apotek">Ingin beli langsung ke apotek</option>
+                <option value="Berubah pikiran / tidak jadi beli">Berubah pikiran / tidak jadi beli</option>
+                <option value="Lainnya">Alasan lainnya</option>
+              </select>
+
+              {alasanBatal === "Lainnya" && (
+                <input
+                  type="text"
+                  placeholder="Tuliskan alasan pembatalan..."
+                  value={alasanLain}
+                  onChange={(e) => setAlasanLain(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    border: "1.5px solid #CBD5E1",
+                    fontSize: 13,
+                    outline: "none",
+                  }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setShowModalBatal(false)}
+                disabled={batalLoading}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "#F1F5F9",
+                  border: "1px solid #CBD5E1",
+                  color: "var(--ink)",
+                  cursor: "pointer",
+                }}
+              >
+                Kembali
+              </button>
+              <button
+                type="button"
+                onClick={handleBatalkanPesanan}
+                disabled={batalLoading}
+                style={{
+                  flex: 1.2,
+                  padding: "10px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  background: "#DC2626",
+                  border: "none",
+                  color: "#FFF",
+                  cursor: batalLoading ? "not-allowed" : "pointer",
+                  boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+                }}
+              >
+                {batalLoading ? "Membatalkan…" : "Ya, Batalkan"}
               </button>
             </div>
           </div>
