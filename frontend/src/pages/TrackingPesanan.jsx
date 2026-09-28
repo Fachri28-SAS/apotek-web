@@ -51,6 +51,7 @@ export default function TrackingPesanan() {
       setStatusPembayaran("gagal");
       setStatusPenjualan("batal");
       setCatatanVerifikasi(res.catatan_verifikasi || `Dibatalkan oleh pembeli: ${finalAlasan}`);
+      localStorage.removeItem("apotek_pending_order");
       setShowModalBatal(false);
     } catch (err) {
       setError(err.message || "Gagal membatalkan pesanan.");
@@ -65,8 +66,10 @@ export default function TrackingPesanan() {
     api(`/pesanan/${kodeTracking}`)
       .then((data) => {
         setPesanan(data);
-        setStatusPembayaran(data.pembayaran?.status || "pending");
-        setStatusPenjualan(data.status_penjualan || "pending");
+        const statusBayar = data.pembayaran?.status || "pending";
+        const statusJual = data.status_penjualan || "pending";
+        setStatusPembayaran(statusBayar);
+        setStatusPenjualan(statusJual);
         setCatatanVerifikasi(data.pembayaran?.catatan_verifikasi || null);
         setNominalKlaim(data.pembayaran?.nominal_klaim_customer || data.total);
         if (data.pembayaran?.bukti_url || data.pembayaran?.bukti_path) {
@@ -76,6 +79,22 @@ export default function TrackingPesanan() {
             : data.pembayaran.bukti_url.replace(/^https?:\/\/[^\/]+\/(api\/)?storage\//, "/storage/");
           setBuktiPreview(cleanUrl);
         }
+
+        // Sinkronisasi status pesanan aktif ke localStorage untuk notifikasi di Toko
+        if ((statusBayar === "pending" || statusBayar === "menunggu_verifikasi") && statusJual !== "batal") {
+          localStorage.setItem(
+            "apotek_pending_order",
+            JSON.stringify({
+              kode_tracking: data.kode_tracking,
+              no_struk: data.no_struk,
+              total: data.total,
+              status_pembayaran: statusBayar,
+            })
+          );
+        } else {
+          localStorage.removeItem("apotek_pending_order");
+        }
+
         setError("");
       })
       .catch((err) => setError(err.message))

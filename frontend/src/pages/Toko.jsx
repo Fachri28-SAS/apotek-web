@@ -42,6 +42,14 @@ export default function Toko() {
   const [teleponPembeli, setTeleponPembeli] = useState("");
   const [alamatKirim, setAlamatKirim] = useState("");
 
+  // Notifikasi Pesanan Gantung & Pembatalan Pesanan
+  const [pesananGantung, setPesananGantung] = useState(null);
+  const [tutupBannerGantung, setTutupBannerGantung] = useState(false);
+  const [loadingBatal, setLoadingBatal] = useState(false);
+  const [showModalBatalDrawer, setShowModalBatalDrawer] = useState(false);
+  const [alasanBatalDrawer, setAlasanBatalDrawer] = useState("Salah pilih obat / salah jumlah");
+  const [alasanLainDrawer, setAlasanLainDrawer] = useState("");
+
   // Pagination Toko: 15 produk per halaman (3 baris x 5 kolom di desktop)
   const [halaman, setHalaman] = useState(1);
   const ITEM_PER_HALAMAN = 15;
@@ -99,6 +107,52 @@ export default function Toko() {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
+
+  // Deteksi pesanan yang belum diselesaikan (gantung) secara otomatis
+  useEffect(() => {
+    async function cekPesananGantung() {
+      try {
+        let savedTracking = null;
+        const raw = localStorage.getItem("apotek_pending_order");
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            savedTracking = parsed?.kode_tracking;
+          } catch (_) {}
+        }
+        if (!savedTracking) {
+          savedTracking = localStorage.getItem("apotek_last_tracking");
+        }
+        if (!savedTracking) {
+          setPesananGantung(null);
+          return;
+        }
+
+        const res = await api(`/pesanan/${savedTracking}/status`);
+        if (
+          (res.status_pembayaran === "pending" || res.status_pembayaran === "menunggu_verifikasi") &&
+          res.status_penjualan !== "batal"
+        ) {
+          const detail = await api(`/pesanan/${savedTracking}`).catch(() => null);
+          const dataGantung = {
+            kode_tracking: savedTracking,
+            no_struk: detail?.no_struk || res.no_struk || savedTracking,
+            total: detail?.total || res.total || 0,
+            status_pembayaran: res.status_pembayaran,
+          };
+          setPesananGantung(dataGantung);
+          localStorage.setItem("apotek_pending_order", JSON.stringify(dataGantung));
+        } else {
+          localStorage.removeItem("apotek_pending_order");
+          setPesananGantung(null);
+        }
+      } catch (err) {
+        // Abaikan jika offline / gagal terhubung
+      }
+    }
+
+    cekPesananGantung();
+  }, [tahap, drawerOpen]);
 
   function tambahKeKeranjang(obat) {
     if (obat.perlu_resep) return; // dijaga juga, tombol sudah disabled di UI
@@ -195,6 +249,15 @@ export default function Toko() {
       if (hasil?.kode_tracking) {
         localStorage.setItem("apotek_last_tracking", hasil.kode_tracking);
         localStorage.setItem("apotek_last_pembeli", hasil.nama_pembeli || "");
+        localStorage.setItem(
+          "apotek_pending_order",
+          JSON.stringify({
+            kode_tracking: hasil.kode_tracking,
+            no_struk: hasil.no_struk,
+            total: hasil.total,
+            status_pembayaran: "pending",
+          })
+        );
       }
       setNominalKlaim(hasil.total);
       setTahap("qris");
@@ -288,9 +351,182 @@ export default function Toko() {
     return () => clearInterval(timer);
   }, [tahap, order?.kode_tracking, order?.pembayaran?.status, order?.status_penjualan, order?.status]);
 
+  async function handleEksekusiBatalDrawer() {
+    if (!order?.kode_tracking) return;
+    setLoadingBatal(true);
+    setError("");
+    try {
+      const finalAlasan =
+        alasanBatalDrawer === "Lainnya" ? (alasanLainDrawer.trim() || "Dibatalkan oleh pembeli") : alasanBatalDrawer;
+      await api(`/pesanan/${order.kode_tracking}/batal`, {
+        method: "POST",
+        body: JSON.stringify({ alasan: finalAlasan }),
+      });
+      localStorage.removeItem("apotek_pending_order");
+      setPesananGantung(null);
+      setShowModalBatalDrawer(false);
+      setOrder(null);
+      setBuktiBase64(null);
+      setBuktiPreview(null);
+      setTahap("keranjang");
+      setDrawerOpen(false);
+      alert("Pesanan Anda telah berhasil dibatalkan.");
+    } catch (err) {
+      setError(err.message || "Gagal membatalkan pesanan.");
+    } finally {
+      setLoadingBatal(false);
+    }
+  }
+
+  async function handleBatalkanPesananGantung(kodeTracking) {
+    const yakin = window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini?");
+    if (!yakin) return;
+    setLoadingBatal(true);
+    try {
+      await api(`/pesanan/${kodeTracking}/batal`, {
+        method: "POST",
+        body: JSON.stringify({ alasan: "Dibatalkan oleh pembeli dari halaman toko" }),
+      });
+      localStorage.removeItem("apotek_pending_order");
+      setPesananGantung(null);
+      alert("Pesanan berhasil dibatalkan.");
+    } catch (err) {
+      alert(err.message || "Gagal membatalkan pesanan.");
+    } finally {
+      setLoadingBatal(false);
+    }
+  }
+
   return (
     <div className="toko-page">
       <Navbar cartCount={jumlahItem} onOpenCart={() => setDrawerOpen(true)} />
+
+      {/* Banner Notifikasi Pesanan Belum Dibayar (Gantung) */}
+      {pesananGantung && !tutupBannerGantung && !(drawerOpen && tahap === "qris") && (
+        <aside
+          role="region"
+          aria-label="Pemberitahuan Pesanan Belum Selesai"
+          style={{
+            background: "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
+            borderBottom: "2px solid #F59E0B",
+            padding: "12px 16px",
+            boxShadow: "0 4px 14px rgba(217, 119, 6, 0.15)",
+            position: "sticky",
+            top: 60,
+            zIndex: 90,
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 1200,
+              margin: "0 auto",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 260, flex: "1 1 300px" }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "50%",
+                  background: "#F59E0B",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 20,
+                  boxShadow: "0 2px 8px rgba(245, 158, 11, 0.35)",
+                  flexShrink: 0,
+                }}
+              >
+                ⚠️
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#92400E", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>Ada Pesanan yang Belum Anda Selesaikan!</span>
+                  <span
+                    style={{
+                      background: "#FDE68A",
+                      color: "#78350F",
+                      padding: "1px 6px",
+                      borderRadius: 4,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {pesananGantung.status_pembayaran === "menunggu_verifikasi" ? "Verifikasi" : "Belum Bayar"}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, color: "#78350F", marginTop: 2 }}>
+                  No. Struk: <strong style={{ fontFamily: "monospace" }}>{pesananGantung.no_struk}</strong> &bull; Total:{" "}
+                  <strong style={{ color: "#B45309" }}>{rupiah(pesananGantung.total)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <a
+                href={`/pesanan/${pesananGantung.kode_tracking}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  background: "#D97706",
+                  color: "#FFFFFF",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  boxShadow: "0 2px 6px rgba(217, 119, 6, 0.3)",
+                }}
+              >
+                💳 Lanjutkan Pembayaran &rarr;
+              </a>
+              <button
+                type="button"
+                onClick={() => handleBatalkanPesananGantung(pesananGantung.kode_tracking)}
+                disabled={loadingBatal}
+                style={{
+                  padding: "7px 12px",
+                  borderRadius: 8,
+                  background: "#FFF",
+                  color: "#DC2626",
+                  border: "1px solid #FCA5A5",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: loadingBatal ? "not-allowed" : "pointer",
+                }}
+              >
+                {loadingBatal ? "Membatalkan…" : "✕ Batalkan"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTutupBannerGantung(true)}
+                title="Sembunyikan pemberitahuan"
+                style={{
+                  padding: "6px 8px",
+                  background: "transparent",
+                  border: "none",
+                  color: "#92400E",
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  borderRadius: 4,
+                  lineHeight: 1,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </aside>
+      )}
 
       <section className="shop-hero">
         <div className="wrap">
@@ -852,9 +1088,53 @@ export default function Toko() {
               </div>
 
               {order.kode_tracking && (
-                <div style={{ textAlign: "center", padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
-                  <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Kode Tracking: </span>
-                  <strong style={{ fontSize: 13, letterSpacing: "1px", color: "var(--magenta-dark)" }}>{order.kode_tracking}</strong>
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ textAlign: "center", padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
+                    <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>Kode Tracking: </span>
+                    <strong style={{ fontSize: 13, letterSpacing: "1px", color: "var(--magenta-dark)" }}>{order.kode_tracking}</strong>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <a
+                      href={`/pesanan/${order.kode_tracking}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        flex: 1,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        padding: "9px 12px",
+                        borderRadius: 10,
+                        background: "#FAF5FF",
+                        color: "var(--magenta-dark)",
+                        border: "1px solid #E9D5FF",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        textDecoration: "none",
+                        textAlign: "center",
+                      }}
+                    >
+                      <span>↗️ Buka Halaman Pesanan</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setShowModalBatalDrawer(true)}
+                      style={{
+                        padding: "9px 12px",
+                        borderRadius: 10,
+                        background: "#FEF2F2",
+                        color: "#DC2626",
+                        border: "1px solid #FECACA",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕ Batalkan
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1044,6 +1324,164 @@ export default function Toko() {
                 }}
               >
                 Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Pembatalan Pesanan Drawer */}
+      {showModalBatalDrawer && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-batal-drawer-title"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            zIndex: 10000,
+          }}
+          onClick={() => !loadingBatal && setShowModalBatalDrawer(false)}
+        >
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: 16,
+              width: "100%",
+              maxWidth: 440,
+              padding: 24,
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  color: "#DC2626",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                  fontWeight: 900,
+                  flexShrink: 0,
+                }}
+              >
+                ✕
+              </div>
+              <div>
+                <h3 id="modal-batal-drawer-title" style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111827" }}>
+                  Batalkan Pesanan Ini?
+                </h3>
+                <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748B" }}>
+                  Stok yang sempat terpesan akan segera dikembalikan.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 }}>
+                Alasan Pembatalan:
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  "Ingin mengubah pesanan / barang lain",
+                  "Kendala pembayaran QRIS / E-Wallet",
+                  "Salah memasukkan alamat atau data pembeli",
+                  "Lainnya",
+                ].map((opt) => (
+                  <label
+                    key={opt}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: 12.5,
+                      color: "#1F2937",
+                      padding: "7px 10px",
+                      borderRadius: 8,
+                      background: alasanBatalDrawer === opt ? "#F8FAFC" : "transparent",
+                      border: alasanBatalDrawer === opt ? "1.5px solid #CBD5E1" : "1px solid transparent",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="alasanBatalDrawer"
+                      value={opt}
+                      checked={alasanBatalDrawer === opt}
+                      onChange={() => setAlasanBatalDrawer(opt)}
+                    />
+                    <span>{opt}</span>
+                  </label>
+                ))}
+              </div>
+
+              {alasanBatalDrawer === "Lainnya" && (
+                <textarea
+                  value={alasanLainDrawer}
+                  onChange={(e) => setAlasanLainDrawer(e.target.value)}
+                  placeholder="Tuliskan alasan pembatalan Anda..."
+                  rows={2}
+                  style={{
+                    width: "100%",
+                    marginTop: 8,
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #CBD5E1",
+                    fontSize: 12,
+                    boxSizing: "border-box",
+                  }}
+                />
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 18 }}>
+              <button
+                type="button"
+                onClick={() => setShowModalBatalDrawer(false)}
+                disabled={loadingBatal}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  background: "#F1F5F9",
+                  color: "#475569",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Batal (Kembali)
+              </button>
+              <button
+                type="button"
+                onClick={handleEksekusiBatalDrawer}
+                disabled={loadingBatal}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  background: "#DC2626",
+                  color: "#FFFFFF",
+                  border: "none",
+                  cursor: loadingBatal ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                {loadingBatal ? "Memproses..." : "Ya, Batalkan Pesanan"}
               </button>
             </div>
           </div>

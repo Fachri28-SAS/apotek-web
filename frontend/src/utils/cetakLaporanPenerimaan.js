@@ -43,7 +43,7 @@ function getIframe() {
 
 /**
  * 1. CETAK BUKU PENERIMAAN BARANG FISIK (12 Kolom sesuai Foto 1)
- * Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN 11%
+ * Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN
  */
 export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTanggal, namaUser = "Petugas" } = {}) {
   if (!barisItem || barisItem.length === 0) {
