@@ -130,6 +130,11 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
             font-weight: bold;
             letter-spacing: 0.5px;
           }
+          .alamat-apotek {
+            font-size: 10px;
+            color: #222;
+            margin-top: 2px;
+          }
           .meta-row {
             display: flex;
             justify-content: space-between;
@@ -165,6 +170,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <div class="header-center">
           <div class="judul-laporan">DAFTAR PENERIMAAN BARANG</div>
           <div class="nama-apotek">APOTEK BIMA FARMA</div>
+          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
         </div>
 
         <div class="meta-row">
@@ -350,7 +356,7 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
       <body>
         <div class="header-center">
           <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat &middot; Telp. 081223604900</div>
+          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
           <div class="judul-laporan">BUKU REGISTER PEMBAYARAN FAKTUR PBF</div>
         </div>
 
