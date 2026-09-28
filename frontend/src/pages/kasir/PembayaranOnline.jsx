@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
-import { useAuth } from "../../context/useAuth";
 import KasirShell from "./KasirShell";
 import StrukModal from "./komponen/StrukModal";
 
@@ -20,10 +19,8 @@ export function formatBuktiUrl(url, path) {
 }
 
 export default function PembayaranOnline() {
-  const { user } = useAuth();
   const [daftar, setDaftar] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingBersih, setLoadingBersih] = useState(false);
   const [error, setError] = useState("");
   const [pesanSukses, setPesanSukses] = useState("");
   const [struk, setStruk] = useState(null);
@@ -146,47 +143,6 @@ export default function PembayaranOnline() {
     setItemExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  async function bersihkanSemuaPesanan() {
-    const konfirmasi = window.confirm(
-      "PERHATIAN: Apakah Anda yakin ingin membersihkan SEMUA riwayat pesanan online uji coba?\n\n" +
-      "Tindakan ini akan:\n" +
-      "1. Menghapus riwayat transaksi pesanan online dan bukti transfer uji coba.\n" +
-      "2. Mengembalikan stok obat yang sempat terpotong saat uji coba konfirmasi.\n" +
-      "3. Mengosongkan daftar pesanan agar bersih dan siap digunakan secara resmi oleh apotek.\n\n" +
-      "Lanjutkan pembersihan?"
-    );
-    if (!konfirmasi) return;
-
-    setLoadingBersih(true);
-    setError("");
-    setPesanSukses("");
-
-    try {
-      const res = await api("/pembayaran-online/bersihkan-semua", { method: "DELETE" });
-      setPesanSukses(res.message || "Pesanan online uji coba berhasil dibersihkan!");
-      muat();
-    } catch (err) {
-      setError(err.message || "Gagal membersihkan pesanan online.");
-    } finally {
-      setLoadingBersih(false);
-    }
-  }
-
-  async function hapusPesanan(pembayaran) {
-    const noStruk = pembayaran.penjualan?.no_struk || "pesanan ini";
-    if (!window.confirm(`Hapus data pesanan online uji coba (${noStruk})?`)) return;
-
-    setError("");
-    setPesanSukses("");
-    try {
-      const res = await api(`/pembayaran-online/${pembayaran.id}`, { method: "DELETE" });
-      setPesanSukses(res.message || "Pesanan berhasil dihapus.");
-      muat();
-    } catch (err) {
-      setError(err.message || "Gagal menghapus pesanan.");
-    }
-  }
-
   return (
     <KasirShell>
       <div className="halaman-header">
@@ -234,43 +190,17 @@ export default function PembayaranOnline() {
 
       {/* Panel Daftar Pesanan */}
       <div className="panel">
-        <div className="panel-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-          <div>
-            <h3 style={{ margin: 0 }}>
-              {tabAktif === "perlu_disiapkan" && "Pesanan yang Harus Disiapkan"}
-              {tabAktif === "selesai" && "Pesanan Selesai / Sudah Diambil"}
-              {tabAktif === "dibatalkan" && "Pesanan yang Dibatalkan"}
-              {tabAktif === "semua" && "Semua Pesanan Online"}
-              {" "}({daftar.length})
-            </h3>
-            <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-              Otomatis terupdate realtime setiap 5 detik
-            </span>
-          </div>
-
-          {user?.role === "admin" && daftar.length > 0 && (
-            <button
-              type="button"
-              onClick={bersihkanSemuaPesanan}
-              disabled={loadingBersih}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 14px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 800,
-                background: "#FEF2F2",
-                border: "1.5px solid #FCA5A5",
-                color: "#DC2626",
-                cursor: "pointer",
-              }}
-              title="Hapus semua pesanan online uji coba dan pulihkan stok obat agar sistem bersih"
-            >
-              {loadingBersih ? "⏳ Membersihkan..." : "🗑️ Bersihkan Semua Pesanan Uji Coba"}
-            </button>
-          )}
+        <div className="panel-head">
+          <h3>
+            {tabAktif === "perlu_disiapkan" && "Pesanan yang Harus Disiapkan"}
+            {tabAktif === "selesai" && "Pesanan Selesai / Sudah Diambil"}
+            {tabAktif === "dibatalkan" && "Pesanan yang Dibatalkan"}
+            {tabAktif === "semua" && "Semua Pesanan Online"}
+            {" "}({daftar.length})
+          </h3>
+          <span style={{ fontSize: 12, color: "var(--ink-soft)" }}>
+            Otomatis terupdate realtime setiap 5 detik
+          </span>
         </div>
 
         {loading ? (
@@ -572,31 +502,6 @@ export default function PembayaranOnline() {
                           }}
                         >
                           {prosesId === p.id ? "Memproses..." : "📦 Tandai Sudah Diambil"}
-                        </button>
-                      )}
-
-                      {/* Tombol Hapus Pesanan Uji Coba Khusus Admin */}
-                      {user?.role === "admin" && (
-                        <button
-                          type="button"
-                          onClick={() => hapusPesanan(p)}
-                          disabled={prosesId === p.id}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            background: "#FFF1F2",
-                            border: "1.5px solid #FECDD3",
-                            color: "#E11D48",
-                            cursor: "pointer",
-                          }}
-                          title="Hapus data pesanan uji coba ini secara permanen"
-                        >
-                          🗑️ Hapus
                         </button>
                       )}
                     </div>

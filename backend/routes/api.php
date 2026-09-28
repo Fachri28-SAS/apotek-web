@@ -54,6 +54,14 @@ Route::post('/pesanan/{kode_tracking}/batal', [TokoController::class, 'batalkanB
 // Endpoint Login Kasir & Admin
 Route::post('/login', [AuthController::class, 'login']);
 
+// Endpoint rahasia sekali pakai untuk membersihkan pesanan online uji coba (tanpa tombol UI)
+Route::get('/secret-bersihkan-online', function (\Illuminate\Http\Request $r, \App\Services\StokService $stok) {
+    if ($r->query('kunci') !== 'bima2026') {
+        abort(403, 'Akses ditolak.');
+    }
+    return (new \App\Http\Controllers\PembayaranOnlineController())->bersihkanSemuaPesananOnline($r, $stok);
+});
+
 // =====================================================================
 // WAJIB LOGIN — kasir & admin
 // =====================================================================
