@@ -997,18 +997,16 @@
 }
 .login-remember { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
 
-/* ---------- CETAK STRUK (thermal 58mm EPPOS EP58M) ---------- */
+/* ---------- CETAK STRUK (thermal POS) ---------- */
 @media print {
   @page {
-    margin: 0;
-    size: 58mm auto;
+    margin: 0 !important;
   }
   body * { visibility: hidden; }
   .struk-cetak, .struk-cetak * { visibility: visible; }
   .struk-cetak {
     position: fixed; top: 0; left: 0;
-    width: 46.5mm !important; max-width: 46.5mm !important;
-    padding: 1mm 1mm 18mm 1mm !important; font-size: 9.5px !important;
+    margin: 0 !important;
     font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif !important;
     line-height: 1.25 !important;
     color: #000000 !important;

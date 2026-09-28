@@ -6,16 +6,21 @@ import { rupiah } from "../../../utils/format";
  * Dirancang khusus agar teks kanan (harga, subtotal, total) TIDAK TERPOTONG ke samping
  * dan ada feed space di bagian bawah agar saat merobek kertas di cutter fisik tidak merobek tulisan.
  */
-function buatHtmlStruk(data, ukuranKertas = "58mm") {
+function buatHtmlStruk(data, ukuranKertas = "50mm") {
+  const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
-  // EPPOS EP58M: Lebar kertas 58mm, printable area 48mm (384 dots).
-  // Menggunakan safe width 46.5mm agar bebas dari dead-zone roller dan tepi kanan tidak terpotong.
-  const printWidth = is58 ? "46.5mm" : "72mm";
-  const pageSize = is58 ? "58mm auto" : "80mm auto";
-  const baseFontSize = is58 ? "9.5px" : "11px";
-  const headerFontSize = is58 ? "12px" : "14px";
-  const subFontSize = is58 ? "8.5px" : "10px";
-  const bottomFeed = is58 ? "18mm" : "20mm";
+  const is80 = ukuranKertas === "80mm";
+
+  // Lebar printable area aman agar tepi kanan tidak terpotong:
+  // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 40mm.
+  // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 46mm.
+  // - 80mm: kertas roll 80mm, area head cetak ~72mm. Safe width: 72mm.
+  const printWidth = is50 ? "40mm" : is58 ? "46mm" : "72mm";
+  const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
+  const baseFontSize = is50 ? "8.2px" : is58 ? "9.5px" : "11px";
+  const headerFontSize = is50 ? "10.5px" : is58 ? "12px" : "14px";
+  const subFontSize = is50 ? "7.5px" : is58 ? "8.5px" : "10px";
+  const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "20mm";
 
   const tglObj = data.created_at || data.tanggal ? new Date(data.created_at || data.tanggal) : new Date();
   const tanggal = !isNaN(tglObj.getTime())
@@ -42,13 +47,13 @@ function buatHtmlStruk(data, ukuranKertas = "58mm") {
       const itemSubtotalBersih = Math.max(itemSubtotalKotor - itemDiskon, 0);
 
       return `
-        <div style="margin-bottom: 5px;">
+        <div style="margin-bottom: 4px;">
           <div style="font-weight: 700; font-size: ${baseFontSize}; text-transform: uppercase; word-break: break-word; line-height: 1.25;">
             ${it.nama_obat || "Obat"} ${it.nama_satuan ? `(${it.nama_satuan})` : ""}
           </div>
           <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: ${baseFontSize}; margin-top: 1px;">
-            <span>${it.qty} × ${Number(it.harga_jual || 0).toLocaleString("id-ID")}</span>
-            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0;">
+            <span style="white-space: nowrap;">${it.qty} × ${Number(it.harga_jual || 0).toLocaleString("id-ID")}</span>
+            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: 4px;">
               ${itemSubtotalBersih.toLocaleString("id-ID")}
             </span>
           </div>
@@ -75,7 +80,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm") {
         <title>Struk-${data.no_struk || "BimaFarma"}</title>
         <style>
           @page {
-            margin: 0;
+            margin: 0 !important;
             size: ${pageSize};
           }
           * {
@@ -84,10 +89,10 @@ function buatHtmlStruk(data, ukuranKertas = "58mm") {
             padding: 0;
           }
           html, body {
-            width: ${printWidth};
-            max-width: ${printWidth};
-            margin: 0 auto;
-            padding: 1.5mm 1mm 0 1mm;
+            width: ${printWidth} !important;
+            max-width: ${printWidth} !important;
+            margin: 0 !important;
+            padding: 1mm 0.5mm 0 0.5mm !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize};
             line-height: 1.25;
@@ -180,7 +185,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm") {
         <div class="struk-garis-dash"></div>
 
         <!-- Rincian Total Belanja -->
-        <div class="struk-baris" style="font-weight: 800; font-size: ${is58 ? "10.5px" : "12px"}; margin-top: 2px;">
+        <div class="struk-baris" style="font-weight: 800; font-size: ${is50 ? "9.2px" : is58 ? "10.5px" : "12px"}; margin-top: 2px;">
           <span>TOTAL (${totalQty} ITEM)</span>
           <span>${Number(data.total || 0).toLocaleString("id-ID")}</span>
         </div>
@@ -244,9 +249,10 @@ function buatHtmlStruk(data, ukuranKertas = "58mm") {
  * Mencetak struk kasir secara bersih menggunakan iframe terisolasi
  * Disesuaikan khusus untuk printer thermal (58mm EPPOS EP58M / Panda / MiniPOS dsb)
  */
-function cetakStruk(data, ukuranKertas = "58mm") {
+function cetakStruk(data, ukuranKertas = "50mm") {
   if (!data) return;
 
+  const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
   const htmlStruk = buatHtmlStruk(data, ukuranKertas);
 
@@ -257,11 +263,11 @@ function cetakStruk(data, ukuranKertas = "58mm") {
     iframe.style.position = "fixed";
     iframe.style.top = "-9999px";
     iframe.style.left = "-9999px";
-    iframe.style.width = is58 ? "48mm" : "72mm";
     iframe.style.height = "250mm";
     iframe.style.border = "none";
     document.body.appendChild(iframe);
   }
+  iframe.style.width = is50 ? "41mm" : is58 ? "48mm" : "74mm";
 
   const doc = iframe.contentWindow.document;
   doc.open();
@@ -287,9 +293,9 @@ function cetakStruk(data, ukuranKertas = "58mm") {
 }
 
 export default function StrukModal({ data, onClose, autoPrint = false }) {
-  // Pilihan ukuran kertas (default 58mm sesuai printer EPPOS EP58M kasir)
+  // Pilihan ukuran kertas (default 50mm sesuai kertas kasir)
   const [ukuranKertas, setUkuranKertas] = useState(() => {
-    return localStorage.getItem("struk_ukuran_kertas") || "58mm";
+    return localStorage.getItem("struk_ukuran_kertas") || "50mm";
   });
 
   function gantiUkuran(val) {
@@ -325,6 +331,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
   const totalDiskonSemua = Number(data.diskon || 0);
   const diskonTransaksi = Math.max(totalDiskonSemua - totalDiskonItem, 0);
 
+  const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
 
   return (
@@ -356,13 +363,31 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11.5, color: "var(--ink)", fontWeight: 800 }}>Ukuran Printer</span>
+            <span style={{ fontSize: 11.5, color: "var(--ink)", fontWeight: 800 }}>Ukuran Kertas</span>
             <span style={{ fontSize: 10, color: "var(--ink-soft)" }}>
-              {is58 ? "Cocok untuk EPPOS EP58M" : "Thermal 80mm"}
+              {is50 ? "50mm (Anti Geser Kanan)" : is58 ? "EPPOS 58mm" : "Thermal 80mm"}
             </span>
           </div>
 
-          <div style={{ display: "inline-flex", gap: 4, background: "#E2E8F0", padding: 3, borderRadius: 8 }}>
+          <div style={{ display: "inline-flex", gap: 3, background: "#E2E8F0", padding: 3, borderRadius: 8 }}>
+            <button
+              type="button"
+              onClick={() => gantiUkuran("50mm")}
+              style={{
+                border: "none",
+                background: ukuranKertas === "50mm" ? "var(--magenta)" : "transparent",
+                color: ukuranKertas === "50mm" ? "#fff" : "var(--ink)",
+                fontWeight: 700,
+                fontSize: 11,
+                padding: "5px 10px",
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Kertas Thermal Roll 50mm"
+            >
+              50 mm
+            </button>
             <button
               type="button"
               onClick={() => gantiUkuran("58mm")}
@@ -372,14 +397,14 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 color: ukuranKertas === "58mm" ? "#fff" : "var(--ink)",
                 fontWeight: 700,
                 fontSize: 11,
-                padding: "5px 12px",
+                padding: "5px 10px",
                 borderRadius: 6,
                 cursor: "pointer",
                 transition: "all 0.15s ease",
               }}
               title="Standar Printer Thermal EPPOS EP58M / 58mm"
             >
-              58 mm (EPPOS)
+              58 mm
             </button>
             <button
               type="button"
@@ -390,7 +415,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 color: ukuranKertas === "80mm" ? "#fff" : "var(--ink)",
                 fontWeight: 700,
                 fontSize: 11,
-                padding: "5px 12px",
+                padding: "5px 10px",
                 borderRadius: 6,
                 cursor: "pointer",
                 transition: "all 0.15s ease",
@@ -407,15 +432,15 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
           <div
             className="struk-cetak"
             style={{
-              width: is58 ? 255 : 320,
+              width: is50 ? 215 : is58 ? 255 : 320,
               margin: "0 auto",
-              padding: "16px 10px 22px 10px",
+              padding: is50 ? "12px 6px 18px 6px" : "16px 10px 22px 10px",
               background: "#FFFFFF",
               borderRadius: 6,
               boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
               border: "1px solid #CBD5E1",
               fontFamily: "'Consolas', 'Courier New', Courier, monospace",
-              fontSize: is58 ? 10 : 11.5,
+              fontSize: is50 ? 8.8 : is58 ? 10 : 11.5,
               lineHeight: 1.25,
               color: "#000000",
             }}
@@ -437,10 +462,10 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                   e.target.style.display = "none";
                 }}
               />
-              <div style={{ fontSize: is58 ? 12 : 14, fontWeight: 800, letterSpacing: 0.5 }}>
+              <div style={{ fontSize: is50 ? 11 : is58 ? 12 : 14, fontWeight: 800, letterSpacing: 0.5 }}>
                 APOTEK BIMA FARMA
               </div>
-              <div style={{ fontSize: is58 ? 8.5 : 10, color: "#111", lineHeight: 1.25, marginTop: 1 }}>
+              <div style={{ fontSize: is50 ? 7.8 : is58 ? 8.5 : 10, color: "#111", lineHeight: 1.25, marginTop: 1 }}>
                 Jl. Tanimulya Raya No. 1, Ngamprah<br />
                 Kab. Bandung Barat · WA: 0812-2360-4900
               </div>
@@ -609,7 +634,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             onClick={() => cetakStruk(data, ukuranKertas)}
             style={{ fontWeight: 800 }}
           >
-            🖨️ Cetak ke EPPOS ({ukuranKertas})
+            🖨️ Cetak Struk ({ukuranKertas})
           </button>
         </div>
       </div>
@@ -624,8 +649,8 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
         }
         @media print {
           @page {
-            margin: 0;
-            size: ${is58 ? "58mm auto" : "80mm auto"};
+            margin: 0 !important;
+            size: ${is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto"};
           }
           body * {
             visibility: hidden !important;
@@ -659,11 +684,12 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: ${is58 ? "46.5mm" : "72mm"} !important;
-            max-width: ${is58 ? "46.5mm" : "72mm"} !important;
-            padding: 1mm 1mm 18mm 1mm !important;
+            margin: 0 !important;
+            width: ${is50 ? "40mm" : is58 ? "46mm" : "72mm"} !important;
+            max-width: ${is50 ? "40mm" : is58 ? "46mm" : "72mm"} !important;
+            padding: 1mm 1mm ${is50 ? "15mm" : is58 ? "18mm" : "20mm"} 0.5mm !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
-            font-size: ${is58 ? "9.5px" : "11px"} !important;
+            font-size: ${is50 ? "8.2px" : is58 ? "9.5px" : "11px"} !important;
             color: #000000 !important;
             background: #ffffff !important;
             border: none !important;
