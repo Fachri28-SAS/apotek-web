@@ -282,7 +282,7 @@ export default function RekapHutangModal({
         >
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 18 }}>🏢</span>
+              <span style={{ fontSize: 18 }}></span>
               <h3 style={{ fontSize: 17, fontWeight: 800, color: "#4A044E", margin: 0 }}>
                 Rekap Hutang & Faktur Supplier
               </h3>
@@ -326,12 +326,12 @@ export default function RekapHutangModal({
         {/* Notifikasi / Error */}
         {notif && (
           <div style={{ background: "#ECFDF5", color: "#065F46", padding: "10px 20px", fontSize: 13, fontWeight: 600, borderBottom: "1px solid #A7F3D0" }}>
-            ✓ {notif}
+             {notif}
           </div>
         )}
         {error && (
           <div style={{ background: "#FEF2F2", color: "#991B1B", padding: "10px 20px", fontSize: 13, fontWeight: 600, borderBottom: "1px solid #FECACA" }}>
-            ⚠ {error}
+             {error}
           </div>
         )}
 
@@ -449,7 +449,7 @@ export default function RekapHutangModal({
                     color: filterStatus === "lunas" ? "#15803D" : "#475569",
                   }}
                 >
-                  ✓ Sudah Lunas
+                   Sudah Lunas
                 </button>
                 <button
                   type="button"
@@ -486,7 +486,7 @@ export default function RekapHutangModal({
             </div>
 
             <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "12px 16px" }}>
-              <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 600 }}>✓ Sudah Dibayar (Lunas)</div>
+              <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 600 }}> Sudah Dibayar (Lunas)</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#15803D", marginTop: 2 }}>{rupiah(totalLunas)}</div>
               <div style={{ fontSize: 10.5, color: "#86EFAC" }}>Telah dilunasi</div>
             </div>
@@ -535,13 +535,13 @@ export default function RekapHutangModal({
                       if (sHari < 0) {
                         badgeJatuhTempo = (
                           <span style={{ display: "block", fontSize: 10, color: "#DC2626", fontWeight: 700 }}>
-                            ⚠️ Telat {Math.abs(sHari)} hari
+                             Telat {Math.abs(sHari)} hari
                           </span>
                         );
                       } else if (sHari <= 7) {
                         badgeJatuhTempo = (
                           <span style={{ display: "block", fontSize: 10, color: "#D97706", fontWeight: 700 }}>
-                            ⏳ Sisa {sHari} hari
+                             Sisa {sHari} hari
                           </span>
                         );
                       }
@@ -574,7 +574,7 @@ export default function RekapHutangModal({
                               border: isLunas ? "1px solid #BBF7D0" : "1px solid #FECACA",
                             }}
                           >
-                            {isLunas ? "✓ Lunas" : "○ Belum Lunas"}
+                            {isLunas ? " Lunas" : "○ Belum Lunas"}
                           </span>
                           {f.tanggal_bayar && isLunas && (
                             <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>

@@ -268,7 +268,7 @@ export default function RiwayatPenerimaan() {
             />
             {search && (
               <button type="button" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)", padding: 0 }}>
-                ✕
+                
               </button>
             )}
           </div>
@@ -469,7 +469,7 @@ export default function RiwayatPenerimaan() {
                         }}
                       >
                         <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
-                        <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN">🔍</span>
+                        <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN"></span>
                       </div>
                     </td>
                   </tr>
@@ -549,7 +549,7 @@ export default function RiwayatPenerimaan() {
                   fontWeight: 700,
                 }}
               >
-                ✕
+                
               </button>
             </div>
 
@@ -662,7 +662,7 @@ export default function RiwayatPenerimaan() {
                     cursor: "pointer",
                   }}
                 >
-                  Lihat Faktur Lengkap 📄
+                  Lihat Faktur Lengkap 
                 </button>
                 <button
                   type="button"
@@ -755,7 +755,7 @@ export default function RiwayatPenerimaan() {
                   fontWeight: 700,
                 }}
               >
-                ✕
+                
               </button>
             </div>
 

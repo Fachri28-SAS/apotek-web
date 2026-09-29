@@ -201,12 +201,12 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
 
         // Deteksi perubahan data identitas/detail obat
         const perubahans = [];
-        if (nama.trim() !== (obat.nama || "").trim()) perubahans.push(`Nama: "${obat.nama}" ➔ "${nama}"`);
-        if (kemasan.trim() !== (obat.kemasan || "").trim()) perubahans.push(`Kemasan: "${obat.kemasan || "-"}" ➔ "${kemasan}"`);
-        if ((nomorBatch || "").trim() !== (obat.nomor_batch || "").trim()) perubahans.push(`Batch: "${obat.nomor_batch || "-"}" ➔ "${nomorBatch || "-"}"`);
-        if ((tanggalExp || "") !== (obat.tanggal_exp?.slice(0, 10) || "")) perubahans.push(`Exp: "${obat.tanggal_exp?.slice(0, 10) || "-"}" ➔ "${tanggalExp || "-"}"`);
-        if (Number(stokMinimum) !== Number(obat.stok_minimum ?? 10)) perubahans.push(`Stok Min: ${obat.stok_minimum} ➔ ${stokMinimum}`);
-        if (aktifDijual !== (obat.aktif_dijual ?? true)) perubahans.push(`Status Jual: ${obat.aktif_dijual ? "Aktif" : "Nonaktif"} ➔ ${aktifDijual ? "Aktif" : "Nonaktif"}`);
+        if (nama.trim() !== (obat.nama || "").trim()) perubahans.push(`Nama: "${obat.nama}"  "${nama}"`);
+        if (kemasan.trim() !== (obat.kemasan || "").trim()) perubahans.push(`Kemasan: "${obat.kemasan || "-"}"  "${kemasan}"`);
+        if ((nomorBatch || "").trim() !== (obat.nomor_batch || "").trim()) perubahans.push(`Batch: "${obat.nomor_batch || "-"}"  "${nomorBatch || "-"}"`);
+        if ((tanggalExp || "") !== (obat.tanggal_exp?.slice(0, 10) || "")) perubahans.push(`Exp: "${obat.tanggal_exp?.slice(0, 10) || "-"}"  "${tanggalExp || "-"}"`);
+        if (Number(stokMinimum) !== Number(obat.stok_minimum ?? 10)) perubahans.push(`Stok Min: ${obat.stok_minimum}  ${stokMinimum}`);
+        if (aktifDijual !== (obat.aktif_dijual ?? true)) perubahans.push(`Status Jual: ${obat.aktif_dijual ? "Aktif" : "Nonaktif"}  ${aktifDijual ? "Aktif" : "Nonaktif"}`);
 
         if (adaUbahHarga) {
           tambahLogPerubahan({
@@ -485,7 +485,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                       setSatuanTunggal((s) => ({ ...s, harga_jual: auto }));
                     }}
                   >
-                    ⚡ Auto 25% (Bulat 500)
+                     Auto 25% (Bulat 500)
                   </button>
                 </div>
                 <input
@@ -504,7 +504,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
                       </span>
                       {stat.status === "rugi" && (
                         <span style={{ color: "#DC2626", fontSize: 11, fontWeight: 700 }}>
-                          ⚠️ Jual rugi!
+                           Jual rugi!
                         </span>
                       )}
                       {stat.status === "tipis" && (
@@ -618,7 +618,7 @@ export default function ObatModal({ obat, onClose, onSelesai, onDataBerubah }) {
           <div className="obat-modal-foot">
             <button type="button" className="btn-outline" onClick={onClose}>Batal</button>
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Menyimpan…" : "✓ Simpan"}
+              {loading ? "Menyimpan…" : " Simpan"}
             </button>
           </div>
         </form>

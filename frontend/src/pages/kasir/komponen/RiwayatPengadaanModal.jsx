@@ -69,7 +69,7 @@ export default function RiwayatPengadaanModal({ obat, onClose }) {
         >
           <div>
             <div style={{ fontSize: 11.5, fontWeight: 800, color: "var(--magenta-dark)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              📜 Asal-Usul & Riwayat Pengadaan Obat
+               Asal-Usul & Riwayat Pengadaan Obat
             </div>
             <h2 style={{ fontSize: 19, fontWeight: 800, color: "var(--ink)", margin: "4px 0 0" }}>
               {obat.nama}

@@ -85,7 +85,7 @@ export default function PaymentPanel({
           title="Klik untuk membuka atau menyembunyikan data pembeli, invoice & catatan"
         >
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 11, color: "var(--magenta)" }}>{bukaInfoTambahan ? "▼" : "▶"}</span>
+            <span style={{ fontSize: 11, color: "var(--magenta)" }}>{bukaInfoTambahan ? "▼" : ""}</span>
             <span>Nama Pembeli, Invoice &amp; Catatan (opsional)</span>
           </span>
           <span style={{ fontSize: 11, color: "var(--magenta)", fontWeight: 700 }}>
@@ -324,7 +324,7 @@ export default function PaymentPanel({
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, flexWrap: "wrap", gap: 4 }}>
           <span style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>
-            💡 Scroll mouse atau klik ▲/▼ untuk atur diskon
+             Scroll mouse atau klik ▲/▼ untuk atur diskon
           </span>
           {diskonTransaksi > 0 && tipeDiskonTransaksi === "%" && (
             <div style={{ fontSize: 11, color: "#DC2626", fontWeight: 700 }}>

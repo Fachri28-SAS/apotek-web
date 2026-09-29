@@ -234,7 +234,7 @@ export default function Penerimaan() {
           onClick={() => setFakturTerbuka(!fakturTerbuka)}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <h3 style={{ margin: 0, fontSize: 15 }}>📋 Faktur Pembelian</h3>
+            <h3 style={{ margin: 0, fontSize: 15 }}> Faktur Pembelian</h3>
             {!fakturTerbuka && (
               <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
                 {namaSupplier ? `• ${namaSupplier}` : "• (Supplier belum dipilih)"}
@@ -536,7 +536,7 @@ export default function Penerimaan() {
                                 ubahItem(it.key, "harga_jual_baru", auto);
                               }}
                             >
-                              ⚡ Auto 25% (Bulat 500)
+                               Auto 25% (Bulat 500)
                             </button>
                           </div>
                         </td>

@@ -172,7 +172,7 @@ export default function Kasir() {
             className={`kasir-tab ${t.id === tabAktifId ? "active" : ""}`}
             onClick={() => setTabAktifId(t.id)}
           >
-            <span className="kasir-tab-icon">🧾</span>
+            <span className="kasir-tab-icon"></span>
             <span className="kasir-tab-label">
               {t.namaPembeli ? t.namaPembeli : `Pelanggan ${idx + 1}`}
             </span>
@@ -192,7 +192,7 @@ export default function Kasir() {
                 title="Tutup transaksi ini"
                 aria-label="Tutup tab"
               >
-                ✕
+                
               </button>
             )}
           </div>

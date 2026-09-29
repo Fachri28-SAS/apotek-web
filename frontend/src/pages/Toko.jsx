@@ -436,7 +436,7 @@ export default function Toko() {
                   flexShrink: 0,
                 }}
               >
-                ⚠️
+                
               </div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#92400E", display: "flex", alignItems: "center", gap: 6 }}>
@@ -479,7 +479,7 @@ export default function Toko() {
                   boxShadow: "0 2px 6px rgba(217, 119, 6, 0.3)",
                 }}
               >
-                💳 Lanjutkan Pembayaran &rarr;
+                 Lanjutkan Pembayaran &rarr;
               </a>
               <button
                 type="button"
@@ -496,7 +496,7 @@ export default function Toko() {
                   cursor: loadingBatal ? "not-allowed" : "pointer",
                 }}
               >
-                {loadingBatal ? "Membatalkan…" : "✕ Batalkan"}
+                {loadingBatal ? "Membatalkan…" : " Batalkan"}
               </button>
               <button
                 type="button"
@@ -514,7 +514,7 @@ export default function Toko() {
                   lineHeight: 1,
                 }}
               >
-                ✕
+                
               </button>
             </div>
           </div>
@@ -658,7 +658,7 @@ export default function Toko() {
                         }}
                         title="Hubungi Apoteker via WhatsApp"
                       >
-                        💬 Resep
+                         Resep
                       </a>
                     ) : (
                       <button
@@ -894,7 +894,7 @@ export default function Toko() {
                     color: "#065F46",
                   }}
                 >
-                  ✓ Nominal otomatis terisi saat scan
+                   Nominal otomatis terisi saat scan
                 </div>
 
                 {/* QR Code SVG Dinamis */}
@@ -919,7 +919,7 @@ export default function Toko() {
                     style={{ display: "block", borderRadius: 6 }}
                   />
                   <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
-                    🔍 Perbesar QR
+                     Perbesar QR
                   </div>
                 </div>
 
@@ -948,7 +948,7 @@ export default function Toko() {
                       cursor: "pointer",
                     }}
                   >
-                    <span>📥</span>
+                    <span></span>
                     <span>Simpan Gambar QRIS</span>
                   </button>
                 </div>
@@ -1025,11 +1025,11 @@ export default function Toko() {
                           fontSize: 12,
                         }}
                       >
-                        ✕
+                        
                       </button>
                     </div>
                     <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700, marginTop: 6 }}>
-                      ✓ Foto bukti siap dikirim
+                       Foto bukti siap dikirim
                     </div>
                   </div>
                 ) : (
@@ -1049,7 +1049,7 @@ export default function Toko() {
                       textAlign: "center",
                     }}
                   >
-                    <span style={{ fontSize: 24 }}>📷</span>
+                    <span style={{ fontSize: 24 }}></span>
                     <strong style={{ fontSize: 12.5, color: "var(--magenta-dark)" }}>
                       Pilih Foto Bukti Transfer
                     </strong>
@@ -1109,7 +1109,7 @@ export default function Toko() {
                         textAlign: "center",
                       }}
                     >
-                      <span>↗️ Buka Halaman Pesanan</span>
+                      <span>↗ Buka Halaman Pesanan</span>
                     </a>
                     <button
                       type="button"
@@ -1125,7 +1125,7 @@ export default function Toko() {
                         cursor: "pointer",
                       }}
                     >
-                      ✕ Batalkan
+                       Batalkan
                     </button>
                   </div>
 
@@ -1143,7 +1143,7 @@ export default function Toko() {
                       textDecoration: "none",
                     }}
                   >
-                    💬 Butuh bantuan pembayaran? Chat CS (0821-2702-6272)
+                     Butuh bantuan pembayaran? Chat CS (0821-2702-6272)
                   </a>
                 </div>
               )}
@@ -1166,7 +1166,7 @@ export default function Toko() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "10px 0 14px", padding: "8px 12px", background: "var(--card-bg, #F8FAFC)", borderRadius: 10, border: "1px solid var(--line)" }}>
                 <span style={{ fontSize: 12, color: "var(--ink-soft)", display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: (order.pembayaran?.status === "sukses" || order.status === "selesai") ? "#10B981" : "#F59E0B" }} />
-                  {(order.pembayaran?.status === "sukses" || order.status === "selesai") ? "Pembayaran Lunas ✓" : "Menunggu konfirmasi kasir…"}
+                  {(order.pembayaran?.status === "sukses" || order.status === "selesai") ? "Pembayaran Lunas " : "Menunggu konfirmasi kasir…"}
                 </span>
                 <button
                   type="button"
@@ -1183,7 +1183,7 @@ export default function Toko() {
                     cursor: refreshingPesanan ? "wait" : "pointer",
                   }}
                 >
-                  {refreshingPesanan ? "Memeriksa…" : "🔄 Cek Status"}
+                  {refreshingPesanan ? "Memeriksa…" : " Cek Status"}
                 </button>
               </div>
 
@@ -1268,7 +1268,7 @@ export default function Toko() {
                 onClick={() => setQrisBesar(false)}
                 style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontWeight: 700 }}
               >
-                ✕
+                
               </button>
             </div>
 
@@ -1281,7 +1281,7 @@ export default function Toko() {
 
             <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", padding: "6px 12px", borderRadius: 8, marginBottom: 12 }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#065F46" }}>{rupiah(order.total)}</div>
-              <div style={{ fontSize: 11, color: "#047857" }}>✓ Nominal otomatis terisi</div>
+              <div style={{ fontSize: 11, color: "#047857" }}> Nominal otomatis terisi</div>
             </div>
 
             <div style={{ background: "#fff", padding: 10, borderRadius: 12, display: "inline-block", border: "1px solid #E2E8F0" }}>
@@ -1317,7 +1317,7 @@ export default function Toko() {
                   cursor: "pointer",
                 }}
               >
-                📥 Simpan Gambar
+                 Simpan Gambar
               </button>
               <button
                 type="button"
@@ -1386,7 +1386,7 @@ export default function Toko() {
                   flexShrink: 0,
                 }}
               >
-                ✕
+                
               </div>
               <div>
                 <h3 id="modal-batal-title" style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111827" }}>

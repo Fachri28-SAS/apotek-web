@@ -57,7 +57,7 @@ export default function GantiPasswordModal({ onClose, user }) {
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 24 }}>🔐</span>
+            <span style={{ fontSize: 24 }}></span>
             <div>
               <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>Ganti Kata Sandi</h3>
               <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
@@ -76,7 +76,7 @@ export default function GantiPasswordModal({ onClose, user }) {
               color: "var(--ink-soft)",
             }}
           >
-            ✕
+            
           </button>
         </div>
 
@@ -92,7 +92,7 @@ export default function GantiPasswordModal({ onClose, user }) {
               fontSize: 14,
             }}
           >
-            ✓ Kata sandi berhasil diubah!
+             Kata sandi berhasil diubah!
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>

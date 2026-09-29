@@ -148,7 +148,7 @@ export default function PembayaranOnline() {
       <div className="halaman-header">
         <div>
           <h1 style={{ fontSize: 24, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>📦</span> Pesanan Toko Online
+            <span></span> Pesanan Toko Online
           </h1>
           <p className="halaman-sub">
             Daftar pesanan obat dari web yang <strong>mengunggah bukti QRIS / terverifikasi</strong> &amp; siap disiapkan oleh apoteker/kasir.
@@ -166,19 +166,19 @@ export default function PembayaranOnline() {
           onClick={() => setTabAktif("perlu_disiapkan")}
           style={{ position: "relative" }}
         >
-          🟡 Perlu Disiapkan
+           Perlu Disiapkan
         </button>
         <button
           className={`kasir-tab ${tabAktif === "selesai" ? "active" : ""}`}
           onClick={() => setTabAktif("selesai")}
         >
-          🟢 Riwayat Selesai
+           Riwayat Selesai
         </button>
         <button
           className={`kasir-tab ${tabAktif === "dibatalkan" ? "active" : ""}`}
           onClick={() => setTabAktif("dibatalkan")}
         >
-          ❌ Dibatalkan
+           Dibatalkan
         </button>
         <button
           className={`kasir-tab ${tabAktif === "semua" ? "active" : ""}`}
@@ -208,7 +208,7 @@ export default function PembayaranOnline() {
         ) : daftar.length === 0 ? (
           <div className="panel-kosong" style={{ padding: "40px 20px" }}>
             <div style={{ fontSize: 36, marginBottom: 8 }}>
-              {tabAktif === "perlu_disiapkan" ? "🎉" : tabAktif === "dibatalkan" ? "🛡️" : "📋"}
+              {tabAktif === "perlu_disiapkan" ? "" : tabAktif === "dibatalkan" ? "" : ""}
             </div>
             <strong>
               {tabAktif === "perlu_disiapkan"
@@ -278,7 +278,7 @@ export default function PembayaranOnline() {
                               gap: 4,
                             }}
                           >
-                            ✕ Dibatalkan
+                             Dibatalkan
                           </span>
                         ) : (
                           <span
@@ -294,20 +294,20 @@ export default function PembayaranOnline() {
                               gap: 4,
                             }}
                           >
-                            {p.status_pembayaran === "menunggu_verifikasi" ? "⏳ Menunggu Verifikasi Bukti" : "✓ Lunas (QRIS Bima Farma)"}
+                            {p.status_pembayaran === "menunggu_verifikasi" ? " Menunggu Verifikasi Bukti" : " Lunas (QRIS Bima Farma)"}
                           </span>
                         )}
                         {isSelesai ? (
                           <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", background: "var(--bg)", padding: "3px 8px", borderRadius: 6 }}>
-                            ✓ Sudah Diambil / Selesai
+                             Sudah Diambil / Selesai
                           </span>
                         ) : isBatal ? null : p.status_pembayaran === "menunggu_verifikasi" ? (
                           <span style={{ fontSize: 11.5, fontWeight: 800, color: "#D97706", background: "#FFFBEB", padding: "3px 8px", borderRadius: 6 }}>
-                            🔍 Periksa Bukti
+                             Periksa Bukti
                           </span>
                         ) : (
                           <span style={{ fontSize: 11.5, fontWeight: 800, color: "#9333EA", background: "#F3E8FF", padding: "3px 8px", borderRadius: 6 }}>
-                            🟡 Perlu Disiapkan
+                             Perlu Disiapkan
                           </span>
                         )}
                       </div>
@@ -327,7 +327,7 @@ export default function PembayaranOnline() {
                             gap: 6,
                           }}
                         >
-                          <span>⚠️</span>
+                          <span></span>
                           <div>
                             <strong>Alasan Pembatalan:</strong> {p.alasan_batal || p.catatan_verifikasi || "Dibatalkan oleh pembeli"}
                           </div>
@@ -341,7 +341,7 @@ export default function PembayaranOnline() {
 
                       {p.penjualan?.alamat_kirim && (
                         <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2 }}>
-                          📍 Alamat Antar: <strong>{p.penjualan.alamat_kirim}</strong>
+                           Alamat Antar: <strong>{p.penjualan.alamat_kirim}</strong>
                         </div>
                       )}
 
@@ -371,7 +371,7 @@ export default function PembayaranOnline() {
                               title="Klik untuk memperbesar bukti transfer"
                             />
                             <div style={{ flex: 1, fontSize: 12 }}>
-                              <div style={{ fontWeight: 700, color: "#92400E" }}>📸 Bukti Transfer QRIS Terlampir</div>
+                              <div style={{ fontWeight: 700, color: "#92400E" }}> Bukti Transfer QRIS Terlampir</div>
                               <div style={{ color: "var(--ink-soft)", marginTop: 2 }}>
                                 Nominal klaim: <strong style={{ color: "var(--magenta-dark)" }}>{rupiah(p.nominal_klaim_customer || p.jumlah)}</strong>
                               </div>
@@ -380,7 +380,7 @@ export default function PembayaranOnline() {
                                 onClick={() => setPreviewBukti(urlBersih)}
                                 style={{ background: "none", border: "none", color: "var(--magenta-dark)", fontWeight: 700, padding: 0, marginTop: 3, cursor: "pointer", fontSize: 11.5, textDecoration: "underline" }}
                               >
-                                🔍 Perbesar Foto Bukti
+                                 Perbesar Foto Bukti
                               </button>
                             </div>
                           </div>
@@ -411,7 +411,7 @@ export default function PembayaranOnline() {
                               cursor: "pointer",
                             }}
                           >
-                            ✓ Konfirmasi Lunas &amp; Siapkan
+                             Konfirmasi Lunas &amp; Siapkan
                           </button>
 
                           <button
@@ -432,7 +432,7 @@ export default function PembayaranOnline() {
                               cursor: "pointer",
                             }}
                           >
-                            ✕ Tolak
+                             Tolak
                           </button>
                         </>
                       )}
@@ -483,7 +483,7 @@ export default function PembayaranOnline() {
                             cursor: "pointer",
                           }}
                         >
-                          💬 WhatsApp
+                           WhatsApp
                         </button>
                       )}
 
@@ -501,7 +501,7 @@ export default function PembayaranOnline() {
                             background: "linear-gradient(135deg, #10B981, #059669)",
                           }}
                         >
-                          {prosesId === p.id ? "Memproses..." : "📦 Tandai Sudah Diambil"}
+                          {prosesId === p.id ? "Memproses..." : " Tandai Sudah Diambil"}
                         </button>
                       )}
                     </div>
@@ -602,7 +602,7 @@ export default function PembayaranOnline() {
             >
               <div>
                 <strong style={{ fontSize: 14, color: "var(--magenta-dark)" }}>
-                  📸 Foto Bukti Transfer QRIS
+                   Foto Bukti Transfer QRIS
                 </strong>
                 <div style={{ fontSize: 11.5, color: "var(--ink-soft)" }}>
                   Cocokkan nominal dan nama pengirim dengan notifikasi GoPay apotek
@@ -620,7 +620,7 @@ export default function PembayaranOnline() {
                   padding: "0 4px",
                 }}
               >
-                ✕
+                
               </button>
             </div>
 

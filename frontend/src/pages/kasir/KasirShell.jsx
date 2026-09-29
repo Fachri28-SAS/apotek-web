@@ -402,7 +402,7 @@ export default function KasirShell({ children }) {
               animation: "slideInUp 0.3s ease-out",
             }}
           >
-            <span style={{ fontSize: 22 }}>🔔</span>
+            <span style={{ fontSize: 22 }}></span>
             <div>
               <div style={{ fontWeight: 800, fontSize: 13 }}>Pesanan Online Baru Masuk!</div>
               <div style={{ fontSize: 11, opacity: 0.9 }}>Segera verifikasi pembayaran & stok</div>
@@ -440,7 +440,7 @@ export default function KasirShell({ children }) {
                 padding: 4,
               }}
             >
-              ✕
+              
             </button>
           </div>
         )}

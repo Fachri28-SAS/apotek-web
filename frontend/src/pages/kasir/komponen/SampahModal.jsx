@@ -77,7 +77,7 @@ export default function SampahModal({ onClose, onSelesai }) {
     <div className="obat-modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="obat-modal" style={{ maxWidth: 640 }}>
         <div className="obat-modal-head">
-          <h2>🗑 Sampah</h2>
+          <h2> Sampah</h2>
           <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>

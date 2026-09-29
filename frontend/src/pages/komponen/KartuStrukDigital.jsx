@@ -93,7 +93,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
             border: isSelesai ? "1px solid #86EFAC" : isLunas ? "1px solid #A7F3D0" : "1px solid #FDE68A",
           }}
         >
-          <span>{isSelesai ? "🎉" : isLunas ? "✓" : "⏳"}</span>
+          <span>{isSelesai ? "" : isLunas ? "" : ""}</span>
           <span>
             {isSelesai
               ? "Pesanan Selesai"
@@ -187,7 +187,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 textAlign: "center",
               }}
             >
-              🎉 <strong>Pembayaran Terkonfirmasi.</strong> Simpan struk ini untuk ditunjukkan saat pengambilan obat.
+               <strong>Pembayaran Terkonfirmasi.</strong> Simpan struk ini untuk ditunjukkan saat pengambilan obat.
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -212,7 +212,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                   boxShadow: "0 4px 12px rgba(112, 26, 117, 0.25)",
                 }}
               >
-                <span>📥</span>
+                <span></span>
                 <span>{downloading ? "Menyiapkan Gambar…" : "Simpan Gambar Struk"}</span>
               </button>
 
@@ -235,7 +235,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                     gap: 6,
                   }}
                 >
-                  <span>🖨️</span>
+                  <span></span>
                   <span>Cetak / PDF</span>
                 </button>
 
@@ -257,7 +257,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                     gap: 6,
                   }}
                 >
-                  <span>📲</span>
+                  <span></span>
                   <span>Kirim ke WhatsApp</span>
                 </button>
               </div>
@@ -276,7 +276,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 marginBottom: 14,
               }}
             >
-              <div style={{ fontSize: 24, marginBottom: 4 }}>⏳</div>
+              <div style={{ fontSize: 24, marginBottom: 4 }}></div>
               <div style={{ fontWeight: 800, color: "#92400E", fontSize: 13.5 }}>
                 Menunggu Konfirmasi Kasir
               </div>
@@ -306,7 +306,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                 }}
                 title="Struk dapat diunduh setelah dikonfirmasi lunas oleh kasir"
               >
-                <span>🔒</span>
+                <span></span>
                 <span>Struk Tersedia Setelah Konfirmasi Kasir</span>
               </button>
 
@@ -329,7 +329,7 @@ export default function KartuStrukDigital({ pesanan, items = [] }) {
                   gap: 6,
                 }}
               >
-                <span>📲</span>
+                <span></span>
                 <span>Konfirmasi via WhatsApp</span>
               </button>
             </div>

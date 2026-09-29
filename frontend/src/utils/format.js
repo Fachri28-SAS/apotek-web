@@ -55,7 +55,7 @@ export function getStatusMargin(marginPct) {
       status: "rugi",
       warna: "merah",
       teks: isRugi ? "Rugi" : "Rendah",
-      label: isRugi ? `${marginPct}% ⛔ Rugi` : `${marginPct >= 0 ? `+${marginPct}%` : `${marginPct}%`} ⛔ Rendah`
+      label: isRugi ? `${marginPct}%  Rugi` : `${marginPct >= 0 ? `+${marginPct}%` : `${marginPct}%`}  Rendah`
     };
   }
   if (marginPct < 25) {
@@ -63,7 +63,7 @@ export function getStatusMargin(marginPct) {
       status: "tipis",
       warna: "kuning",
       teks: "Tipis",
-      label: `+${marginPct}% ⚠️ Tipis`
+      label: `+${marginPct}%  Tipis`
     };
   }
   return {

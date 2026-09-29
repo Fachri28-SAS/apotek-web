@@ -376,7 +376,7 @@ export default function DataObat() {
       });
 
       setEditingKey(null);
-      setNotifSukses(`✓ Harga jual ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
+      setNotifSukses(` Harga jual ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
       setTimeout(() => setNotifSukses(""), 4000);
     } catch (err) {
       alert("Gagal mengubah harga jual: " + (err.message || "Terjadi kesalahan"));
@@ -459,7 +459,7 @@ export default function DataObat() {
       });
 
       setEditingKey(null);
-      setNotifSukses(`✓ Harga beli ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
+      setNotifSukses(` Harga beli ${obat.nama} (${targetSatuan.nama_satuan}) berhasil diubah menjadi ${rupiah(hargaBaru)}`);
       setTimeout(() => setNotifSukses(""), 4000);
     } catch (err) {
       alert("Gagal mengubah harga beli: " + (err.message || "Terjadi kesalahan"));
@@ -534,7 +534,7 @@ export default function DataObat() {
       });
 
       setEditingKey(null);
-      setNotifSukses(`✓ Stok ${obat.nama} berhasil diubah menjadi ${stokBaru} ${obat.satuan_dasar || "Unit"}`);
+      setNotifSukses(` Stok ${obat.nama} berhasil diubah menjadi ${stokBaru} ${obat.satuan_dasar || "Unit"}`);
       setTimeout(() => setNotifSukses(""), 4000);
     } catch (err) {
       alert("Gagal mengubah stok: " + (err.message || "Terjadi kesalahan"));
@@ -863,7 +863,7 @@ export default function DataObat() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.75")}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.18")}
             >
-              {sembunyikan ? "🙈" : "👁️"}
+              {sembunyikan ? "" : ""}
             </span>
           </div>
           {filterMarginTipis && (
@@ -888,7 +888,7 @@ export default function DataObat() {
                 cursor: "pointer",
               }}
             >
-              🔄 Muat Ulang
+               Muat Ulang
             </button>
           )}
 
@@ -951,7 +951,7 @@ export default function DataObat() {
             onExportWord={handleWordDataObat}
             disabled={daftarTampil.length === 0}
           />
-          <button className="btn-sampah" onClick={() => setSampahOpen(true)}>🗑 Sampah</button>
+          <button className="btn-sampah" onClick={() => setSampahOpen(true)}> Sampah</button>
           <button className="btn-tambah" onClick={bukaTambah}>+ Tambah Obat</button>
         </div>
       </div>
@@ -992,7 +992,7 @@ export default function DataObat() {
           color: "#991B1B",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>⚠️</span>
+            <span style={{ fontSize: 20 }}></span>
             <div>
               <strong>Kendala Koneksi Server:</strong> {errorMsg}
               {daftar.length > 0 ? (
@@ -1021,7 +1021,7 @@ export default function DataObat() {
               whiteSpace: "nowrap",
             }}
           >
-            🔄 Coba Lagi
+             Coba Lagi
           </button>
         </div>
       )}
@@ -1130,7 +1130,7 @@ export default function DataObat() {
       {isAdmin && obatBermasalahMargin.length > 0 && (
         <div className="margin-alert-box">
           <div className="alert-text">
-            <span style={{ fontSize: 20 }}>⚠️</span>
+            <span style={{ fontSize: 20 }}></span>
             <div>
               <strong>Peringatan Margin:</strong> Ditemukan <strong>{obatBermasalahMargin.length} obat</strong> dengan margin di bawah batas aman (25%).
               {jumlahRugi > 0 ? (
@@ -1147,7 +1147,7 @@ export default function DataObat() {
               className="alert-btn"
               onClick={() => setFilterMarginTipis(!filterMarginTipis)}
             >
-              {filterMarginTipis ? "✕ Tampilkan Semua Obat" : `🔍 Lihat ${obatBermasalahMargin.length} Obat Bermasalah`}
+              {filterMarginTipis ? " Tampilkan Semua Obat" : ` Lihat ${obatBermasalahMargin.length} Obat Bermasalah`}
             </button>
             <button
               type="button"
@@ -1161,7 +1161,7 @@ export default function DataObat() {
               disabled={sedangPerbaiki}
               onClick={handlePerbaikiSemuaMargin}
             >
-              {sedangPerbaiki ? "Memproses…" : `⚡ Perbaiki Semua Margin 25% & Bulat 500 (${obatBermasalahMargin.length} Obat)`}
+              {sedangPerbaiki ? "Memproses…" : ` Perbaiki Semua Margin 25% & Bulat 500 (${obatBermasalahMargin.length} Obat)`}
             </button>
           </div>
         </div>
@@ -1194,14 +1194,14 @@ export default function DataObat() {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <span style={{ fontWeight: 800, color: "var(--magenta-dark)", fontSize: 14 }}>
-                ➕ Tambah Obat Baru (Langsung)
+                 Tambah Obat Baru (Langsung)
               </span>
               <button
                 type="button"
                 onClick={batalTambahInline}
                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "var(--ink-soft)" }}
               >
-                ✕
+                
               </button>
             </div>
 
@@ -1353,7 +1353,7 @@ export default function DataObat() {
                   className="btn-tambah"
                   style={{ flex: 1, padding: "9px 12px", justifyContent: "center", fontSize: 13 }}
                 >
-                  {loadingSimpanBaru ? "Menyimpan…" : "✓ Simpan Obat"}
+                  {loadingSimpanBaru ? "Menyimpan…" : " Simpan Obat"}
                 </button>
                 <button
                   type="button"
@@ -1460,7 +1460,7 @@ export default function DataObat() {
                               cursor: "pointer",
                             }}
                           >
-                            {savingKey === `beli_${obat.id}_${def.id}` ? "…" : "✓"}
+                            {savingKey === `beli_${obat.id}_${def.id}` ? "…" : ""}
                           </button>
                           <button
                             type="button"
@@ -1475,7 +1475,7 @@ export default function DataObat() {
                               cursor: "pointer",
                             }}
                           >
-                            ✕
+                            
                           </button>
                         </div>
                       ) : (
@@ -1496,7 +1496,7 @@ export default function DataObat() {
                           <span style={{ fontWeight: 700, color: "#1E40AF", fontSize: 12 }}>
                             Beli: {rupiah(def?.harga_beli || 0)}
                           </span>
-                          <span style={{ fontSize: 9, color: "#2563EB" }}>✏️</span>
+                          <span style={{ fontSize: 9, color: "#2563EB" }}></span>
                         </div>
                       )}
 
@@ -1538,7 +1538,7 @@ export default function DataObat() {
                               cursor: "pointer",
                             }}
                           >
-                            {savingKey === `jual_${obat.id}_${def.id}` ? "…" : "✓"}
+                            {savingKey === `jual_${obat.id}_${def.id}` ? "…" : ""}
                           </button>
                           <button
                             type="button"
@@ -1553,7 +1553,7 @@ export default function DataObat() {
                               cursor: "pointer",
                             }}
                           >
-                            ✕
+                            
                           </button>
                         </div>
                       ) : (
@@ -1574,7 +1574,7 @@ export default function DataObat() {
                           <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 12 }}>
                             Jual: {rupiah(def?.harga_jual || 0)} {def ? `/${def.nama_satuan}` : ""}
                           </span>
-                          <span style={{ fontSize: 9, color: "var(--magenta)" }}>✏️</span>
+                          <span style={{ fontSize: 9, color: "var(--magenta)" }}></span>
                         </div>
                       )}
                     </div>
@@ -1604,7 +1604,7 @@ export default function DataObat() {
                             cursor: "pointer",
                           }}
                         >
-                          ⚡ 25%
+                           25%
                         </button>
                       )}
                     </div>
@@ -1651,7 +1651,7 @@ export default function DataObat() {
                           cursor: "pointer",
                         }}
                       >
-                        {savingKey === `stok_${obat.id}` ? "…" : "✓"}
+                        {savingKey === `stok_${obat.id}` ? "…" : ""}
                       </button>
                       <button
                         type="button"
@@ -1666,7 +1666,7 @@ export default function DataObat() {
                           cursor: "pointer",
                         }}
                       >
-                        ✕
+                        
                       </button>
                     </div>
                   ) : (
@@ -1680,7 +1680,7 @@ export default function DataObat() {
                       style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3 }}
                     >
                       <span>{obat.stok} {obat.satuan_dasar}</span>
-                      <span style={{ fontSize: 9 }}>✏️</span>
+                      <span style={{ fontSize: 9 }}></span>
                     </span>
                   )}
                 </div>
@@ -1708,7 +1708,7 @@ export default function DataObat() {
               onClick={() => setSearch("")}
               style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)", padding: 0 }}
             >
-              ✕
+              
             </button>
           )}
         </div>
@@ -1746,7 +1746,7 @@ export default function DataObat() {
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
                   <span>Harga Beli</span>
                   <span style={{ fontSize: 10.5, color: "#2563EB", fontWeight: 800 }} title="Bisa langsung diedit di sini">
-                    ✏️
+                    
                   </span>
                 </div>
               </th>
@@ -1755,7 +1755,7 @@ export default function DataObat() {
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
                   <span>Harga Jual</span>
                   <span style={{ fontSize: 10.5, color: "var(--magenta)", fontWeight: 800 }} title="Bisa langsung diedit di sini">
-                    ✏️
+                    
                   </span>
                 </div>
               </th>
@@ -1783,7 +1783,7 @@ export default function DataObat() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      ✕
+                      
                     </button>
                   </div>
                 </th>
@@ -1990,7 +1990,7 @@ export default function DataObat() {
                       }}
                       title="Simpan obat baru"
                     >
-                      {loadingSimpanBaru ? "…" : "✓"}
+                      {loadingSimpanBaru ? "…" : ""}
                     </button>
                     <button
                       type="button"
@@ -2007,7 +2007,7 @@ export default function DataObat() {
                       }}
                       title="Batal"
                     >
-                      ✕
+                      
                     </button>
                   </div>
                 </td>
@@ -2106,7 +2106,7 @@ export default function DataObat() {
                             fontWeight: 800,
                           }}
                         >
-                          {savingKey === inlineEditStokKey ? "…" : "✓"}
+                          {savingKey === inlineEditStokKey ? "…" : ""}
                         </button>
                         <button
                           type="button"
@@ -2122,7 +2122,7 @@ export default function DataObat() {
                             fontSize: 10.5,
                           }}
                         >
-                          ✕
+                          
                         </button>
                       </div>
                     ) : (
@@ -2152,7 +2152,7 @@ export default function DataObat() {
                         >
                           <span style={{ fontWeight: 800, color: "var(--ink)", fontSize: 13 }}>{obat.stok}</span>{" "}
                           <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>{obat.satuan_dasar}</span>
-                          <span style={{ fontSize: 10, color: "#059669", opacity: 0.7 }}>✏️</span>
+                          <span style={{ fontSize: 10, color: "#059669", opacity: 0.7 }}></span>
                         </div>
                         {obat.stok < obat.stok_minimum && <div className="obat-stok-menipis" style={{ marginTop: 2 }}>MENIPIS</div>}
                       </div>
@@ -2203,7 +2203,7 @@ export default function DataObat() {
                             fontWeight: 800,
                           }}
                         >
-                          {savingKey === inlineEditBeliKey ? "…" : "✓"}
+                          {savingKey === inlineEditBeliKey ? "…" : ""}
                         </button>
                         <button
                           type="button"
@@ -2219,7 +2219,7 @@ export default function DataObat() {
                             fontSize: 10.5,
                           }}
                         >
-                          ✕
+                          
                         </button>
                       </div>
                     ) : (
@@ -2250,7 +2250,7 @@ export default function DataObat() {
                           <span style={{ fontWeight: 600, color: "var(--ink)", fontSize: 13 }}>
                             {hargaBeli}
                           </span>
-                          <span style={{ fontSize: 10, color: "#2563EB", opacity: 0.7 }}>✏️</span>
+                          <span style={{ fontSize: 10, color: "#2563EB", opacity: 0.7 }}></span>
                         </div>
                         {(() => {
                           const badge = badgeHargaBeli(def);
@@ -2304,7 +2304,7 @@ export default function DataObat() {
                             fontWeight: 800,
                           }}
                         >
-                          {savingKey === inlineEditKey ? "…" : "✓"}
+                          {savingKey === inlineEditKey ? "…" : ""}
                         </button>
                         <button
                           type="button"
@@ -2320,7 +2320,7 @@ export default function DataObat() {
                             fontSize: 10.5,
                           }}
                         >
-                          ✕
+                          
                         </button>
                       </div>
                     ) : (
@@ -2380,7 +2380,7 @@ export default function DataObat() {
                               }}
                               title="Otomatis hitung margin 25% dan kelipatan 500"
                             >
-                              ⚡ Jadi 25%
+                               Jadi 25%
                             </button>
                           )}
                         </div>

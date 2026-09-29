@@ -357,7 +357,7 @@ function BantuanCS() {
                   <div className="cs-nomor-label">Nomor WhatsApp CS Resmi</div>
                   <div className="cs-nomor-val">{CS_DISPLAY}</div>
                 </div>
-                <div style={{ fontSize: 28 }}>💬</div>
+                <div style={{ fontSize: 28 }}></div>
               </div>
             </div>
 
@@ -368,7 +368,7 @@ function BantuanCS() {
                 rel="noreferrer"
                 className="cs-btn-wa"
               >
-                <span>💬</span>
+                <span></span>
                 <span>Chat WhatsApp CS Sekarang</span>
               </a>
               <div style={{ textAlign: "center", marginTop: 10, fontSize: 11.5, color: "var(--ink-soft)" }}>
@@ -380,7 +380,7 @@ function BantuanCS() {
           {/* Card 2: Form Cepat Kirim Kendala */}
           <div className="cs-form-card">
             <h3 style={{ fontSize: 18, color: "var(--ink)", margin: "0 0 6px" }}>
-              📝 Kirim Laporan Kendala atau Pertanyaan
+               Kirim Laporan Kendala atau Pertanyaan
             </h3>
             <p style={{ fontSize: 12.5, color: "var(--ink-soft)", margin: "0 0 16px" }}>
               Pilih kendala Anda di bawah ini untuk langsung terhubung ke WhatsApp CS dengan pesan terformat:
@@ -405,12 +405,12 @@ function BantuanCS() {
                   value={kategori}
                   onChange={(e) => setKategori(e.target.value)}
                 >
-                  <option value="Kendala Pembayaran QRIS">💳 Kendala Pembayaran QRIS (M-Banking / E-Wallet)</option>
-                  <option value="Ingin Batalkan / Ubah Pesanan">❌ Ingin Membatalkan atau Mengubah Pesanan</option>
-                  <option value="Tanya Ketersediaan / Stok Obat">💊 Tanya Ketersediaan / Stok Obat</option>
-                  <option value="Konsultasi Resep Dokter">🩺 Konsultasi Resep Dokter</option>
-                  <option value="Kendala Teknis / Error di Web">⚠️ Kendala Teknis / Error di Website</option>
-                  <option value="Lainnya">💬 Pertanyaan Lainnya</option>
+                  <option value="Kendala Pembayaran QRIS"> Kendala Pembayaran QRIS (M-Banking / E-Wallet)</option>
+                  <option value="Ingin Batalkan / Ubah Pesanan"> Ingin Membatalkan atau Mengubah Pesanan</option>
+                  <option value="Tanya Ketersediaan / Stok Obat"> Tanya Ketersediaan / Stok Obat</option>
+                  <option value="Konsultasi Resep Dokter"> Konsultasi Resep Dokter</option>
+                  <option value="Kendala Teknis / Error di Web"> Kendala Teknis / Error di Website</option>
+                  <option value="Lainnya"> Pertanyaan Lainnya</option>
                 </select>
 
                 <div className="cs-quick-pills">
@@ -419,21 +419,21 @@ function BantuanCS() {
                     className="cs-quick-pill"
                     onClick={() => quickPillClick("Kendala Pembayaran QRIS", "Halo CS, saldo saya terpotong saat scan QRIS namun status di web belum terverifikasi. Mohon bantuannya.")}
                   >
-                    💳 QRIS Terpotong
+                     QRIS Terpotong
                   </button>
                   <button
                     type="button"
                     className="cs-quick-pill"
                     onClick={() => quickPillClick("Ingin Batalkan / Ubah Pesanan", "Halo CS, saya ingin membatalkan/mengubah pesanan saya. Kode tracking: ")}
                   >
-                    ❌ Batal Pesanan
+                     Batal Pesanan
                   </button>
                   <button
                     type="button"
                     className="cs-quick-pill"
                     onClick={() => quickPillClick("Tanya Ketersediaan / Stok Obat", "Halo CS, apakah obat ini tersedia di apotek: ")}
                   >
-                    💊 Cek Stok Obat
+                     Cek Stok Obat
                   </button>
                 </div>
               </div>
@@ -517,7 +517,7 @@ function Footer({ onOpenCaraBayar }) {
 
         <div className="foot-payment-notice" style={{ marginTop: 28, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, fontSize: "12.5px", color: "#A0AEC0" }}>
           <span>
-            💳 Pembayaran aman via <strong>QRIS</strong> (Semua Bank &amp; E-Wallet){" "}
+             Pembayaran aman via <strong>QRIS</strong> (Semua Bank &amp; E-Wallet){" "}
             <button
               type="button"
               onClick={onOpenCaraBayar}
@@ -591,10 +591,10 @@ function ModalCaraBayar({ onClose }) {
           {/* Highlight Metode Pembayaran */}
           <div className="cara-bayar-methods-box">
             <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: "var(--magenta-dark)" }}>
-              💳 Metode Pembayaran:
+               Metode Pembayaran:
             </h4>
             <div className="cara-bayar-pill-grid">
-              <span className="cb-pill">📱 QRIS (M-Banking &amp; E-Wallet)</span>
+              <span className="cb-pill"> QRIS (M-Banking &amp; E-Wallet)</span>
             </div>
             <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "var(--ink-soft)", lineHeight: 1.4 }}>
               BCA, Mandiri, BRI, BNI, GoPay, OVO, DANA, ShopeePay, LinkAja, dll.
@@ -646,7 +646,7 @@ function ModalCaraBayar({ onClose }) {
 
           {/* Alert Khusus Obat Resep */}
           <div className="cb-resep-notice">
-            <strong>⚠️ Khusus Obat Keras / Resep:</strong>
+            <strong> Khusus Obat Keras / Resep:</strong>
             <p style={{ margin: "4px 0 0", fontSize: 11.5 }}>
               Harap kirimkan foto resep dokter ke WhatsApp kami untuk verifikasi apoteker sebelum pengambilan/pengiriman.
             </p>
@@ -657,10 +657,10 @@ function ModalCaraBayar({ onClose }) {
             <span>Butuh bantuan pemesanan atau kendala bayar?</span>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
               <a href="https://wa.me/6282127026272" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
-                💬 CS WhatsApp: 0821-2702-6272
+                 CS WhatsApp: 0821-2702-6272
               </a>
               <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
-                📞 Telp Apotek: 0812-2360-4900
+                 Telp Apotek: 0812-2360-4900
               </a>
             </div>
           </div>

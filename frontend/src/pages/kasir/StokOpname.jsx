@@ -194,7 +194,7 @@ export default function StokOpname() {
         keterangan: it.keterangan || "Penyesuaian stok fisik",
       });
 
-      setSukses(`✓ Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
+      setSukses(` Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
       muatRiwayat();
     } catch (err) {
       setError(err.message || `Gagal menyimpan penyesuaian stok "${it.nama}".`);
@@ -298,7 +298,7 @@ export default function StokOpname() {
               }}
               title="Isi stok fisik semua obat sama persis dengan stok sistem"
             >
-              <span>⚡</span>
+              <span></span>
               <span>Samakan Semua dg Sistem</span>
             </button>
 
@@ -461,7 +461,7 @@ export default function StokOpname() {
                             }}
                             title="Atur penyesuaian per batch obat"
                           >
-                            <span>📦</span>
+                            <span></span>
                             <span>{adaBatchConfig ? `${it.batches.length} Batch` : "Batch"}</span>
                           </button>
                         </td>
@@ -497,7 +497,7 @@ export default function StokOpname() {
                           {selisih === null ? (
                             <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>— Belum diisi —</span>
                           ) : selisih === 0 ? (
-                            <span className="selisih-badge cocok">✓ Pas (0)</span>
+                            <span className="selisih-badge cocok"> Pas (0)</span>
                           ) : (
                             <span
                               className={`selisih-badge ${
@@ -546,7 +546,7 @@ export default function StokOpname() {
                                 : "Isi stok fisik dulu untuk simpan"
                             }
                           >
-                            <span>💾</span>
+                            <span></span>
                             <span>{sedangMenyimpanId === it.obat_id ? "…" : "Simpan"}</span>
                           </button>
                         </td>
@@ -568,12 +568,12 @@ export default function StokOpname() {
                     className="opname-ringkasan-selisih"
                     style={{ color: "#D97706", fontWeight: 700 }}
                   >
-                    ⚠️ {adaSelisih} obat memiliki selisih fisik (Total selisih:{" "}
+                     {adaSelisih} obat memiliki selisih fisik (Total selisih:{" "}
                     {totalSelisih > 0 ? `+${totalSelisih}` : totalSelisih})
                   </span>
                 ) : itemTerisi.length > 0 ? (
                   <span style={{ color: "#059669", fontWeight: 700 }}>
-                    ✓ Semua stok fisik yang diisi cocok dengan sistem (tidak ada selisih)
+                     Semua stok fisik yang diisi cocok dengan sistem (tidak ada selisih)
                   </span>
                 ) : (
                   <span style={{ fontSize: 12 }}>
@@ -630,7 +630,7 @@ export default function StokOpname() {
                 color: "var(--ink-soft)",
               }}
             >
-              <span>📅 Dari:</span>
+              <span> Dari:</span>
               <input
                 type="date"
                 value={dariTanggal}

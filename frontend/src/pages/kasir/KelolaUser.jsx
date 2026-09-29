@@ -196,7 +196,7 @@ export default function KelolaUser() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, marginBottom: 20 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--ink)", margin: "0 0 4px" }}>
-              👥 Kelola Pengguna & Akun Kasir
+               Kelola Pengguna & Akun Kasir
             </h1>
             <p style={{ fontSize: 13, color: "var(--ink-soft)", margin: 0 }}>
               Kelola akses staf, tambah kasir baru, nonaktifkan akun kasir yang keluar, atau reset kata sandi.
@@ -264,7 +264,7 @@ export default function KelolaUser() {
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
-                🛡️ Keamanan Portal Kasir &amp; Izin Akses Perangkat
+                 Keamanan Portal Kasir &amp; Izin Akses Perangkat
                 <span style={{ fontSize: 11, background: "#16A34A", color: "#fff", padding: "2px 8px", borderRadius: 100, fontWeight: 700 }}>
                   Aktif
                 </span>
@@ -298,14 +298,14 @@ export default function KelolaUser() {
               transition: "all 0.2s",
             }}
           >
-            {salinSukses ? "✓ Link Izin Disalin!" : "🔗 Salin Link Izin untuk Kasir"}
+            {salinSukses ? " Link Izin Disalin!" : " Salin Link Izin untuk Kasir"}
           </button>
         </div>
 
         {/* Notifikasi Sukses */}
         {suksesPesan && (
           <div style={{ background: "#DCFCE7", color: "#15803D", padding: "12px 18px", borderRadius: 10, fontWeight: 700, fontSize: 13.5, marginBottom: 18 }}>
-            ✓ {suksesPesan}
+             {suksesPesan}
           </div>
         )}
 
@@ -429,7 +429,7 @@ export default function KelolaUser() {
                             }}
                             title="Ubah data atau reset password"
                           >
-                            ✏️ Edit / Sandi
+                             Edit / Sandi
                           </button>
 
                           {/* Tombol Toggle Aktif / Nonaktifkan */}
@@ -449,7 +449,7 @@ export default function KelolaUser() {
                               }}
                               title={u.aktif ? "Nonaktifkan akun ini (blokir login)" : "Aktifkan kembali akun ini"}
                             >
-                              {u.aktif ? "🔴 Nonaktifkan" : "🟢 Aktifkan"}
+                              {u.aktif ? " Nonaktifkan" : " Aktifkan"}
                             </button>
                           )}
                         </div>
@@ -473,14 +473,14 @@ export default function KelolaUser() {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: "var(--ink)" }}>
-                {userEdit ? `Edit Akun: ${userEdit.nama}` : "➕ Tambah Akun Baru"}
+                {userEdit ? `Edit Akun: ${userEdit.nama}` : " Tambah Akun Baru"}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: "var(--ink-soft)" }}
               >
-                ✕
+                
               </button>
             </div>
 

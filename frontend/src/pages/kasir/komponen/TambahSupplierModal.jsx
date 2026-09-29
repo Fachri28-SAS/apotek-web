@@ -130,7 +130,7 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
         >
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-              🏢 Kelola Supplier / PBF
+               Kelola Supplier / PBF
             </h2>
             <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
               Tambah atau hapus supplier untuk faktur penerimaan barang.
@@ -180,7 +180,7 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
               cursor: "pointer",
             }}
           >
-            📋 Daftar Supplier ({supplierList.length})
+             Daftar Supplier ({supplierList.length})
           </button>
         </div>
 
@@ -378,8 +378,8 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
                         }}>
                           {s.is_pkp ? "PKP" : "Non-PKP"}
                         </span>
-                        {s.telepon && <span>📞 {s.telepon}</span>}
-                        {s.kontak && <span>👤 {s.kontak}</span>}
+                        {s.telepon && <span> {s.telepon}</span>}
+                        {s.kontak && <span> {s.kontak}</span>}
                       </div>
                     </div>
 

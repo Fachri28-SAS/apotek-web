@@ -339,7 +339,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
                                 color: lunas ? "#15803D" : "#C2410C",
                               }}
                             >
-                              {lunas ? "✓ LUNAS" : "MENUNGGU PEMBAYARAN"}
+                              {lunas ? " LUNAS" : "MENUNGGU PEMBAYARAN"}
                             </span>
                           </div>
                         </div>

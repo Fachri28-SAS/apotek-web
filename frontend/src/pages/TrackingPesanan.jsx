@@ -401,7 +401,7 @@ export default function TrackingPesanan() {
                   : "Pembayaran QRIS"}
               </h3>
               <span style={{ fontSize: 12.5, fontWeight: 700, color: isBatal ? "#DC2626" : "var(--magenta-dark)" }}>
-                {isBatal ? "✕ Batal" : statusPembayaran === "sukses" ? "✓ Lunas" : rupiah(pesanan.total)}
+                {isBatal ? " Batal" : statusPembayaran === "sukses" ? " Lunas" : rupiah(pesanan.total)}
               </span>
             </div>
 
@@ -419,7 +419,7 @@ export default function TrackingPesanan() {
                       marginBottom: 16,
                     }}
                   >
-                    <div style={{ fontSize: 36, marginBottom: 8 }}>🚫</div>
+                    <div style={{ fontSize: 36, marginBottom: 8 }}></div>
                     <h4 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#DC2626" }}>
                       Pesanan Telah Dibatalkan
                     </h4>
@@ -449,7 +449,7 @@ export default function TrackingPesanan() {
               ) : statusPembayaran === "sukses" ? (
                 <div>
                   <div style={{ textAlign: "center", padding: "16px", background: "var(--green-tint)", borderRadius: 14, border: "1.5px solid #86EFAC", marginBottom: 14 }}>
-                    <div style={{ fontSize: 32, marginBottom: 4 }}>✅</div>
+                    <div style={{ fontSize: 32, marginBottom: 4 }}></div>
                     <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "var(--green-dark)" }}>Pembayaran Lunas</h4>
                     <p style={{ margin: 0, fontSize: 12, color: "var(--ink-soft)" }}>
                       Pesanan Anda sedang disiapkan. Tunjukkan struk ini saat mengambil obat di apotek.
@@ -461,7 +461,7 @@ export default function TrackingPesanan() {
                 /* KONDISI 2: BUKTI SUDAH DIUNGGAH, MENUNGGU KASIR */
                 <div>
                   <div style={{ textAlign: "center", padding: "16px", background: "#FEF3C7", borderRadius: 14, border: "1.5px solid #FCD34D", marginBottom: 14 }}>
-                    <div style={{ fontSize: 32, marginBottom: 4 }}>⏳</div>
+                    <div style={{ fontSize: 32, marginBottom: 4 }}></div>
                     <h4 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "#92400E" }}>Menunggu Verifikasi Kasir</h4>
                     <p style={{ margin: "0 0 8px", fontSize: 12, color: "#78350F" }}>
                       Bukti pembayaran diterima dan sedang diverifikasi oleh kasir.
@@ -483,7 +483,7 @@ export default function TrackingPesanan() {
                       rel="noopener noreferrer"
                       style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#059669", fontWeight: 700, textDecoration: "underline" }}
                     >
-                      💬 Hubungi Kasir via WhatsApp untuk Refund ↗
+                       Hubungi Kasir via WhatsApp untuk Refund ↗
                     </a>
                   </div>
 
@@ -523,7 +523,7 @@ export default function TrackingPesanan() {
                         color: "#065F46",
                       }}
                     >
-                      ✓ Nominal otomatis terisi saat scan
+                       Nominal otomatis terisi saat scan
                     </div>
 
                     {/* QR Code SVG Dinamis */}
@@ -548,7 +548,7 @@ export default function TrackingPesanan() {
                         style={{ display: "block", borderRadius: 6 }}
                       />
                       <div style={{ fontSize: 11, color: "var(--magenta-dark)", fontWeight: 700, marginTop: 4 }}>
-                        🔍 Perbesar QR
+                         Perbesar QR
                       </div>
                     </div>
 
@@ -578,7 +578,7 @@ export default function TrackingPesanan() {
                           cursor: "pointer",
                         }}
                       >
-                        <span>📥</span> Unduh QRIS
+                        <span></span> Unduh QRIS
                       </button>
                     </div>
 
@@ -656,11 +656,11 @@ export default function TrackingPesanan() {
                               fontSize: 12,
                             }}
                           >
-                            ✕
+                            
                           </button>
                         </div>
                         <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 700, marginTop: 4 }}>
-                          ✓ Foto bukti siap dikirim
+                           Foto bukti siap dikirim
                         </div>
                       </div>
                     ) : (
@@ -681,7 +681,7 @@ export default function TrackingPesanan() {
                           marginBottom: 12,
                         }}
                       >
-                        <span style={{ fontSize: 28 }}>📷</span>
+                        <span style={{ fontSize: 28 }}></span>
                         <strong style={{ fontSize: 13, color: "var(--magenta-dark)" }}>
                           Pilih Foto / Screenshot Bukti Transfer
                         </strong>
@@ -727,7 +727,7 @@ export default function TrackingPesanan() {
                         boxShadow: buktiBase64 ? "0 4px 12px rgba(16, 185, 129, 0.25)" : "none",
                       }}
                     >
-                      {uploading ? "Mengunggah Bukti…" : "✓ Kirim Bukti Pembayaran ke Kasir"}
+                      {uploading ? "Mengunggah Bukti…" : " Kirim Bukti Pembayaran ke Kasir"}
                     </button>
                   </form>
 
@@ -753,7 +753,7 @@ export default function TrackingPesanan() {
                         cursor: "pointer",
                       }}
                     >
-                      ✕ Batalkan Pesanan Ini
+                       Batalkan Pesanan Ini
                     </button>
                   </div>
 
@@ -809,7 +809,7 @@ export default function TrackingPesanan() {
                 onClick={() => setQrisBesar(false)}
                 style={{ background: "#F1F5F9", border: "none", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontWeight: 700 }}
               >
-                ✕
+                
               </button>
             </div>
 
@@ -822,7 +822,7 @@ export default function TrackingPesanan() {
 
             <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", padding: "6px 12px", borderRadius: 8, marginBottom: 12 }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#065F46" }}>{rupiah(pesanan.total)}</div>
-              <div style={{ fontSize: 11, color: "#047857" }}>✓ Nominal otomatis terisi</div>
+              <div style={{ fontSize: 11, color: "#047857" }}> Nominal otomatis terisi</div>
             </div>
 
             <div style={{ background: "#fff", padding: 10, borderRadius: 12, display: "inline-block", border: "1px solid #E2E8F0" }}>
@@ -858,7 +858,7 @@ export default function TrackingPesanan() {
                   cursor: "pointer",
                 }}
               >
-                📥 Simpan Gambar
+                 Simpan Gambar
               </button>
               <button
                 type="button"
@@ -908,7 +908,7 @@ export default function TrackingPesanan() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ textAlign: "center", marginBottom: 16 }}>
-              <div style={{ fontSize: 38, marginBottom: 8 }}>⚠️</div>
+              <div style={{ fontSize: 38, marginBottom: 8 }}></div>
               <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 800, color: "var(--ink)" }}>
                 Batalkan Pesanan Ini?
               </h3>

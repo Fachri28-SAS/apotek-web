@@ -91,7 +91,7 @@ export default function Riwayat() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12, padding: "0 2px" }}>
           <div>
             <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
-              📅 Dari:
+               Dari:
             </label>
             <input
               type="date"
@@ -161,7 +161,7 @@ export default function Riwayat() {
           {/* Kalender Filter Tanggal */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-              <span>📅 Dari:</span>
+              <span> Dari:</span>
               <input
                 type="date"
                 value={dariTanggal}

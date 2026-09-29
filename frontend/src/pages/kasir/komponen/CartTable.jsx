@@ -170,7 +170,7 @@ export default function CartTable({ items, onUbah, onHapus }) {
                   }}
                   title="Hapus"
                 >
-                  ✕
+                  
                 </button>
               </div>
             </div>

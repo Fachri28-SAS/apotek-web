@@ -156,7 +156,7 @@ export default function DetailBatchModal({ obat, onClose, onSimpan }) {
         >
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: "var(--magenta-dark)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              📦 Rincian Batch & Stok Opname
+               Rincian Batch & Stok Opname
             </div>
             <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: "3px 0 0" }}>
               {obat?.nama}
@@ -390,7 +390,7 @@ export default function DetailBatchModal({ obat, onClose, onSimpan }) {
                 cursor: "pointer",
               }}
             >
-              ✓ Simpan & Terapkan
+               Simpan & Terapkan
             </button>
           </div>
         </div>

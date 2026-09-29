@@ -213,7 +213,7 @@ export default function Laporan() {
         <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Kalender Filter Tanggal */}
           <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-            <span>📅 Dari:</span>
+            <span> Dari:</span>
             <input
               type="date"
               value={dariTanggal}

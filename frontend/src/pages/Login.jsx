@@ -176,7 +176,7 @@ export default function Login() {
             {errorKunci && <div className="login-error" style={{ marginBottom: 16 }}>{errorKunci}</div>}
             {suksesKunci && (
               <div style={{ background: "#DCFCE7", color: "#15803D", padding: "10px 14px", borderRadius: 10, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>
-                ✓ {suksesKunci}
+                 {suksesKunci}
               </div>
             )}
 

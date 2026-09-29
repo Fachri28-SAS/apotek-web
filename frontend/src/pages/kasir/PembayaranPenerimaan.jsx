@@ -303,7 +303,7 @@ export default function PembayaranPenerimaan() {
           </div>
         </div>
         <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 14, border: "1px solid #BBF7D0" }}>
-          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}>✓ Sudah Dibayar (Lunas)</div>
+          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}> Sudah Dibayar (Lunas)</div>
           <div style={{ fontSize: 19, fontWeight: 800, color: "#15803D", marginTop: 4 }}>
             {rupiah(totalLunas)}
           </div>
@@ -326,7 +326,7 @@ export default function PembayaranPenerimaan() {
                   cursor: "pointer",
                 }}
               >
-                Rincian ➔
+                Rincian 
               </button>
             )}
           </div>
@@ -352,7 +352,7 @@ export default function PembayaranPenerimaan() {
             />
             {search && (
               <button type="button" onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-soft)", padding: 0 }}>
-                ✕
+                
               </button>
             )}
           </div>
@@ -444,7 +444,7 @@ export default function PembayaranPenerimaan() {
                 className={`periode-chip ${filterStatus === "lunas" ? "active" : ""}`}
                 onClick={() => setFilterStatus("lunas")}
               >
-                ✓ Lunas
+                 Lunas
               </button>
             </div>
 
@@ -467,7 +467,7 @@ export default function PembayaranPenerimaan() {
               }}
               title="Buka panel khusus rekapitulasi hutang per PT / Supplier berdasarkan rentang tanggal"
             >
-              <span>🏢</span>
+              <span></span>
               <span>Rekap Hutang PT</span>
             </button>
 
@@ -591,7 +591,7 @@ export default function PembayaranPenerimaan() {
                                     cursor: "pointer",
                                   }}
                                 >
-                                  💳 Hutang
+                                   Hutang
                                 </button>
                               )}
                             </div>
@@ -625,7 +625,7 @@ export default function PembayaranPenerimaan() {
                                   fontSize: 10.5,
                                 }}
                               >
-                                🖨️
+                                
                               </button>
                             </div>
                           </div>
@@ -660,7 +660,7 @@ export default function PembayaranPenerimaan() {
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                             <div style={{ textAlign: "left", minWidth: 65 }}>
                               <div style={{ fontSize: 12, fontWeight: 700, color: isLunas ? "#15803D" : "#B91C1C" }}>
-                                {isLunas ? "✓ Lunas" : "○ Tempo"}
+                                {isLunas ? " Lunas" : "○ Tempo"}
                               </div>
                               <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
                                 {tglBayarStr}
@@ -723,7 +723,7 @@ export default function PembayaranPenerimaan() {
         <div className="struk-overlay" onClick={() => !loadingToggle && setKonfirmasiBayar(null)}>
           <div className="struk-modal" style={{ maxWidth: 440, padding: 24, textAlign: "center" }}>
             <div style={{ fontSize: 38, marginBottom: 10 }}>
-              {konfirmasiBayar.status_bayar === "lunas" ? "↩️" : "✅"}
+              {konfirmasiBayar.status_bayar === "lunas" ? "↩" : ""}
             </div>
             <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
               {konfirmasiBayar.status_bayar === "lunas"
@@ -733,7 +733,7 @@ export default function PembayaranPenerimaan() {
             <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 20 }}>
               Faktur <strong>{konfirmasiBayar.no_faktur}</strong> dari <strong>{konfirmasiBayar.nama_supplier}</strong> senilai <strong>{rupiah(konfirmasiBayar.total)}</strong> akan diubah statusnya menjadi{" "}
               <strong style={{ color: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D" }}>
-                {konfirmasiBayar.status_bayar === "lunas" ? "○ Belum Lunas (Tempo)" : "✓ Lunas (Sudah Dibayar)"}
+                {konfirmasiBayar.status_bayar === "lunas" ? "○ Belum Lunas (Tempo)" : " Lunas (Sudah Dibayar)"}
               </strong>.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
@@ -823,7 +823,7 @@ export default function PembayaranPenerimaan() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontSize: 36, marginBottom: 6 }}>📄</div>
+            <div style={{ fontSize: 36, marginBottom: 6 }}></div>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: "#1E293B", margin: "0 0 6px" }}>
               Cetak / Ekspor Faktur
             </h3>
@@ -855,7 +855,7 @@ export default function PembayaranPenerimaan() {
                   cursor: "pointer",
                 }}
               >
-                🖨️ Cetak / Simpan PDF (Format A4 Resmi)
+                 Cetak / Simpan PDF (Format A4 Resmi)
               </button>
 
               <button
@@ -879,7 +879,7 @@ export default function PembayaranPenerimaan() {
                   cursor: "pointer",
                 }}
               >
-                📊 Unduh Format Excel (.xls)
+                 Unduh Format Excel (.xls)
               </button>
 
               <button
@@ -903,7 +903,7 @@ export default function PembayaranPenerimaan() {
                   cursor: "pointer",
                 }}
               >
-                📝 Unduh Format Word (.doc)
+                 Unduh Format Word (.doc)
               </button>
             </div>
 

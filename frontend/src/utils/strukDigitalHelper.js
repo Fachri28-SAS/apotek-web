@@ -64,7 +64,7 @@ export function unduhStrukDigitalPng(pesanan) {
 
   ctx.fillStyle = "#166534";
   ctx.font = "bold 13px 'Segoe UI', Roboto, sans-serif";
-  ctx.fillText("✓ BUKTI PEMBAYARAN QRIS (LUNAS)", width / 2, badgeY + 21);
+  ctx.fillText(" BUKTI PEMBAYARAN QRIS (LUNAS)", width / 2, badgeY + 21);
 
   // Meta Transaksi
   let y = 158;
@@ -291,7 +291,7 @@ export function cetakStrukDigital(pesanan) {
           <div style="font-size: 11px; color: #555; margin-top: 2px;">
             Jl. Tanimulya Raya No. 1, Ngamprah<br/>Kab. Bandung Barat &middot; WA: 0812-2360-4900
           </div>
-          <div class="badge">✓ LUNAS VIA QRIS</div>
+          <div class="badge"> LUNAS VIA QRIS</div>
         </div>
         <div class="dashed"></div>
         <div class="row"><span>No. Struk</span><span class="bold">${pesanan.no_struk || "—"}</span></div>
@@ -335,11 +335,11 @@ export function kirimStrukWhatsApp(pesanan, noWaApotek = "6281223604900") {
     .join("\n");
 
   const pesan = `Halo Kasir Apotek Bima Farma, saya sudah transfer via QRIS untuk pesanan online:
-📋 *No. Struk:* ${pesanan.no_struk || "-"}
-🏷️ *Kode Tracking:* ${pesanan.kode_tracking || "-"}
-👤 *Nama:* ${pesanan.nama_pembeli || "-"}
-📞 *No. HP:* ${pesanan.telepon_pembeli || "-"}
-💰 *Total:* ${rupiah(pesanan.total || pesanan.subtotal || 0)} (Lunas via QRIS)
+ *No. Struk:* ${pesanan.no_struk || "-"}
+ *Kode Tracking:* ${pesanan.kode_tracking || "-"}
+ *Nama:* ${pesanan.nama_pembeli || "-"}
+ *No. HP:* ${pesanan.telepon_pembeli || "-"}
+ *Total:* ${rupiah(pesanan.total || pesanan.subtotal || 0)} (Lunas via QRIS)
 
 *Obat yang Dipesan:*
 ${listTeks}

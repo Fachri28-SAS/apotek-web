@@ -383,7 +383,7 @@ export default function LaporanPengeluaran() {
           {/* Kalender Filter Tanggal */}
           <div className="kalender-filter-group" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div className="kalender-item-wrap" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
-              <span>📅 Dari:</span>
+              <span> Dari:</span>
               <input
                 type="date"
                 value={dariTanggal}
@@ -805,7 +805,7 @@ export default function LaporanPengeluaran() {
             >
               <div>
                 <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                  💸 Catat Pengeluaran Kas
+                   Catat Pengeluaran Kas
                 </h2>
                 <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 2 }}>
                   Catat pengeluaran operasional toko atau gaji karyawan
@@ -831,7 +831,7 @@ export default function LaporanPengeluaran() {
                   fontWeight: 700,
                 }}
               >
-                ✕
+                
               </button>
             </div>
 

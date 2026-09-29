@@ -463,9 +463,9 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
 
           <div style={{ display: "inline-flex", gap: 2, background: "#E2E8F0", padding: 2, borderRadius: 6 }}>
             {[
-              { val: -5, label: "◀ -5mm" },
-              { val: -4, label: "◀ -4mm" },
-              { val: -2, label: "◀ -2mm" },
+              { val: -5, label: " -5mm" },
+              { val: -4, label: " -4mm" },
+              { val: -2, label: " -2mm" },
               { val: 0, label: "Normal" },
             ].map((p) => (
               <button
@@ -683,7 +683,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 color: "#94A3B8",
               }}
             >
-              ✂ Ruang potong kertas EPPOS
+               Ruang potong kertas EPPOS
             </div>
           </div>
         </div>
@@ -701,8 +701,8 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             lineHeight: 1.45,
           }}
         >
-          💡 <strong>Tips Printer EPPOS agar teks tidak mepet kanan:</strong><br />
-          Saat jendela print Chrome muncul ➔ Klik <strong>Setelan lainnya (More settings)</strong> ➔ Ubah <strong>Margin (Margins)</strong> ke <strong>"Tidak ada" (None)</strong>.
+           <strong>Tips Printer EPPOS agar teks tidak mepet kanan:</strong><br />
+          Saat jendela print Chrome muncul  Klik <strong>Setelan lainnya (More settings)</strong>  Ubah <strong>Margin (Margins)</strong> ke <strong>"Tidak ada" (None)</strong>.
         </div>
 
         <div className="struk-actions" style={{ padding: "12px 18px", background: "#FFFFFF" }}>
@@ -714,7 +714,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             onClick={() => cetakStruk(data, ukuranKertas, offsetKiri)}
             style={{ fontWeight: 800 }}
           >
-            🖨️ Cetak Struk ({ukuranKertas}{offsetKiri !== 0 ? ` ${offsetKiri}mm` : ""})
+             Cetak Struk ({ukuranKertas}{offsetKiri !== 0 ? ` ${offsetKiri}mm` : ""})
           </button>
         </div>
       </div>
