@@ -33,6 +33,14 @@ class PenjualanController extends Controller
      */
     public function store(Request $r, StokService $stok)
     {
+        $user = $r->user();
+        if ($user && $user->role === 'kasir') {
+            $operasional = \App\Services\OperasionalService::getStatus();
+            if (!$operasional['is_open']) {
+                abort(403, "Transaksi kasir tidak dapat diproses di luar jam operasional ({$operasional['jam_buka']} - {$operasional['jam_tutup']} WIB).");
+            }
+        }
+
         $data = $r->validate([
             'nama_pembeli' => 'nullable|string|max:255',
             'no_invoice' => 'nullable|string|max:50',
