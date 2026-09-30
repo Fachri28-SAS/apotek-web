@@ -12,10 +12,11 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
   const is80 = ukuranKertas === "80mm";
 
   // Lebar printable area aman agar tepi kanan tidak terpotong:
+  // Lebar printable area aman agar tepi kanan tidak terpotong:
   // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 38mm.
   // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 44mm.
-  // - 80mm: kertas roll 80mm, area head cetak ~72mm. Safe width: 72mm.
-  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "72mm";
+  // - 80mm: kertas roll 80mm, area head cetak efektif ~64-68mm. Safe width: 64mm agar angka kanan tidak kepotong.
+  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "64mm";
   const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
   const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "13px";
   const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "17px";
@@ -53,7 +54,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
           </div>
           <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: ${baseFontSize}; margin-top: 1px;">
             <span style="white-space: nowrap;">${it.qty} × ${Number(it.harga_jual || 0).toLocaleString("id-ID")}</span>
-            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: 4px;">
+            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: 4px; padding-right: 3px;">
               ${itemSubtotalBersih.toLocaleString("id-ID")}
             </span>
           </div>
@@ -62,7 +63,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
               ? `
             <div style="display: flex; justify-content: space-between; font-size: ${subFontSize}; color: #000;">
               <span>*Diskon item</span>
-              <span style="font-weight: 700;">-${itemDiskon.toLocaleString("id-ID")}</span>
+              <span style="font-weight: 700; padding-right: 3px;">-${itemDiskon.toLocaleString("id-ID")}</span>
             </div>
           `
               : ""
@@ -93,7 +94,8 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
             max-width: ${printWidth} !important;
             margin: 0 !important;
             margin-left: ${offsetKiri}mm !important;
-            padding: 1mm 0 0 0 !important;
+            padding: 1mm 3mm 0 1mm !important;
+            box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize};
             line-height: 1.25;
@@ -129,6 +131,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
             white-space: nowrap;
             flex-shrink: 0;
             font-weight: 700;
+            padding-right: 3px;
           }
           .struk-logo {
             max-height: 28px;
@@ -308,6 +311,11 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
   function gantiUkuran(val) {
     setUkuranKertas(val);
     localStorage.setItem("struk_ukuran_kertas", val);
+    if (val === "80mm" && offsetKiri < -2) {
+      gantiOffset(0);
+    } else if (val === "58mm" && offsetKiri === 0) {
+      gantiOffset(-4);
+    }
   }
 
   function gantiOffset(val) {
@@ -463,10 +471,10 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
 
           <div style={{ display: "inline-flex", gap: 2, background: "#E2E8F0", padding: 2, borderRadius: 6 }}>
             {[
-              { val: -5, label: " -5mm" },
-              { val: -4, label: " -4mm" },
-              { val: -2, label: " -2mm" },
-              { val: 0, label: "Normal" },
+              { val: -4, label: "-4mm" },
+              { val: -2, label: "-2mm" },
+              { val: 0, label: "0 (Tengah)" },
+              { val: 2, label: "+2mm" },
             ].map((p) => (
               <button
                 key={p.val}
