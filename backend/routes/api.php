@@ -68,6 +68,7 @@ Route::get('/secret-bersihkan-online', function (\Illuminate\Http\Request $r, \A
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/user/ping', [UserController::class, 'ping']);
     Route::post('/ganti-password', [AuthController::class, 'gantiPassword']);
 
     // ---- Audit Log (Kasir boleh POST, Admin boleh GET & DELETE) ----

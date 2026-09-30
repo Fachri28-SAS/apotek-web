@@ -24,19 +24,40 @@ export default function KelolaUser() {
   const [aktif, setAktif] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  function muatUsers() {
-    setLoading(true);
+  function formatLastSeen(isoStr, isOnline) {
+    if (isOnline) return "Online Sekarang";
+    if (!isoStr) return "Belum pernah login";
+    const d = new Date(isoStr);
+    const diffMenit = Math.round((Date.now() - d.getTime()) / 60000);
+    if (diffMenit < 1) return "Baru saja offline";
+    if (diffMenit < 60) return `Offline · ${diffMenit} mnt lalu`;
+    const diffJam = Math.round(diffMenit / 60);
+    if (diffJam < 24) return `Offline · ${diffJam} jam lalu`;
+    return `Offline · ${d.toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`;
+  }
+
+  function muatUsers(silent = false) {
+    if (!silent) setLoading(true);
     api("/users/kelola")
       .then((data) => {
         setUsers(data);
         setError("");
       })
-      .catch((err) => setError(err.message || "Gagal memuat data pengguna."))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (!silent) setError(err.message || "Gagal memuat data pengguna.");
+      })
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
   }
 
   useEffect(() => {
     muatUsers();
+    // Polling status online/offline realtime setiap 8 detik
+    const timer = setInterval(() => {
+      muatUsers(true);
+    }, 8000);
+    return () => clearInterval(timer);
   }, []);
 
   function bukaModalTambah() {
@@ -185,6 +206,7 @@ export default function KelolaUser() {
   }
 
   const totalUser = users.length;
+  const userOnline = users.filter((u) => u.is_online).length;
   const kasirAktif = users.filter((u) => u.aktif && u.role === "kasir").length;
   const adminAktif = users.filter((u) => u.aktif && u.role === "admin").length;
   const nonaktif = users.filter((u) => !u.aktif).length;
@@ -309,10 +331,17 @@ export default function KelolaUser() {
           </div>
         )}
 
-        {/* Ringkasan Akun */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 22 }}>
+        {/* Ringkasan Akun & Status Realtime */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 22 }}>
+          <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 12, border: "1px solid #BBF7D0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#15803D", fontWeight: 700 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16A34A", display: "inline-block", boxShadow: "0 0 0 3px rgba(22, 163, 74, 0.25)" }} />
+              Sedang Online (Live)
+            </div>
+            <div style={{ fontSize: 24, fontWeight: 800, color: "#15803D", marginTop: 4 }}>{userOnline} Akun</div>
+          </div>
           <div style={{ background: "#fff", padding: "14px 18px", borderRadius: 12, border: "1px solid var(--line)" }}>
-            <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Akun Terdaftar</div>
+            <div style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>Total Akun</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: "var(--ink)", marginTop: 4 }}>{totalUser}</div>
           </div>
           <div style={{ background: "#FAF5FF", padding: "14px 18px", borderRadius: 12, border: "1px solid #E9D5FF" }}>
@@ -324,34 +353,35 @@ export default function KelolaUser() {
             <div style={{ fontSize: 24, fontWeight: 800, color: "#1D4ED8", marginTop: 4 }}>{adminAktif}</div>
           </div>
           <div style={{ background: "#FEF2F2", padding: "14px 18px", borderRadius: 12, border: "1px solid #FECACA" }}>
-            <div style={{ fontSize: 12, color: "#DC2626", fontWeight: 700 }}>Akun Dinonaktifkan (Blokir)</div>
+            <div style={{ fontSize: 12, color: "#DC2626", fontWeight: 700 }}>Dinonaktifkan</div>
             <div style={{ fontSize: 24, fontWeight: 800, color: "#DC2626", marginTop: 4 }}>{nonaktif}</div>
           </div>
         </div>
 
         {/* Tabel Data User */}
         <div className="kasir-table-wrap" style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--line)", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table className="kasir-table" style={{ width: "100%", minWidth: 640, borderCollapse: "collapse" }}>
+          <table className="kasir-table" style={{ width: "100%", minWidth: 720, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--bg)", borderBottom: "1px solid var(--line)", textAlign: "left" }}>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Nama Lengkap</th>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Username</th>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Role</th>
+                <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Sesi Realtime</th>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Status Akses</th>
                 <th style={{ padding: "12px 16px", fontSize: 12.5 }}>Tgl Dibuat</th>
                 <th style={{ padding: "12px 16px", fontSize: 12.5, textAlign: "right" }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {loading && users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: "var(--ink-soft)" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "var(--ink-soft)" }}>
                     Memuat data akun pengguna…
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "40px", color: "var(--ink-soft)" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "40px", color: "var(--ink-soft)" }}>
                     Belum ada data pengguna.
                   </td>
                 </tr>
@@ -396,15 +426,61 @@ export default function KelolaUser() {
                         </span>
                       </td>
                       <td style={{ padding: "14px 16px" }}>
+                        {u.is_online ? (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              background: "#DCFCE7",
+                              color: "#15803D",
+                              padding: "4px 10px",
+                              borderRadius: 20,
+                              fontWeight: 700,
+                              fontSize: 12,
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: "50%",
+                                background: "#16A34A",
+                                boxShadow: "0 0 0 3px rgba(22, 163, 74, 0.25)",
+                              }}
+                            />
+                            Online
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              background: "#F1F5F9",
+                              color: "#64748B",
+                              padding: "4px 10px",
+                              borderRadius: 20,
+                              fontWeight: 600,
+                              fontSize: 11.5,
+                            }}
+                            title={u.last_seen_at ? `Terakhir aktif: ${new Date(u.last_seen_at).toLocaleString("id-ID")}` : "Belum pernah login"}
+                          >
+                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#94A3B8" }} />
+                            {formatLastSeen(u.last_seen_at, u.is_online)}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "14px 16px" }}>
                         {u.aktif ? (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#15803D", fontWeight: 700, fontSize: 12.5 }}>
                             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16A34A" }} />
-                            Aktif (Bisa Login)
+                            Bisa Login
                           </span>
                         ) : (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#DC2626", fontWeight: 700, fontSize: 12.5 }}>
                             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626" }} />
-                            Dinonaktifkan (Terkunci)
+                            Terkunci (Blokir)
                           </span>
                         )}
                       </td>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Mobile Android - Apotek Bima Farma</title>
+  <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --green: #39A048;
+  --green-dark: #227A34;
+  --green-tint: #EAF5EE;
+  --magenta: #A64BC7;
+  --magenta-dark: #7F2F9E;
+  --magenta-tint: #F7EDFB;
+  --magenta-deep: #5C2076;
+  --bg-web: #FDFCFA;
+  --bg-mobile: #F7F5F9;
+  --surface: #FFFFFF;
+  --ink: #1D241F;
+  --ink-mobile: #211B26;
+  --ink-soft: #5B665F;
+  --ink-soft-mobile: #6B6472;
+  --line: #E5E1D9;
+  --line-mobile: #E8E3EC;
+  --red: #E11D48;
+  --red-tint: #FFE4E6;
+  --amber: #D97706;
+  --amber-tint: #FEF3C7;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0B0D12;
+  color: #E2E8F0;
+  padding: 40px 24px 80px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Presentation Canvas Header */
+.canvas-header {
+  max-width: 1400px;
+  margin: 0 auto 36px;
+  background: linear-gradient(135deg, #161A23 0%, #1A202C 100%);
+  border: 1px solid #2D3748;
+  border-radius: 20px;
+  padding: 28px 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.canvas-title h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.canvas-title p {
+  color: #94A3B8;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.canvas-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.meta-chip {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #242C3D;
+  border: 1px solid #3B465C;
+  color: #CBD5E1;
+}
+.meta-chip.primary {
+  background: rgba(166,75,199,0.22);
+  border-color: #A64BC7;
+  color: #E9D5FF;
+}
+
+/* Palette Swatches */
+.palette-bar {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94A3B8;
+  font-weight: 600;
+}
+.palette-color {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Section Title */
+.mockup-section-header {
+  max-width: 1400px;
+  margin: 44px auto 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.mockup-section-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #F8FAFC;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mockup-section-header p {
+  font-size: 13.5px;
+  color: #94A3B8;
+  margin-top: 4px;
+}
+.mockup-count-pill {
+  background: #1E2533;
+  color: #A64BC7;
+  border: 1px solid rgba(166,75,199,0.3);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Horizontal Showcase Container */
+.mockup-scroller {
+  display: flex;
+  gap: 36px;
+  overflow-x: auto;
+  padding: 10px 4px 30px;
+  max-width: 100%;
+}
+.mockup-card-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mockup-screen-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #E2E8F0;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 4px;
+}
+.mockup-screen-title span.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #1E2430;
+  color: #94A3B8;
+  border: 1px solid #2D3748;
+}
+
+/* =========================================================================
+   IPHONE 15 PRO DEVICE FRAME
+   ========================================================================= */
+.phone-frame {
+  width: 390px;
+  min-width: 390px;
+  max-width: 390px;
+  height: 844px;
+  min-height: 844px;
+  max-height: 844px;
+  flex-shrink: 0;
+  border-radius: 50px;
+  border: 11px solid #1A1722;
+  box-shadow: 0 25px 65px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.12) inset;
+  background: var(--bg-mobile);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dynamic Island */
+.phone-island {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 114px;
+  height: 28px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+.phone-island::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #081120;
+  border-radius: 50%;
+  border: 1.5px solid #1E293B;
+}
+
+/* Phone Status Bar */
+.phone-statusbar {
+  height: 46px;
+  padding: 13px 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #211B26;
+  z-index: 90;
+  flex-shrink: 0;
+}
+.phone-statusbar.white {
+  color: #211B26;
+}
+.phone-statusbar-icons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+/* Home Indicator */
+.phone-home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 4px;
+  background: #211B26;
+  border-radius: 3px;
+  z-index: 100;
+  opacity: 0.35;
+}
+
+/* Phone Bottom Nav (AppBottomNav.kt) */
+.mobile-bottom-nav {
+  height: 64px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--line-mobile);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px 10px;
+  flex-shrink: 0;
+  z-index: 80;
+}
+.nav-tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink-soft-mobile);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 10px;
+  position: relative;
+}
+.nav-tab-item.active {
+  color: var(--magenta);
+  font-weight: 700;
+}
+.nav-tab-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* =========================================================================
+   MACBOOK PRO DESKTOP FRAME
+   ========================================================================= */
+.desktop-frame {
+  width: 1200px;
+  min-width: 1200px;
+  max-width: 1200px;
+  height: 750px;
+  min-height: 750px;
+  max-height: 750px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  border: 1px solid #333C4D;
+  box-shadow: 0 25px 65px rgba(0,0,0,0.55);
+  background: var(--bg-web);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.desktop-header {
+  height: 42px;
+  background: #EDEAE4;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  z-index: 90;
+  flex-shrink: 0;
+}
+.mac-dots {
+  display: flex;
+  gap: 7px;
+}
+.mac-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.mac-dot.red { background: #FF5F56; }
+.mac-dot.yellow { background: #FFBD2E; }
+.mac-dot.green { background: #27C93F; }
+.desktop-address-bar {
+  flex: 1;
+  max-width: 520px;
+  margin: 0 auto;
+  height: 26px;
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  gap: 6px;
+}
+.desktop-address-bar svg {
+  width: 12px;
+  height: 12px;
+  color: #10B981;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="canvas-header">
+    <div class="canvas-title">
+      <h1>
+        <svg viewBox="0 0 100 100" width="32" height="32">
+          <rect x="35" y="4" width="30" height="45" rx="14" fill="#A64BC7" />
+          <rect x="35" y="51" width="30" height="45" rx="14" fill="#A64BC7" />
+          <rect x="4" y="35" width="45" height="30" rx="14" fill="#39A048" />
+          <rect x="51" y="35" width="45" height="30" rx="14" fill="#A64BC7" />
+        </svg>
+        Mockup Aplikasi Mobile Kasir (Android · Jetpack Compose)
+      </h1>
+      <p>Apotek Bima Farma · Tanimulya, Ngamprah — Desain 100% otentik dari source code Kotlin Compose</p>
+    </div>
+    <div class="canvas-meta">
+      <span class="meta-chip primary">5 Layar Mobile (390 x 844 px)</span>
+      <span class="meta-chip">Jetpack Compose UI</span>
+    </div>
+  </div>
+
+  <div class="mockup-section-header">
+    <div>
+      <h2>📱 Layar Aplikasi Android (iPhone 15 Pro Frame)</h2>
+      <p>Layar Splash, Login, Dashboard Kasir, Layar Transaksi POS, dan Struk Digital Termal</p>
+    </div>
+    <span class="mockup-count-pill">5 Layar Siap Figma</span>
+  </div>
+
+  <div class="mockup-scroller">
+    <!-- Screen 1: Splash -->
+    <div class="mockup-card-wrapper">
+      <div class="mockup-screen-title">
+        <span>1. Layar Splash Medis</span>
+        <span class="badge">SplashScreen.kt</span>
+      </div>
+      
+<div class="phone-frame" style="background: #FCFBFE; justify-content: space-between;">
+  <div class="phone-island"></div>
+  <div class="phone-statusbar">
+    <span>09:41</span>
+    <div class="phone-statusbar-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M0 8.5h3v-2H0v2zm4 0h3v-4H4v4zm4 0h3v-6H8v6zm4 0h3V0h-3v8.5z"/></svg>
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><path d="M6.5 2C8.6 2 10.5 2.8 12 4.1L6.5 11 1 4.1C2.5 2.8 4.4 2 6.5 2z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor"><rect x="1" y="1" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- CENTER LOGO & BRANDING -->
+  <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; padding: 24px; text-align:center;">
+    <!-- Elevated White Card (Surface, 92dp, shadow 6dp, radius 24dp) -->
+    <div style="width: 92px; height: 92px; background: #FFFFFF; border-radius: 24px; box-shadow: 0 8px 24px rgba(33,27,38,0.08); display:flex; align-items:center; justify-content:center; margin-bottom: 22px;">
+      <svg viewBox="0 0 100 100" width="54" height="54">
+        <!-- Batang vertikal atas ungu -->
+        <rect x="35" y="4" width="30" height="45" rx="14" fill="#A64BC7" />
+        <!-- Batang vertikal bawah ungu -->
+        <rect x="35" y="51" width="30" height="45" rx="14" fill="#A64BC7" />
+        <!-- Batang horizontal kiri hijau -->
+        <rect x="4" y="35" width="45" height="30" rx="14" fill="#39A048" />
+        <!-- Batang horizontal kanan ungu -->
+        <rect x="51" y="35" width="45" height="30" rx="14" fill="#A64BC7" />
+      </svg>
+    </div>
+
+    <h2 style="font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #211B26; margin-bottom: 6px;">APOTEK BIMA FARMA</h2>
+    <p style="font-size: 13px; font-weight: 500; color: #6B6472;">Tanimulya, Ngamprah</p>
+  </div>
+
+  <!-- BOTTOM LOADING & TAGLINE -->
+  <div style="display:flex; flex-direction:column; align-items:center; padding-bottom: 44px;">
+    <div style="width: 24px; height: 24px; border: 2.5px solid #F0D5FA; border-top-color: #A64BC7; border-radius: 50%; animation: spin 0.9s linear infinite; margin-bottom: 14px;"></div>
+    <span style="font-size: 12px; font-weight: 600; color: rgba(107,100,114,0.85);">Apotek Resmi &amp; Terpercaya</span>
+  </div>
+
+  <div class="phone-home-indicator"></div>
+</div>
+
+    </div>
+
+    <!-- Screen 2: Login -->
+    <div class="mockup-card-wrapper">
+      <div class="mockup-screen-title">
+        <span>2. Layar Login Kasir</span>
+        <span class="badge">LoginScreen.kt</span>
+      </div>
+      
+<div class="phone-frame" style="background: #F7F5F9; justify-content: space-between;">
+  <div class="phone-island"></div>
+  <div class="phone-statusbar">
+    <span>09:41</span>
+    <div class="phone-statusbar-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M0 8.5h3v-2H0v2zm4 0h3v-4H4v4zm4 0h3v-6H8v6zm4 0h3V0h-3v8.5z"/></svg>
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><path d="M6.5 2C8.6 2 10.5 2.8 12 4.1L6.5 11 1 4.1C2.5 2.8 4.4 2 6.5 2z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor"><rect x="1" y="1" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <div style="padding: 24px 26px 40px; display:flex; flex-direction:column; align-items:center; flex:1;">
+    <div style="margin-top: 24px; margin-bottom: 18px;">
+      <svg viewBox="0 0 100 100" width="56" height="56">
+        <rect x="34" y="3" width="30" height="46" rx="15" fill="#A64BC7" />
+        <rect x="34" y="51" width="30" height="46" rx="15" fill="#A64BC7" />
+        <rect x="3" y="34" width="46" height="30" rx="15" fill="#39A048" />
+        <rect x="51" y="34" width="46" height="30" rx="15" fill="#A64BC7" />
+      </svg>
+    </div>
+
+    <h2 style="font-size: 22px; font-weight: 800; color: #211B26; text-align:center;">Masuk ke Bima Farma</h2>
+    <p style="font-size: 13px; color: #6B6472; margin-top: 4px; margin-bottom: 28px; text-align:center;">Aplikasi kasir &amp; admin apotek</p>
+
+    <!-- FORM INPUTS -->
+    <div style="width: 100%; display:flex; flex-direction:column; gap: 16px;">
+      <div>
+        <label style="display:block; font-size: 12px; font-weight: 700; color: #6B6472; margin-bottom: 6px;">Nama Pengguna</label>
+        <div style="width: 100%; height: 50px; background: #FFFFFF; border: 1.5px solid #A64BC7; border-radius: 11px; display:flex; align-items:center; padding: 0 16px; font-size: 14.5px; font-weight: 600; color: #211B26; box-shadow: 0 2px 6px rgba(166,75,199,0.1);">
+          kasir
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block; font-size: 12px; font-weight: 700; color: #6B6472; margin-bottom: 6px;">Kata Sandi</label>
+        <div style="width: 100%; height: 50px; background: #FFFFFF; border: 1.5px solid #E8E3EC; border-radius: 11px; display:flex; align-items:center; justify-content:space-between; padding: 0 16px; font-size: 18px; color: #211B26; letter-spacing: 2px;">
+          <span>••••••••</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6472" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+      </div>
+
+      <button style="width: 100%; height: 50px; background: #A64BC7; border: none; border-radius: 12px; color: #FFFFFF; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; box-shadow: 0 6px 18px rgba(166,75,199,0.35);">
+        Masuk Kasir
+      </button>
+    </div>
+
+    <!-- QUICK HINT -->
+    <div style="margin-top: auto; padding-top: 30px; text-align:center;">
+      <span style="font-size: 12px; color: #6B6472;">Apotek Bima Farma · v2.4.0 Native</span>
+    </div>
+  </div>
+
+  <div class="phone-home-indicator"></div>
+</div>
+
+    </div>
+
+    <!-- Screen 3: Dashboard -->
+    <div class="mockup-card-wrapper">
+      <div class="mockup-screen-title">
+        <span>3. Dashboard Kasir Mobile</span>
+        <span class="badge">DashboardScreen.kt</span>
+      </div>
+      
+<div class="phone-frame" style="background: #F7F5F9;">
+  <div class="phone-island"></div>
+  <div class="phone-statusbar">
+    <span>09:41</span>
+    <div class="phone-statusbar-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M0 8.5h3v-2H0v2zm4 0h3v-4H4v4zm4 0h3v-6H8v6zm4 0h3V0h-3v8.5z"/></svg>
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><path d="M6.5 2C8.6 2 10.5 2.8 12 4.1L6.5 11 1 4.1C2.5 2.8 4.4 2 6.5 2z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor"><rect x="1" y="1" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 20px 14px;">
+    <div>
+      <div style="font-size: 12px; font-weight: 600; color: #6B6472;">Selamat siang</div>
+      <div style="font-size: 19px; font-weight: 800; color: #211B26;">Siti Rahma</div>
+    </div>
+    <div style="width: 40px; height: 40px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 4px 12px rgba(33,27,38,0.06); display:flex; align-items:center; justify-content:center; position:relative;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6472" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      <div style="position:absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: #E11D48; border-radius: 50%; border: 1.5px solid #FFFFFF;"></div>
+    </div>
+  </div>
+
+  <!-- SCROLL CONTENT -->
+  <div style="flex:1; overflow-y:auto; padding: 0 18px 14px; display:flex; flex-direction:column; gap: 14px;">
+    <!-- 2x2 KPI GRID -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <!-- Card 1: Penjualan hari ini -->
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 2px 8px rgba(33,27,38,0.04); border: 1px solid #EAE5EF;">
+        <div style="width: 32px; height: 32px; border-radius: 10px; background: #EAF5EE; display:flex; align-items:center; justify-content:center; color: #39A048; margin-bottom: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 800; color: #211B26;">Rp 2.450.000</div>
+        <div style="font-size: 11.5px; color: #6B6472; margin-top: 2px;">Penjualan hari ini</div>
+      </div>
+
+      <!-- Card 2: Transaksi hari ini -->
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 2px 8px rgba(33,27,38,0.04); border: 1px solid #EAE5EF;">
+        <div style="width: 32px; height: 32px; border-radius: 10px; background: #F7EDFB; display:flex; align-items:center; justify-content:center; color: #A64BC7; margin-bottom: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 800; color: #211B26;">38</div>
+        <div style="font-size: 11.5px; color: #6B6472; margin-top: 2px;">Transaksi hari ini</div>
+      </div>
+
+      <!-- Card 3: Stok menipis -->
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 2px 8px rgba(33,27,38,0.04); border: 1px solid #FDE68A;">
+        <div style="width: 32px; height: 32px; border-radius: 10px; background: #FEF3C7; display:flex; align-items:center; justify-content:center; color: #D97706; margin-bottom: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2.4 18a1.8 1.8 0 001.5 2.6h16.2a1.8 1.8 0 001.5-2.6L13.7 3.9a1.8 1.8 0 00-3.4 0z"/></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 800; color: #B45309;">5</div>
+        <div style="font-size: 11.5px; color: #B45309; margin-top: 2px;">Stok menipis</div>
+      </div>
+
+      <!-- Card 4: Akan kadaluwarsa -->
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 14px; box-shadow: 0 2px 8px rgba(33,27,38,0.04); border: 1px solid #FDE68A;">
+        <div style="width: 32px; height: 32px; border-radius: 10px; background: #FEF3C7; display:flex; align-items:center; justify-content:center; color: #D97706; margin-bottom: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <div style="font-size: 16px; font-weight: 800; color: #B45309;">3</div>
+        <div style="font-size: 11.5px; color: #B45309; margin-top: 2px;">Akan kadaluwarsa</div>
+      </div>
+    </div>
+
+    <!-- TRANSAKSI TERBARU -->
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+        <span style="font-size: 14px; font-weight: 800; color: #211B26;">Transaksi Terbaru</span>
+        <span style="font-size: 12px; font-weight: 700; color: #A64BC7; cursor:pointer;">Lihat semua →</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap: 8px;">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 11px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 6px rgba(33,27,38,0.03); border: 1px solid #EAE5EF;">
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #F7EDFB; display:flex; align-items:center; justify-content:center; color: #A64BC7;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #211B26;">#0012 · Ibu Fatimah</div>
+              <div style="font-size: 11px; color: #6B6472;">TUNAI · 10:45</div>
+            </div>
+          </div>
+          <span style="font-size: 13.5px; font-weight: 800; color: #211B26;">Rp 68.500</span>
+        </div>
+
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 11px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 6px rgba(33,27,38,0.03); border: 1px solid #EAE5EF;">
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: #EAF5EE; display:flex; align-items:center; justify-content:center; color: #39A048;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 8h6M9 12h6"/></svg>
+            </div>
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: #211B26;">#0011 · Bpk. Bambang</div>
+              <div style="font-size: 11px; color: #6B6472;">QRIS · 10:20</div>
+            </div>
+          </div>
+          <span style="font-size: 13.5px; font-weight: 800; color: #211B26;">Rp 125.000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STOK MENIPIS -->
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+        <span style="font-size: 14px; font-weight: 800; color: #211B26;">Stok Menipis</span>
+        <span style="font-size: 12px; font-weight: 700; color: #A64BC7; cursor:pointer;">Kelola stok →</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap: 8px;">
+        <div style="background: #FFFFFF; border-radius: 14px; padding: 11px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow: 0 2px 6px rgba(33,27,38,0.03); border: 1px solid #EAE5EF;">
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #211B26;">Amoxicillin 500mg</div>
+            <div style="font-size: 11px; color: #6B6472;">Min. stok 20 Strip</div>
+          </div>
+          <span style="font-size: 11.5px; font-weight: 800; color: #E11D48; background: #FFE4E6; padding: 3px 8px; border-radius: 6px;">8 Strip</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP BOTTOM NAV -->
+  <div class="mobile-bottom-nav">
+    <div class="nav-tab-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Beranda</span>
+    </div>
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4h8v2"/></svg>
+      <span>Kasir</span>
+    </div>
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v5l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      <span>Riwayat</span>
+    </div>
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <span>Lainnya</span>
+    </div>
+  </div>
+
+  <div class="phone-home-indicator"></div>
+</div>
+
+    </div>
+
+    <!-- Screen 4: POS Kasir -->
+    <div class="mockup-card-wrapper">
+      <div class="mockup-screen-title">
+        <span>4. Kasir &amp; Keranjang Belanja</span>
+        <span class="badge">PosKasirScreen.kt</span>
+      </div>
+      
+<div class="phone-frame" style="background: #F7F5F9;">
+  <div class="phone-island"></div>
+  <div class="phone-statusbar">
+    <span>09:41</span>
+    <div class="phone-statusbar-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M0 8.5h3v-2H0v2zm4 0h3v-4H4v4zm4 0h3v-6H8v6zm4 0h3V0h-3v8.5z"/></svg>
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><path d="M6.5 2C8.6 2 10.5 2.8 12 4.1L6.5 11 1 4.1C2.5 2.8 4.4 2 6.5 2z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor"><rect x="1" y="1" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 18px 10px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: #211B26;">Kasir</h2>
+    <!-- Tabs Multi Pelanggan -->
+    <div style="display:flex; gap: 6px; align-items:center;">
+      <div style="background: #A64BC7; color: #FFFFFF; font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 100px;">
+        Pelanggan 1
+      </div>
+      <div style="background: #FFFFFF; color: #6B6472; font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 100px; border: 1px solid #E8E3EC;">
+        Plg 2
+      </div>
+      <div style="width: 26px; height: 26px; border-radius: 50%; background: #F7EDFB; color: #7F2F9E; display:flex; align-items:center; justify-content:center; font-size: 15px; font-weight: 800;">
+        +
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div style="padding: 0 18px 10px;">
+    <div style="background: #FFFFFF; border-radius: 13px; height: 46px; display:flex; align-items:center; padding: 0 14px; box-shadow: 0 2px 8px rgba(33,27,38,0.04); border: 1px solid #E8E3EC;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6472" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" placeholder="Cari obat / scan barcode..." style="border:none; outline:none; background:transparent; margin-left: 10px; flex:1; font-size: 13.5px; color: #211B26;" value="Paracetamol" />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6472" stroke-width="2"><path d="M3 5v14M8 5v14M12 5v14M17 5v14M21 5v14"/></svg>
+    </div>
+  </div>
+
+  <!-- CART ITEMS LIST -->
+  <div style="flex:1; overflow-y:auto; padding: 0 18px 10px;">
+    <div style="font-size: 13.5px; font-weight: 800; color: #211B26; margin: 8px 0 10px;">Keranjang (2 item)</div>
+
+    <div style="display:flex; flex-direction:column; gap: 8px;">
+      <!-- Item 1 -->
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 12px; box-shadow: 0 2px 6px rgba(33,27,38,0.03); border: 1px solid #EAE5EF; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #F7EDFB; display:flex; align-items:center; justify-content:center; color: #A64BC7;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="9" width="18" height="6" rx="3"/><path d="M8 9v6M16 9v6"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #211B26;">Paracetamol 500mg</div>
+            <div style="font-size: 11px; color: #6B6472;">Rp 5.000 · Strip</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div style="display:flex; align-items:center; gap: 6px; background: #F7F5F9; border-radius: 8px; padding: 2px 6px;">
+            <span style="font-weight: 800; color: #6B6472; cursor:pointer;">-</span>
+            <span style="font-size: 12.5px; font-weight: 800; color: #211B26; min-width: 14px; text-align:center;">2</span>
+            <span style="font-weight: 800; color: #A64BC7; cursor:pointer;">+</span>
+          </div>
+          <span style="font-size: 13px; font-weight: 800; color: #211B26;">Rp 10.000</span>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div style="background: #FFFFFF; border-radius: 14px; padding: 12px; box-shadow: 0 2px 6px rgba(33,27,38,0.03); border: 1px solid #EAE5EF; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #EAF5EE; display:flex; align-items:center; justify-content:center; color: #39A048;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2h8v4H8V2z"/><rect x="6" y="6" width="12" height="16" rx="2"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; color: #211B26;">Sanmol Sirup 60ml</div>
+            <div style="font-size: 11px; color: #6B6472;">Rp 22.500 · Botol</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div style="display:flex; align-items:center; gap: 6px; background: #F7F5F9; border-radius: 8px; padding: 2px 6px;">
+            <span style="font-weight: 800; color: #6B6472; cursor:pointer;">-</span>
+            <span style="font-size: 12.5px; font-weight: 800; color: #211B26; min-width: 14px; text-align:center;">1</span>
+            <span style="font-weight: 800; color: #A64BC7; cursor:pointer;">+</span>
+          </div>
+          <span style="font-size: 13px; font-weight: 800; color: #211B26;">Rp 22.500</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING STICKY PAY BAR -->
+  <div style="margin: 0 18px 10px; background: #211B26; border-radius: 16px; padding: 12px 16px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 8px 24px rgba(33,27,38,0.25);">
+    <div>
+      <div style="font-size: 11px; color: #9E97A6;">Total (3 item)</div>
+      <div style="font-size: 17px; font-weight: 800; color: #FFFFFF;">Rp 32.500</div>
+    </div>
+    <button style="background: #A64BC7; color: #FFFFFF; border:none; padding: 10px 22px; border-radius: 100px; font-size: 14px; font-weight: 800; cursor:pointer; box-shadow: 0 4px 12px rgba(166,75,199,0.4);">
+      Bayar →
+    </button>
+  </div>
+
+  <!-- APP BOTTOM NAV -->
+  <div class="mobile-bottom-nav">
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Beranda</span>
+    </div>
+    <div class="nav-tab-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4h8v2"/></svg>
+      <span>Kasir</span>
+    </div>
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v5l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      <span>Riwayat</span>
+    </div>
+    <div class="nav-tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      <span>Lainnya</span>
+    </div>
+  </div>
+
+  <div class="phone-home-indicator"></div>
+</div>
+
+    </div>
+
+    <!-- Screen 5: Struk Digital -->
+    <div class="mockup-card-wrapper">
+      <div class="mockup-screen-title">
+        <span>5. Struk Transaksi Digital</span>
+        <span class="badge">StrukDialog.kt</span>
+      </div>
+      
+<div class="phone-frame" style="background: rgba(33,27,38,0.7); justify-content: center; align-items:center; padding: 20px;">
+  <div class="phone-island"></div>
+  <div class="phone-statusbar white" style="position:absolute; top:0; left:0; right:0; color:#FFFFFF;">
+    <span>09:41</span>
+    <div class="phone-statusbar-icons">
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M0 8.5h3v-2H0v2zm4 0h3v-4H4v4zm4 0h3v-6H8v6zm4 0h3V0h-3v8.5z"/></svg>
+      <svg width="13" height="11" viewBox="0 0 13 11" fill="currentColor"><path d="M6.5 2C8.6 2 10.5 2.8 12 4.1L6.5 11 1 4.1C2.5 2.8 4.4 2 6.5 2z"/></svg>
+      <svg width="22" height="11" viewBox="0 0 22 11" fill="currentColor"><rect x="1" y="1" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="2.5" width="14" height="6" rx="1"/><rect x="20" y="3.5" width="1.5" height="4" rx="0.5"/></svg>
+    </div>
+  </div>
+
+  <!-- THERMAL RECEIPT CARD -->
+  <div style="width: 320px; background: #FFFFFF; border-radius: 18px; padding: 22px 18px; box-shadow: 0 20px 45px rgba(0,0,0,0.3); font-family: 'Courier New', Courier, monospace; color: #111827; position:relative;">
+    <!-- RECEIPT HEADER -->
+    <div style="text-align:center; padding-bottom: 12px; border-bottom: 1.5px dashed #D1D5DB;">
+      <div style="display:flex; justify-content:center; margin-bottom: 6px;">
+        <svg viewBox="0 0 100 100" width="36" height="36">
+          <rect x="34" y="3" width="30" height="46" rx="15" fill="#A64BC7" />
+          <rect x="34" y="51" width="30" height="46" rx="15" fill="#A64BC7" />
+          <rect x="3" y="34" width="46" height="30" rx="15" fill="#39A048" />
+          <rect x="51" y="34" width="46" height="30" rx="14" fill="#A64BC7" />
+        </svg>
+      </div>
+      <div style="font-size: 15px; font-weight: 800; font-family:'Plus Jakarta Sans', sans-serif;">APOTEK BIMA FARMA</div>
+      <div style="font-size: 10px; color: #4B5563; margin-top: 2px;">Jl. Tanimulya No. 42, Ngamprah</div>
+      <div style="font-size: 10px; color: #4B5563;">Telp/WA: 0812-3456-7890</div>
+    </div>
+
+    <!-- META -->
+    <div style="font-size: 10.5px; padding: 8px 0; border-bottom: 1.5px dashed #D1D5DB; display:flex; flex-direction:column; gap: 3px;">
+      <div style="display:flex; justify-content:space-between;"><span>No. Struk:</span><strong style="font-family:'Plus Jakarta Sans'; font-size:11px;">#STR-20260924-0012</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><span>24/09/2026 10:45</span></div>
+      <div style="display:flex; justify-content:space-between;"><span>Kasir:</span><span>Siti Rahma</span></div>
+      <div style="display:flex; justify-content:space-between;"><span>Pelanggan:</span><span>Ibu Fatimah</span></div>
+    </div>
+
+    <!-- ITEM LIST -->
+    <div style="padding: 10px 0; border-bottom: 1.5px dashed #D1D5DB; font-size: 11px; display:flex; flex-direction:column; gap: 6px;">
+      <div>
+        <div style="font-weight:700;">Paracetamol 500mg</div>
+        <div style="display:flex; justify-content:space-between; color:#4B5563;">
+          <span>2 x Rp 5.000</span>
+          <span style="font-weight:700; color:#111;">Rp 10.000</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-weight:700;">Sanmol Sirup 60ml</div>
+        <div style="display:flex; justify-content:space-between; color:#4B5563;">
+          <span>1 x Rp 22.500</span>
+          <span style="font-weight:700; color:#111;">Rp 22.500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOTALS -->
+    <div style="padding: 8px 0; border-bottom: 1.5px dashed #D1D5DB; font-size: 11px; display:flex; flex-direction:column; gap: 4px;">
+      <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span><span>Rp 32.500</span></div>
+      <div style="display:flex; justify-content:space-between;"><span>Diskon:</span><span>Rp 0</span></div>
+      <div style="display:flex; justify-content:space-between; font-size: 14px; font-weight: 800; font-family:'Plus Jakarta Sans'; margin-top:2px;">
+        <span>TOTAL:</span><span style="color:#A64BC7;">Rp 32.500</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:2px;"><span>TUNAI:</span><span>Rp 50.000</span></div>
+      <div style="display:flex; justify-content:space-between;"><span>Kembalian:</span><strong style="color:#39A048;">Rp 17.500</strong></div>
+    </div>
+
+    <!-- RECEIPT FOOTER -->
+    <div style="text-align:center; padding-top: 10px; font-size: 10px; color:#4B5563;">
+      <div>Terima Kasih Atas Kunjungan Anda</div>
+      <div style="font-weight: 700; margin-top: 2px;">Semoga Lekas Sembuh</div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div style="display:flex; gap: 8px; margin-top: 14px; font-family:'Plus Jakarta Sans';">
+      <button style="flex:1; height: 36px; background:#A64BC7; color:#FFF; border:none; border-radius:8px; font-size:11.5px; font-weight:700; cursor:pointer;">
+        🖨️ Cetak
+      </button>
+      <button style="flex:1; height: 36px; background:#22C55E; color:#FFF; border:none; border-radius:8px; font-size:11.5px; font-weight:700; cursor:pointer;">
+        💬 WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <div class="phone-home-indicator"></div>
+</div>
+
+    </div>
+  </div>
+
+</body>
+</html>

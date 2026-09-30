@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AuthContext } from "./auth-context";
-import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken } from "../lib/api";
+import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken, api } from "../lib/api";
 
 function getCachedUser() {
   if (typeof window === "undefined") return null;
@@ -59,6 +59,24 @@ export function AuthProvider({ children }) {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Heartbeat pengirim status aktif (ping online) setiap 30 detik
+  useEffect(() => {
+    if (!user) return;
+
+    function kirimPing() {
+      api("/user/ping", { method: "POST" }).catch(() => {});
+    }
+
+    kirimPing();
+    const interval = setInterval(kirimPing, 30000);
+    window.addEventListener("focus", kirimPing);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", kirimPing);
+    };
+  }, [user]);
 
   async function login(username, password) {
     const u = await apiLogin(username, password);

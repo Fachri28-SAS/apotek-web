@@ -40,6 +40,10 @@ class AuthController extends Controller
         // Pertahankan sesi aktif agar tidak saling memutus / logout saat buka multi-tab atau refresh
         // $user->tokens()->delete();
 
+        try {
+            $user->update(['last_seen_at' => now()]);
+        } catch (\Throwable $e) {}
+
         $token = $user->createToken('sistem-kasir')->plainTextToken;
 
         return response()->json([
@@ -50,7 +54,13 @@ class AuthController extends Controller
 
     public function logout(Request $r)
     {
-        $r->user()->currentAccessToken()->delete();
+        $u = $r->user();
+        if ($u) {
+            try {
+                $u->update(['last_seen_at' => null]);
+            } catch (\Throwable $e) {}
+            $u->currentAccessToken()->delete();
+        }
         return response()->json(['message' => 'Berhasil logout']);
     }
 

@@ -19,12 +19,59 @@ class UserController extends Controller
     }
 
     /**
+     * POST /api/user/ping
+     * Heartbeat kasir/admin yang sedang membuka aplikasi
+     */
+    public function ping(Request $r)
+    {
+        $user = $r->user();
+        if ($user) {
+            try {
+                $user->update(['last_seen_at' => now()]);
+            } catch (\Throwable $e) {}
+        }
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
      * GET /api/users/kelola
-     * Khusus Admin: Ambil semua user (aktif & nonaktif) dengan detail
+     * Khusus Admin: Ambil semua user (aktif & nonaktif) dengan detail & status online
      */
     public function kelola()
     {
-        return User::orderByDesc('aktif')->orderBy('nama')->get(['id', 'nama', 'username', 'role', 'aktif', 'created_at']);
+        try {
+            $hasLastSeen = \Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at');
+        } catch (\Throwable $e) {
+            $hasLastSeen = false;
+        }
+
+        $cols = ['id', 'nama', 'username', 'role', 'aktif', 'created_at'];
+        if ($hasLastSeen) {
+            $cols[] = 'last_seen_at';
+        }
+
+        $users = User::orderByDesc('aktif')->orderBy('nama')->get($cols);
+
+        return $users->map(function ($u) {
+            $isOnline = false;
+            $lastSeenStr = null;
+            if (isset($u->last_seen_at) && $u->last_seen_at) {
+                // Dianggap online jika ping/aktif dalam 90 detik terakhir
+                $isOnline = now()->diffInSeconds($u->last_seen_at) <= 90;
+                $lastSeenStr = $u->last_seen_at->toIso8601String();
+            }
+
+            return [
+                'id' => $u->id,
+                'nama' => $u->nama,
+                'username' => $u->username,
+                'role' => $u->role,
+                'aktif' => (bool) $u->aktif,
+                'last_seen_at' => $lastSeenStr,
+                'is_online' => $isOnline,
+                'created_at' => $u->created_at,
+            ];
+        });
     }
 
     /**
