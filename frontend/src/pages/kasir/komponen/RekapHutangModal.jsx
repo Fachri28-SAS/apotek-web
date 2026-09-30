@@ -433,7 +433,7 @@ export default function RekapHutangModal({
                     color: filterStatus === "belum" ? "#DC2626" : "#475569",
                   }}
                 >
-                  ○ Hutang (Belum Lunas)
+                  Hutang (Belum Lunas)
                 </button>
                 <button
                   type="button"
@@ -492,7 +492,7 @@ export default function RekapHutangModal({
             </div>
 
             <div style={{ background: "#FEF2F2", border: "1.5px solid #FCA5A5", borderRadius: 12, padding: "12px 16px" }}>
-              <div style={{ fontSize: 11.5, color: "#991B1B", fontWeight: 700 }}>○ Sisa Hutang (Belum Lunas)</div>
+              <div style={{ fontSize: 11.5, color: "#991B1B", fontWeight: 700 }}>Sisa Hutang (Belum Lunas)</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: "#DC2626", marginTop: 2 }}>{rupiah(totalHutang)}</div>
               <div style={{ fontSize: 10.5, color: "#F87171", fontWeight: 600 }}>Wajib dibayar ke supplier</div>
             </div>
@@ -574,7 +574,7 @@ export default function RekapHutangModal({
                               border: isLunas ? "1px solid #BBF7D0" : "1px solid #FECACA",
                             }}
                           >
-                            {isLunas ? " Lunas" : "○ Belum Lunas"}
+                            {isLunas ? "Lunas" : "Belum Lunas"}
                           </span>
                           {f.tanggal_bayar && isLunas && (
                             <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>

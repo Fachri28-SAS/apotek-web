@@ -1,4 +1,4 @@
-# 🎨 Panduan Menampilkan Mockup Apotek Bima Farma di Figma
+#  Panduan Menampilkan Mockup Apotek Bima Farma di Figma
 
 Semua mockup telah dibuat **100% otentik persis seperti kode asli proyek** Anda:
 - **Mobile (Android)**: Replikasi dari source code Jetpack Compose (`SplashScreen.kt`, `LoginScreen.kt`, `DashboardScreen.kt`, `PosKasirScreen.kt`, `StrukDialog.kt`).
@@ -8,7 +8,7 @@ Semua file gagal dan generator lama sudah dibersihkan total agar tidak memenuhi 
 
 ---
 
-## 📂 File Mockup Bersih yang Tersedia:
+##  File Mockup Bersih yang Tersedia:
 
 1. **`MOCKUP_MASTER_PRESENTASI.html`** (Sangat Direkomendasikan)
    - Berisi **LENGKAP** kedua aplikasi (5 layar Mobile iPhone 15 Pro + 4 layar Web MacBook Pro).
@@ -23,7 +23,7 @@ Semua file gagal dan generator lama sudah dibersihkan total agar tidak memenuhi 
 
 ---
 
-## 🚀 Cara Import ke Figma (Dalam 1 Menit):
+##  Cara Import ke Figma (Dalam 1 Menit):
 
 ### Cara A: Menggunakan Plugin `html.to.design` (Paling Rapi & Siap Edit)
 1. Buka Figma di browser atau aplikasi Figma Desktop Anda.
@@ -32,7 +32,7 @@ Semua file gagal dan generator lama sudah dibersihkan total agar tidak memenuhi 
 4. Pilih tab **"Upload file"** atau **"HTML"**.
 5. Drag & Drop file **`MOCKUP_MASTER_PRESENTASI.html`** (atau `MOCKUP_MOBILE_APP.html` / `MOCKUP_WEB_DESKTOP.html`) ke dalam kotak plugin.
 6. Klik tombol **Import**.
-7. ✨ Semua frame device, teks, icon, dan warna akan langsung terkonversi menjadi frame dan layer Figma asli yang bisa diedit dan dipresentasikan!
+7.  Semua frame device, teks, icon, dan warna akan langsung terkonversi menjadi frame dan layer Figma asli yang bisa diedit dan dipresentasikan!
 
 ### Cara B: Copy Langsung dari Browser
 1. Buka file `MOCKUP_MASTER_PRESENTASI.html` di Google Chrome (cukup klik ganda file tersebut).
@@ -40,7 +40,7 @@ Semua file gagal dan generator lama sudah dibersihkan total agar tidak memenuhi 
 
 ---
 
-## 📱 Rincian Layar yang Ditampilkan:
+##  Rincian Layar yang Ditampilkan:
 
 ### 1. Aplikasi Mobile Android (Jetpack Compose)
 - **Layar 1 (Splash Screen)**: Background medis bersih `#FCFBFE`, elevasi box 92dp dengan logo 4-batang palang hijau-ungu resmi, teks Apotek Bima Farma, loading natural (tanpa navbar bawah, sesuai kode asli).

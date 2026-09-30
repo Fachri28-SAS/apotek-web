@@ -153,7 +153,7 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
             <div>
               <span style={{ color: "#64748B", display: "block" }}>Status Pembayaran</span>
               <strong style={{ color: isLunas ? "#15803D" : "#DC2626" }}>
-                {isLunas ? " Lunas" : "○ Belum Lunas"}
+                {isLunas ? "Lunas" : "Belum Lunas"}
               </strong>
             </div>
           </div>

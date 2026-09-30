@@ -669,7 +669,7 @@ export default function PembayaranOnline() {
                   textDecoration: "none",
                 }}
               >
-                Buka Gambar di Tab Baru ↗
+                Buka Gambar di Tab Baru
               </a>
               <button
                 type="button"

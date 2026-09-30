@@ -469,7 +469,7 @@ export default function TrackingPesanan() {
                     {buktiPreview && (
                       <div style={{ marginTop: 6 }}>
                         <a href={buktiPreview} target="_blank" rel="noreferrer" style={{ fontSize: 12, fontWeight: 700, color: "#B45309", textDecoration: "underline" }}>
-                          Lihat Foto Bukti ↗
+                          Lihat Foto Bukti
                         </a>
                       </div>
                     )}
@@ -483,7 +483,7 @@ export default function TrackingPesanan() {
                       rel="noopener noreferrer"
                       style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#059669", fontWeight: 700, textDecoration: "underline" }}
                     >
-                       Hubungi Kasir via WhatsApp untuk Refund ↗
+                      Hubungi Kasir via WhatsApp untuk Refund
                     </a>
                   </div>
 

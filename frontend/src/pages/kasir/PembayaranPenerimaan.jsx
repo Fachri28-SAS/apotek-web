@@ -303,14 +303,14 @@ export default function PembayaranPenerimaan() {
           </div>
         </div>
         <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 14, border: "1px solid #BBF7D0" }}>
-          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}> Sudah Dibayar (Lunas)</div>
+          <div style={{ fontSize: 12, color: "#166534", fontWeight: 600 }}>Sudah Dibayar (Lunas)</div>
           <div style={{ fontSize: 19, fontWeight: 800, color: "#15803D", marginTop: 4 }}>
             {rupiah(totalLunas)}
           </div>
         </div>
         <div style={{ background: "#FEF2F2", padding: "14px 18px", borderRadius: 14, border: "1px solid #FECACA" }}>
           <div style={{ fontSize: 12, color: "#991B1B", fontWeight: 600, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>○ {filterSupplier !== "semua" ? `Hutang ${filterSupplier}` : "Belum Dibayar (Tempo)"}</span>
+            <span>{filterSupplier !== "semua" ? `Hutang ${filterSupplier}` : "Belum Dibayar (Tempo)"}</span>
             {filterSupplier !== "semua" && (
               <button
                 type="button"
@@ -437,7 +437,7 @@ export default function PembayaranPenerimaan() {
                 className={`periode-chip ${filterStatus === "belum" ? "active" : ""}`}
                 onClick={() => setFilterStatus("belum")}
               >
-                ○ Belum Lunas
+                Belum Lunas
               </button>
               <button
                 type="button"
@@ -660,7 +660,7 @@ export default function PembayaranPenerimaan() {
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
                             <div style={{ textAlign: "left", minWidth: 65 }}>
                               <div style={{ fontSize: 12, fontWeight: 700, color: isLunas ? "#15803D" : "#B91C1C" }}>
-                                {isLunas ? " Lunas" : "○ Tempo"}
+                                {isLunas ? "Lunas" : "Tempo"}
                               </div>
                               <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
                                 {tglBayarStr}
@@ -722,10 +722,7 @@ export default function PembayaranPenerimaan() {
       {konfirmasiBayar && (
         <div className="struk-overlay" onClick={() => !loadingToggle && setKonfirmasiBayar(null)}>
           <div className="struk-modal" style={{ maxWidth: 440, padding: 24, textAlign: "center" }}>
-            <div style={{ fontSize: 38, marginBottom: 10 }}>
-              {konfirmasiBayar.status_bayar === "lunas" ? "↩" : ""}
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, marginTop: 10 }}>
               {konfirmasiBayar.status_bayar === "lunas"
                 ? "Ubah Status Jadi Belum Lunas?"
                 : "Tandai Faktur Sudah Lunas?"}
@@ -733,7 +730,7 @@ export default function PembayaranPenerimaan() {
             <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 20 }}>
               Faktur <strong>{konfirmasiBayar.no_faktur}</strong> dari <strong>{konfirmasiBayar.nama_supplier}</strong> senilai <strong>{rupiah(konfirmasiBayar.total)}</strong> akan diubah statusnya menjadi{" "}
               <strong style={{ color: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D" }}>
-                {konfirmasiBayar.status_bayar === "lunas" ? "○ Belum Lunas (Tempo)" : " Lunas (Sudah Dibayar)"}
+                {konfirmasiBayar.status_bayar === "lunas" ? "Belum Lunas (Tempo)" : "Lunas (Sudah Dibayar)"}
               </strong>.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>

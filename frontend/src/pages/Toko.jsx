@@ -1109,7 +1109,7 @@ export default function Toko() {
                         textAlign: "center",
                       }}
                     >
-                      <span>↗ Buka Halaman Pesanan</span>
+                      <span>Buka Halaman Pesanan</span>
                     </a>
                     <button
                       type="button"

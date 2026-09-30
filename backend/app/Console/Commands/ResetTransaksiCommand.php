@@ -86,7 +86,7 @@ class ResetTransaksiCommand extends Command
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        $this->info('✓ Berhasil! Semua data riwayat transaksi uji coba telah bersih 0.');
+        $this->info('Berhasil! Semua data riwayat transaksi uji coba telah bersih 0.');
         $this->line('Data master obat, harga, dan akun kasir/admin tetap utuh dan siap digunakan.');
 
         return Command::SUCCESS;
