@@ -141,7 +141,12 @@ export default function Penerimaan() {
   }
 
   // ---------- Perhitungan ----------
-  const subtotal = items.reduce((s, it) => s + it.qty * it.harga_beli - Number(it.diskon || 0), 0);
+  const subtotal = items.reduce((s, it) => {
+    const bruto = Number(it.qty || 0) * Number(it.harga_beli || 0);
+    const diskonPersen = Number(it.diskon || 0);
+    const potongan = (bruto * diskonPersen) / 100;
+    return s + (bruto - potongan);
+  }, 0);
   const diskonTotal = Number(diskonFakturRp || 0) + Math.round(subtotal * Number(diskonFakturPersen || 0) / 100);
   const subtotalSetelahDiskon = Math.max(subtotal - diskonTotal, 0);
   const ppn = isPkp ? Math.round(subtotalSetelahDiskon * (Number(persenPpn || 0) / 100)) : 0;
@@ -169,17 +174,22 @@ export default function Penerimaan() {
           is_pkp: isPkp,
           diskon_faktur_rp: Number(diskonFakturRp || 0),
           diskon_faktur_persen: Number(diskonFakturPersen || 0),
-          items: items.map((it) => ({
-            obat_id: it.obat_id,
-            obat_satuan_id: it.obat_satuan_id,
-            qty: Number(it.qty),
-            kemasan: Number(it.kemasan || it.qty),
-            harga_beli: Number(it.harga_beli),
-            diskon: Number(it.diskon || 0),
-            nomor_batch: it.nomor_batch,
-            tanggal_exp: it.tanggal_exp || null,
-            harga_jual_baru: Number(it.harga_jual_baru ?? it.harga_jual_referensi),
-          })),
+          items: items.map((it) => {
+            const bruto = Number(it.qty) * Number(it.harga_beli);
+            const diskonPersen = Number(it.diskon || 0);
+            const nominalDiskon = (bruto * diskonPersen) / 100;
+            return {
+              obat_id: it.obat_id,
+              obat_satuan_id: it.obat_satuan_id,
+              qty: Number(it.qty),
+              kemasan: Number(it.kemasan || it.qty),
+              harga_beli: Number(it.harga_beli),
+              diskon: Math.round(nominalDiskon * 100) / 100,
+              nomor_batch: it.nomor_batch,
+              tanggal_exp: it.tanggal_exp || null,
+              harga_jual_baru: Number(it.harga_jual_baru ?? it.harga_jual_referensi),
+            };
+          }),
         }),
       });
 
@@ -436,7 +446,7 @@ export default function Penerimaan() {
                 <thead>
                   <tr>
                     <th>Nama Obat</th><th>Jumlah Satuan</th><th>Harga Satuan</th>
-                    <th>Diskon</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
+                    <th>Diskon %</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
                 </thead>
@@ -447,7 +457,9 @@ export default function Penerimaan() {
                     const hargaJualAktif = Number(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
                     const margin = hitungMarginPersen(unitBeli, hargaJualAktif);
                     const marginStat = getStatusMargin(margin);
-                    const subtotalItem = Number(it.qty || 0) * Number(it.harga_beli || 0) - Number(it.diskon || 0);
+                    const brutoItem = Number(it.qty || 0) * Number(it.harga_beli || 0);
+                    const potonganItem = (brutoItem * Number(it.diskon || 0)) / 100;
+                    const subtotalItem = brutoItem - potonganItem;
 
                     return (
                       <tr key={it.key}>
@@ -500,7 +512,23 @@ export default function Penerimaan() {
                           <input type="number" min="0" step="any" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
                           {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
                         </td>
-                        <td><input type="number" min="0" className="cart-input-angka" style={{ width: 70 }} value={it.diskon} onChange={(e) => ubahItem(it.key, "diskon", e.target.value)} /></td>
+                        <td>
+                          <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="any"
+                              className="cart-input-angka"
+                              style={{ width: 70, textAlign: "right", paddingRight: 16 }}
+                              value={it.diskon}
+                              onChange={(e) => ubahItem(it.key, "diskon", e.target.value)}
+                              placeholder="0"
+                              title="Diskon persen (%)"
+                            />
+                            <span style={{ position: "absolute", right: 4, fontSize: 11, color: "var(--ink-soft)", pointerEvents: "none", fontWeight: 600 }}>%</span>
+                          </div>
+                        </td>
                         <td><input type="text" className="cart-input-angka" style={{ width: 90 }} value={it.nomor_batch} onChange={(e) => ubahItem(it.key, "nomor_batch", e.target.value)} placeholder="wajib" /></td>
                         <td>
                           <input type="date" className="cart-input-angka" value={it.tanggal_exp} onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)} />
