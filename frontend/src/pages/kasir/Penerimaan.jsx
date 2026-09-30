@@ -28,6 +28,21 @@ function badgeHarga(baru, sebelumnya) {
   return { warna: "biru", teks: `▼ Turun ${rupiah(Math.abs(selisih))} (${persen}%)` };
 }
 
+function parseAngka(val) {
+  if (val === null || val === undefined || val === "") return 0;
+  if (typeof val === "number") return val;
+  let str = String(val).trim();
+  if (str.includes(",") && str.includes(".")) {
+    // Format Indonesia seperti 9.819,82 -> buang titik ribuan, ganti koma desimal jadi titik
+    str = str.replace(/\./g, "").replace(",", ".");
+  } else if (str.includes(",")) {
+    // 9819,82 -> 9819.82
+    str = str.replace(",", ".");
+  }
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+}
+
 export default function Penerimaan() {
   const { user } = useAuth();
 
@@ -140,8 +155,8 @@ export default function Penerimaan() {
 
   // ---------- Perhitungan ----------
   const subtotal = items.reduce((s, it) => {
-    const bruto = Number(it.qty || 0) * Number(it.harga_beli || 0);
-    const diskonPersen = Number(it.diskon || 0);
+    const bruto = Number(it.qty || 0) * parseAngka(it.harga_beli);
+    const diskonPersen = parseAngka(it.diskon || 0);
     const potongan = (bruto * diskonPersen) / 100;
     return s + (bruto - potongan);
   }, 0);
@@ -171,19 +186,20 @@ export default function Penerimaan() {
           diskon_faktur_rp: 0,
           diskon_faktur_persen: 0,
           items: items.map((it) => {
-            const bruto = Number(it.qty) * Number(it.harga_beli);
-            const diskonPersen = Number(it.diskon || 0);
+            const unitBeli = parseAngka(it.harga_beli);
+            const diskonPersen = parseAngka(it.diskon || 0);
+            const bruto = Number(it.qty) * unitBeli;
             const nominalDiskon = (bruto * diskonPersen) / 100;
             return {
               obat_id: it.obat_id,
               obat_satuan_id: it.obat_satuan_id,
               qty: Number(it.qty),
               kemasan: Number(it.kemasan || it.qty),
-              harga_beli: Number(it.harga_beli),
+              harga_beli: unitBeli,
               diskon: Math.round(nominalDiskon * 100) / 100,
               nomor_batch: it.nomor_batch,
               tanggal_exp: it.tanggal_exp || null,
-              harga_jual_baru: Number(it.harga_jual_baru ?? it.harga_jual_referensi),
+              harga_jual_baru: parseAngka(it.harga_jual_baru ?? it.harga_jual_referensi),
             };
           }),
         }),
@@ -448,13 +464,13 @@ export default function Penerimaan() {
                 </thead>
                 <tbody>
                   {items.map((it) => {
-                    const badge = badgeHarga(Number(it.harga_beli), it.harga_beli_sebelumnya);
-                    const unitBeli = Number(it.harga_beli);
-                    const hargaJualAktif = Number(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
+                    const unitBeli = parseAngka(it.harga_beli);
+                    const badge = badgeHarga(unitBeli, it.harga_beli_sebelumnya);
+                    const hargaJualAktif = parseAngka(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
                     const margin = hitungMarginPersen(unitBeli, hargaJualAktif);
                     const marginStat = getStatusMargin(margin);
-                    const brutoItem = Number(it.qty || 0) * Number(it.harga_beli || 0);
-                    const potonganItem = (brutoItem * Number(it.diskon || 0)) / 100;
+                    const brutoItem = Number(it.qty || 0) * unitBeli;
+                    const potonganItem = (brutoItem * parseAngka(it.diskon || 0)) / 100;
                     const subtotalItem = brutoItem - potonganItem;
 
                     return (
@@ -505,16 +521,22 @@ export default function Penerimaan() {
                           </div>
                         </td>
                         <td>
-                          <input type="number" min="0" step="any" className="cart-input-angka" value={it.harga_beli} onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)} />
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            className="cart-input-angka"
+                            value={it.harga_beli}
+                            onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)}
+                            placeholder="0"
+                            title="Harga beli satuan faktur (bisa desimal misal 9.819,82)"
+                          />
                           {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
                         </td>
                         <td>
                           <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
                             <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="any"
+                              type="text"
+                              inputMode="decimal"
                               className="cart-input-angka"
                               style={{ width: 70, textAlign: "right", paddingRight: 16 }}
                               value={it.diskon}
@@ -533,9 +555,8 @@ export default function Penerimaan() {
                         <td>
                           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                             <input
-                              type="number"
-                              min="0"
-                              step="any"
+                              type="text"
+                              inputMode="decimal"
                               className="cart-input-angka"
                               style={{ width: 95 }}
                               value={it.harga_jual_baru ?? it.harga_jual_referensi ?? ""}
