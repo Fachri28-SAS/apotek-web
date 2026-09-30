@@ -54,8 +54,6 @@ export default function Penerimaan() {
 
   // ---------- Panel 2: Daftar Item ----------
   const [items, setItems] = useState([]);
-  const [diskonFakturRp, setDiskonFakturRp] = useState(0);
-  const [diskonFakturPersen, setDiskonFakturPersen] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -147,10 +145,8 @@ export default function Penerimaan() {
     const potongan = (bruto * diskonPersen) / 100;
     return s + (bruto - potongan);
   }, 0);
-  const diskonTotal = Number(diskonFakturRp || 0) + Math.round(subtotal * Number(diskonFakturPersen || 0) / 100);
-  const subtotalSetelahDiskon = Math.max(subtotal - diskonTotal, 0);
-  const ppn = isPkp ? Math.round(subtotalSetelahDiskon * (Number(persenPpn || 0) / 100)) : 0;
-  const totalTagihan = subtotalSetelahDiskon + ppn;
+  const ppn = isPkp ? Math.round(subtotal * (Number(persenPpn || 0) / 100)) : 0;
+  const totalTagihan = subtotal + ppn;
 
   async function simpan() {
     setError(""); setSukses("");
@@ -172,8 +168,8 @@ export default function Penerimaan() {
           tanggal_jatuh_tempo: tanggalJatuhTempo || null,
           tempo_label: "custom",
           is_pkp: isPkp,
-          diskon_faktur_rp: Number(diskonFakturRp || 0),
-          diskon_faktur_persen: Number(diskonFakturPersen || 0),
+          diskon_faktur_rp: 0,
+          diskon_faktur_persen: 0,
           items: items.map((it) => {
             const bruto = Number(it.qty) * Number(it.harga_beli);
             const diskonPersen = Number(it.diskon || 0);
@@ -592,16 +588,7 @@ export default function Penerimaan() {
 
             {/* ---------- RINGKASAN ---------- */}
             <div className="penerimaan-ringkasan">
-              <div className="payment-row"><span>Subtotal</span><strong>{rupiah(subtotal)}</strong></div>
-
-              <div className="opname-ringkasan-info" style={{ flexDirection: "row", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                <span>Diskon Faktur:</span>
-                <input type="number" min="0" className="cart-input-angka" style={{ width: 110 }} value={diskonFakturRp} onChange={(e) => setDiskonFakturRp(e.target.value)} placeholder="Rp" />
-                <input type="number" min="0" max="100" className="cart-input-angka" style={{ width: 80 }} value={diskonFakturPersen} onChange={(e) => setDiskonFakturPersen(e.target.value)} placeholder="%" />
-              </div>
-
-              <div className="payment-row"><span>Subtotal Setelah Diskon</span><span>{rupiah(subtotalSetelahDiskon)}</span></div>
-              <div className="payment-row"><span>Sebelum Pajak (DPP)</span><span>{rupiah(subtotalSetelahDiskon)}</span></div>
+              <div className="payment-row"><span>Subtotal (DPP)</span><strong>{rupiah(subtotal)}</strong></div>
               <div className="payment-row"><span>Total Pajak (PPN {isPkp ? `${persenPpn}%` : "0%"})</span><span>{rupiah(ppn)}</span></div>
               <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(totalTagihan)}</strong></div>
 
