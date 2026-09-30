@@ -37,6 +37,18 @@ class AuthController extends Controller
             ]);
         }
 
+        // Pembatasan jam operasional khusus role kasir (Admin tetap bebas login 24 jam)
+        if ($user->role === 'kasir') {
+            $operasional = \App\Services\OperasionalService::getStatus();
+            if (!$operasional['is_open']) {
+                throw ValidationException::withMessages([
+                    'username' => [
+                        "Akses login kasir ditutup di luar jam operasional ({$operasional['jam_buka']} - {$operasional['jam_tutup']} WIB). {$operasional['pesan_tutup']}"
+                    ],
+                ]);
+            }
+        }
+
         // Pertahankan sesi aktif agar tidak saling memutus / logout saat buka multi-tab atau refresh
         // $user->tokens()->delete();
 

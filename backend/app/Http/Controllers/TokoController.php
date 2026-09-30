@@ -14,6 +14,15 @@ use Illuminate\Support\Str;
 class TokoController extends Controller
 {
     /**
+     * GET /api/toko/status-operasional
+     * Mengambil status buka/tutup toko online dan jadwal operasional apotek
+     */
+    public function statusOperasional()
+    {
+        return response()->json(\App\Services\OperasionalService::getStatus());
+    }
+
+    /**
      * POST /api/toko/checkout
      * PUBLIK — tidak perlu login (pembeli checkout tanpa akun).
      *
@@ -22,6 +31,11 @@ class TokoController extends Controller
      */
     public function checkout(Request $r)
     {
+        $operasional = \App\Services\OperasionalService::getStatus();
+        if (!$operasional['is_open']) {
+            abort(422, $operasional['pesan_tutup'] ?: "Mohon maaf, pemesanan online saat ini sedang tutup di luar jam operasional ({$operasional['jam_buka']} - {$operasional['jam_tutup']} WIB). Silakan kunjungi kembali saat apotek beroperasi.");
+        }
+
         $data = $r->validate([
             'nama_pembeli' => 'required|string|max:255',
             'telepon_pembeli' => 'required|string|max:30',

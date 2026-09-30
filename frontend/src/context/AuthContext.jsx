@@ -65,7 +65,18 @@ export function AuthProvider({ children }) {
     if (!user) return;
 
     function kirimPing() {
-      api("/user/ping", { method: "POST" }).catch(() => {});
+      api("/user/ping", { method: "POST" }).catch((err) => {
+        if (err?.status === 403 && user?.role === "kasir") {
+          alert(err?.message || "Jam operasional apotek telah berakhir. Sesi kasir otomatis ditutup.");
+          apiLogout().catch(() => {});
+          setUser(null);
+          setToken(null);
+          try {
+            sessionStorage.removeItem("bimafarma_user");
+          } catch {}
+          window.location.replace("/portal-bima");
+        }
+      });
     }
 
     kirimPing();

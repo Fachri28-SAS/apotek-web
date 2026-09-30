@@ -42,6 +42,9 @@ export default function Toko() {
   const [teleponPembeli, setTeleponPembeli] = useState("");
   const [alamatKirim, setAlamatKirim] = useState("");
 
+  // Status Jam Operasional Apotek
+  const [operasional, setOperasional] = useState({ is_open: true, jam_buka: "07:00", jam_tutup: "22:00" });
+
   // Notifikasi Pesanan Gantung & Pembatalan Pesanan
   const [pesananGantung, setPesananGantung] = useState(null);
   const [tutupBannerGantung, setTutupBannerGantung] = useState(false);
@@ -75,6 +78,13 @@ export default function Toko() {
         if (!silent) setLoading(false);
       });
   }
+
+  // Cek jam operasional toko online
+  useEffect(() => {
+    api("/toko/status-operasional")
+      .then((d) => setOperasional(d))
+      .catch(() => {});
+  }, []);
 
   // Muat produk saat user mengetik di pencarian & reset ke halaman 1
   useEffect(() => {
@@ -231,6 +241,10 @@ export default function Toko() {
 
   async function submitCheckout() {
     setError("");
+    if (!operasional?.is_open) {
+      setError(operasional?.pesan_tutup || `Pemesanan online ditutup di luar jam operasional (${operasional?.jam_buka} - ${operasional?.jam_tutup} WIB).`);
+      return;
+    }
     if (!namaPembeli.trim() || !teleponPembeli.trim()) {
       setError("Nama dan No. HP wajib diisi.");
       return;
@@ -393,6 +407,32 @@ export default function Toko() {
   return (
     <div className="toko-page">
       <Navbar cartCount={jumlahItem} onOpenCart={() => setDrawerOpen(true)} />
+
+      {/* Banner Peringatan Tutup di Luar Jam Operasional */}
+      {!operasional?.is_open && (
+        <aside
+          role="region"
+          aria-label="Pemberitahuan Jam Operasional Apotek"
+          style={{
+            background: "#FEF2F2",
+            borderBottom: "1.5px solid #FECACA",
+            padding: "10px 16px",
+            textAlign: "center",
+            position: "sticky",
+            top: 60,
+            zIndex: 89,
+            boxShadow: "0 2px 8px rgba(220, 38, 38, 0.08)",
+          }}
+        >
+          <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap", fontSize: 13 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", display: "inline-block" }} />
+            <strong style={{ color: "#991B1B" }}>Toko Online Tutup di Luar Jam Operasional</strong>
+            <span style={{ color: "#B91C1C" }}>
+              (Buka {operasional?.jam_buka || "07:00"} – {operasional?.jam_tutup || "22:00"} WIB). Anda tetap dapat melihat katalog obat, checkout akan dibuka kembali saat apotek beroperasi.
+            </span>
+          </div>
+        </aside>
+      )}
 
       {/* Banner Notifikasi Pesanan Belum Dibayar (Gantung) */}
       {pesananGantung && !tutupBannerGantung && !(drawerOpen && tahap === "qris") && (
@@ -1207,13 +1247,31 @@ export default function Toko() {
           {tahap === "keranjang" && (cart || []).length > 0 && (
             <>
               <div className="sum-row total"><span>Total</span><span>{rupiah(totalKeranjang)}</span></div>
-              <button className="btn-full" onClick={() => setTahap("checkout")}>Checkout</button>
+              {operasional?.is_open ? (
+                <button className="btn-full" onClick={() => setTahap("checkout")}>Checkout</button>
+              ) : (
+                <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#DC2626" }}>Toko Tutup di Luar Jam Operasional</div>
+                  <div style={{ fontSize: 11, color: "#7F1D1D", marginTop: 2 }}>
+                    Buka kembali pukul {operasional?.jam_buka || "07.00"} WIB. Pemesanan online belum dapat diproses.
+                  </div>
+                </div>
+              )}
             </>
           )}
           {tahap === "checkout" && (
-            <button className="btn-full" onClick={submitCheckout} disabled={loadingCheckout}>
-              {loadingCheckout ? "Memproses…" : "Lanjut ke Pembayaran QRIS"}
-            </button>
+            operasional?.is_open ? (
+              <button className="btn-full" onClick={submitCheckout} disabled={loadingCheckout}>
+                {loadingCheckout ? "Memproses…" : "Lanjut ke Pembayaran QRIS"}
+              </button>
+            ) : (
+              <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: "#DC2626" }}>Toko Tutup di Luar Jam Operasional</div>
+                <div style={{ fontSize: 11, color: "#7F1D1D", marginTop: 2 }}>
+                  Buka kembali pukul {operasional?.jam_buka || "07.00"} WIB. Pemesanan online belum dapat diproses.
+                </div>
+              </div>
+            )
           )}
           {tahap === "qris" && (
             <>

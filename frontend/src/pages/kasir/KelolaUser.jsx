@@ -24,6 +24,15 @@ export default function KelolaUser() {
   const [aktif, setAktif] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Status & Pengaturan Jam Operasional
+  const [operasional, setOperasional] = useState(null);
+  const [modalOperasionalOpen, setModalOperasionalOpen] = useState(false);
+  const [jamBuka, setJamBuka] = useState("07:00");
+  const [jamTutup, setJamTutup] = useState("22:00");
+  const [statusManual, setStatusManual] = useState("otomatis");
+  const [pesanTutup, setPesanTutup] = useState("");
+  const [savingOperasional, setSavingOperasional] = useState(false);
+
   function formatLastSeen(isoStr, isOnline) {
     if (isOnline) return "Online Sekarang";
     if (!isoStr) return "Belum pernah login";
@@ -51,14 +60,52 @@ export default function KelolaUser() {
       });
   }
 
+  function muatOperasional() {
+    api("/pengaturan-operasional")
+      .then((d) => {
+        setOperasional(d);
+        setJamBuka(d.jam_buka || "07:00");
+        setJamTutup(d.jam_tutup || "22:00");
+        setStatusManual(d.status_manual || "otomatis");
+        setPesanTutup(d.pesan_tutup || "");
+      })
+      .catch(() => {});
+  }
+
   useEffect(() => {
     muatUsers();
-    // Polling status online/offline realtime setiap 8 detik
+    muatOperasional();
+    // Polling status online/offline realtime & jam operasional setiap 8 detik
     const timer = setInterval(() => {
       muatUsers(true);
+      muatOperasional();
     }, 8000);
     return () => clearInterval(timer);
   }, []);
+
+  async function handleSimpanOperasional(e) {
+    e.preventDefault();
+    setSavingOperasional(true);
+    try {
+      const res = await api("/pengaturan-operasional", {
+        method: "POST",
+        body: JSON.stringify({
+          jam_buka: jamBuka,
+          jam_tutup: jamTutup,
+          status_operasional_manual: statusManual,
+          pesan_tutup: pesanTutup || null,
+        }),
+      });
+      setOperasional(res.operasional);
+      setModalOperasionalOpen(false);
+      setSuksesPesan("Pengaturan jam operasional apotek berhasil disimpan.");
+      setTimeout(() => setSuksesPesan(""), 4000);
+    } catch (err) {
+      alert(err.message || "Gagal menyimpan jam operasional.");
+    } finally {
+      setSavingOperasional(false);
+    }
+  }
 
   function bukaModalTambah() {
     setUserEdit(null);
@@ -320,14 +367,92 @@ export default function KelolaUser() {
               transition: "all 0.2s",
             }}
           >
-            {salinSukses ? " Link Izin Disalin!" : " Salin Link Izin untuk Kasir"}
+            {salinSukses ? "Link Izin Disalin!" : "Salin Link Izin untuk Kasir"}
+          </button>
+        </div>
+
+        {/* Card Jam Operasional & Pembatasan Akses */}
+        <div
+          style={{
+            background: operasional?.is_open ? "#F0FDF4" : "#FEF2F2",
+            border: operasional?.is_open ? "1px solid #BBF7D0" : "1px solid #FECACA",
+            borderRadius: 14,
+            padding: "16px 20px",
+            marginBottom: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 16,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 280, flex: "1 1 300px" }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: operasional?.is_open ? "#16A34A" : "#DC2626",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 22, height: 22 }}>
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 14, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
+                Jam Operasional &amp; Pembatasan Sistem
+                <span
+                  style={{
+                    fontSize: 11,
+                    background: operasional?.is_open ? "#16A34A" : "#DC2626",
+                    color: "#fff",
+                    padding: "2px 8px",
+                    borderRadius: 100,
+                    fontWeight: 700,
+                  }}
+                >
+                  {operasional?.is_open ? "Buka (Sedang Beroperasi)" : "Tutup (Di Luar Jam)"}
+                </span>
+              </div>
+              <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginTop: 2 }}>
+                Jadwal: <strong>{operasional?.jam_buka || "07:00"} – {operasional?.jam_tutup || "22:00"} WIB</strong> • Mode: <strong style={{ color: "var(--magenta-dark)" }}>{operasional?.keterangan || "Otomatis Sesuai Jadwal"}</strong>
+              </div>
+              <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 4 }}>
+                Ketentuan: Akun <strong>Kasir</strong> dan <strong>Toko Online</strong> hanya beroperasi di jam buka. Akun <strong>Admin</strong> bebas akses 24 jam.
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setModalOperasionalOpen(true)}
+            style={{
+              background: "#fff",
+              color: "var(--ink)",
+              border: "1px solid var(--line)",
+              padding: "9px 16px",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 12.5,
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            }}
+          >
+            Atur Jam Operasional
           </button>
         </div>
 
         {/* Notifikasi Sukses */}
         {suksesPesan && (
           <div style={{ background: "#DCFCE7", color: "#15803D", padding: "12px 18px", borderRadius: 10, fontWeight: 700, fontSize: 13.5, marginBottom: 18 }}>
-             {suksesPesan}
+            {suksesPesan}
           </div>
         )}
 
@@ -662,6 +787,119 @@ export default function KelolaUser() {
                   }}
                 >
                   {saving ? "Menyimpan…" : "Simpan Akun"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Pengaturan Jam Operasional */}
+      {modalOperasionalOpen && (
+        <div className="struk-overlay" onClick={() => !savingOperasional && setModalOperasionalOpen(false)}>
+          <div className="struk-modal" style={{ maxWidth: 480, padding: 24, textAlign: "left" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0 }}>Pengaturan Jam Operasional</h3>
+              <button
+                type="button"
+                onClick={() => setModalOperasionalOpen(false)}
+                disabled={savingOperasional}
+                style={{ background: "transparent", border: "none", fontSize: 18, cursor: "pointer", color: "var(--ink-soft)" }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSimpanOperasional} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                    Jam Buka (WIB)
+                  </label>
+                  <input
+                    type="time"
+                    value={jamBuka}
+                    onChange={(e) => setJamBuka(e.target.value)}
+                    required
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 14, background: "#fff" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                    Jam Tutup (WIB)
+                  </label>
+                  <input
+                    type="time"
+                    value={jamTutup}
+                    onChange={(e) => setJamTutup(e.target.value)}
+                    required
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 14, background: "#fff" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                  Mode Kontrol Operasional
+                </label>
+                <select
+                  value={statusManual}
+                  onChange={(e) => setStatusManual(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 13.5, background: "#fff" }}
+                >
+                  <option value="otomatis">Otomatis Sesuai Jadwal Jam Buka - Tutup</option>
+                  <option value="buka">Paksa Buka Sekarang (Lembur / Buka 24 Jam)</option>
+                  <option value="tutup">Paksa Tutup Sekarang (Hari Libur / Istirahat Darurat)</option>
+                </select>
+                <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginTop: 4 }}>
+                  {statusManual === "otomatis" && "Sistem otomatis membuka kasir & toko online sesuai jam buka s/d jam tutup."}
+                  {statusManual === "buka" && "Apotek akan dianggap BUKA terus menerus mengabaikan jam tutup."}
+                  {statusManual === "tutup" && "Apotek akan dianggap TUTUP sekarang juga (akses kasir & checkout diblokir)."}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, marginBottom: 6, color: "var(--ink)" }}>
+                  Pesan Notifikasi Saat Tutup (Opsional)
+                </label>
+                <textarea
+                  rows={3}
+                  value={pesanTutup}
+                  onChange={(e) => setPesanTutup(e.target.value)}
+                  placeholder="Contoh: Mohon maaf, apotek sedang tutup di luar jam operasional (07.00 - 22.00 WIB)."
+                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 13, background: "#fff" }}
+                />
+              </div>
+
+              <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 12px", fontSize: 11.5, color: "#475569" }}>
+                <strong>Catatan Keamanan:</strong> Akun Admin tetap dapat login kapan saja 24 jam untuk kelola data &amp; laporan, meskipun apotek sedang dalam status tutup.
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                <button
+                  type="button"
+                  className="btn-ghost"
+                  onClick={() => setModalOperasionalOpen(false)}
+                  disabled={savingOperasional}
+                  style={{ flex: 1, padding: "10px", borderRadius: 8 }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="btn-full"
+                  disabled={savingOperasional}
+                  style={{
+                    flex: 1.5,
+                    padding: "10px",
+                    borderRadius: 8,
+                    background: "var(--magenta)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {savingOperasional ? "Menyimpan…" : "Simpan Jadwal"}
                 </button>
               </div>
             </form>

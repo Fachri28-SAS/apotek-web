@@ -38,6 +38,7 @@ Route::get('/storage/{path}', function ($path) {
 })->where('path', '.*');
 
 // ---- Toko Online — publik, checkout tanpa akun ----
+Route::get('/toko/status-operasional', [TokoController::class, 'statusOperasional']);
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
 
 // ---- Duitku Payment Gateway (Inquiry & Callback) ----
@@ -128,5 +129,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
         Route::post('/pengaturan-margin', [ObatController::class, 'setPengaturanMargin']);
+        Route::get('/pengaturan-operasional', [UserController::class, 'getPengaturanOperasional']);
+        Route::post('/pengaturan-operasional', [UserController::class, 'setPengaturanOperasional']);
     });
 });

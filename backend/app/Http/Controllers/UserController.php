@@ -26,11 +26,71 @@ class UserController extends Controller
     {
         $user = $r->user();
         if ($user) {
+            // Jika role kasir dan saat ini apotek sudah tutup di luar jam operasional,
+            // beri tahu klien kasir agar sesi kasir dinonaktifkan
+            if ($user->role === 'kasir') {
+                $operasional = \App\Services\OperasionalService::getStatus();
+                if (!$operasional['is_open']) {
+                    return response()->json([
+                        'status' => 'closed',
+                        'is_open' => false,
+                        'message' => "Jam operasional apotek telah berakhir ({$operasional['jam_buka']} - {$operasional['jam_tutup']} WIB). Akses kasir ditutup.",
+                    ], 403);
+                }
+            }
+
             try {
                 $user->update(['last_seen_at' => now()]);
             } catch (\Throwable $e) {}
         }
         return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * GET /api/pengaturan-operasional
+     * Khusus Admin: Ambil status dan konfigurasi jam operasional
+     */
+    public function getPengaturanOperasional()
+    {
+        return response()->json(\App\Services\OperasionalService::getStatus());
+    }
+
+    /**
+     * POST /api/pengaturan-operasional
+     * Khusus Admin: Perbarui jam operasional dan override buka/tutup manual
+     */
+    public function setPengaturanOperasional(Request $r)
+    {
+        $data = $r->validate([
+            'jam_buka' => 'required|string|regex:/^\d{1,2}:\d{2}$/',
+            'jam_tutup' => 'required|string|regex:/^\d{1,2}:\d{2}$/',
+            'status_operasional_manual' => 'required|in:otomatis,buka,tutup',
+            'pesan_tutup' => 'nullable|string|max:500',
+        ]);
+
+        // Standarisasi format HH:mm (2 digit jam)
+        $jamBuka = str_pad(trim($data['jam_buka']), 5, '0', STR_PAD_LEFT);
+        $jamTutup = str_pad(trim($data['jam_tutup']), 5, '0', STR_PAD_LEFT);
+
+        $dbUpdates = [
+            'jam_buka' => $jamBuka,
+            'jam_tutup' => $jamTutup,
+            'status_operasional_manual' => $data['status_operasional_manual'],
+            'pesan_tutup' => $data['pesan_tutup'] ?? "Mohon maaf, apotek sedang tutup di luar jam operasional ({$jamBuka} - {$jamTutup} WIB).",
+            'jam_operasional' => "Setiap hari, {$jamBuka} - {$jamTutup} WIB",
+        ];
+
+        foreach ($dbUpdates as $k => $v) {
+            \Illuminate\Support\Facades\DB::table('pengaturan')->updateOrInsert(
+                ['kunci' => $k],
+                ['nilai' => $v, 'updated_at' => now()]
+            );
+        }
+
+        return response()->json([
+            'message' => 'Pengaturan jam operasional apotek berhasil disimpan.',
+            'operasional' => \App\Services\OperasionalService::getStatus(),
+        ]);
     }
 
     /**
