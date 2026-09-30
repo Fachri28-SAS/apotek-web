@@ -206,7 +206,7 @@ export default function KelolaUser() {
   }
 
   const totalUser = users.length;
-  const userOnline = users.filter((u) => u.is_online).length;
+  const userOnline = users.filter((u) => u.is_online || u.id === currentUser?.id || u.username === currentUser?.username).length;
   const kasirAktif = users.filter((u) => u.aktif && u.role === "kasir").length;
   const adminAktif = users.filter((u) => u.aktif && u.role === "admin").length;
   const nonaktif = users.filter((u) => !u.aktif).length;
@@ -387,7 +387,8 @@ export default function KelolaUser() {
                 </tr>
               ) : (
                 users.map((u) => {
-                  const isSaya = u.id === currentUser?.id;
+                  const isSaya = u.id === currentUser?.id || u.username === currentUser?.username;
+                  const isOnline = Boolean(u.is_online || isSaya);
                   return (
                     <tr
                       key={u.id}
@@ -426,7 +427,7 @@ export default function KelolaUser() {
                         </span>
                       </td>
                       <td style={{ padding: "14px 16px" }}>
-                        {u.is_online ? (
+                        {isOnline ? (
                           <span
                             style={{
                               display: "inline-flex",
