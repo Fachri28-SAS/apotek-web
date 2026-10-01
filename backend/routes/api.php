@@ -83,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Kasir & admin
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/kpi', [DashboardController::class, 'kpi']);
         Route::get('/obat/{obat}/batches', [ObatController::class, 'getBatches']);
         Route::get('/obat/{obat}/riwayat-pengadaan', [ObatController::class, 'riwayatPengadaan']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);

@@ -64,4 +64,45 @@ class DashboardController extends Controller
             'akan_kadaluwarsa' => $akanKadaluwarsa,
         ];
     }
+
+    /**
+     * GET /api/kpi
+     */
+    public function kpi()
+    {
+        $hariIni = now()->toDateString();
+        $batasExp = now()->addDays(90)->toDateString();
+
+        $stokMenipis = Obat::whereNull('deleted_at')
+            ->where('aktif_dijual', true)
+            ->whereColumn('stok', '<', 'stok_minimum')
+            ->count();
+
+        $akanKadaluwarsa = Obat::whereNull('deleted_at')
+            ->whereNotNull('tanggal_exp')
+            ->whereBetween('tanggal_exp', [$hariIni, $batasExp])
+            ->count();
+
+        $penjualanHariIni = (float) Penjualan::whereDate('tanggal', $hariIni)
+            ->whereIn('status', ['lunas', 'selesai'])
+            ->sum('total');
+
+        $transaksiHariIniCount = Penjualan::whereDate('tanggal', $hariIni)
+            ->whereIn('status', ['lunas', 'selesai'])
+            ->count();
+
+        $pesananPending = \App\Models\PembayaranOnline::where('status', 'menunggu_verifikasi')->count();
+        $totalObat = Obat::whereNull('deleted_at')->where('aktif_dijual', true)->count();
+
+        return response()->json([
+            'omset_hari_ini' => $penjualanHariIni,
+            'penjualan_hari_ini' => $penjualanHariIni,
+            'transaksi_hari_ini' => $transaksiHariIniCount,
+            'obat_menipis' => $stokMenipis,
+            'stok_menipis' => $stokMenipis,
+            'akan_kadaluwarsa' => $akanKadaluwarsa,
+            'pesanan_online_pending' => $pesananPending,
+            'total_obat' => $totalObat,
+        ]);
+    }
 }
