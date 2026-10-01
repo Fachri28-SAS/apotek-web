@@ -217,6 +217,8 @@ class PenerimaanController extends Controller
                                   ->whereYear('tanggal_terima', now()->subMonth()->year),
                 default => null,
             };
+        }
+
         if ($r->filled('nama_supplier') && $r->nama_supplier !== 'semua') {
             $q->where('nama_supplier', $r->nama_supplier);
         }
