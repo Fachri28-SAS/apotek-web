@@ -38,7 +38,7 @@ export default function KelolaUser() {
     if (!isoStr) return "Belum pernah login";
     const d = new Date(isoStr);
     const diffMenit = Math.round((Date.now() - d.getTime()) / 60000);
-    if (diffMenit <= 1) return "Baru saja offline";
+    if (diffMenit <= 1) return "Offline · Baru saja";
     if (diffMenit < 60) return `Offline · ${diffMenit} mnt lalu`;
     const diffJam = Math.round(diffMenit / 60);
     if (diffJam < 24) return `Offline · ${diffJam} jam lalu`;

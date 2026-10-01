@@ -18,6 +18,20 @@ class UserController extends Controller
         return User::where('aktif', true)->orderBy('nama')->get(['id', 'nama']);
     }
 
+    public static function ensureLastSeenColumn()
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
+                \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->timestamp('last_seen_at')->nullable()->after('aktif');
+                });
+            }
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     /**
      * POST /api/user/ping
      * Heartbeat kasir/admin yang sedang membuka aplikasi
@@ -40,6 +54,7 @@ class UserController extends Controller
             }
 
             try {
+                self::ensureLastSeenColumn();
                 $user->update(['last_seen_at' => now()]);
             } catch (\Throwable $e) {}
         }
@@ -99,6 +114,7 @@ class UserController extends Controller
      */
     public function kelola()
     {
+        self::ensureLastSeenColumn();
         try {
             $hasLastSeen = \Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at');
         } catch (\Throwable $e) {

@@ -53,6 +53,7 @@ class AuthController extends Controller
         // $user->tokens()->delete();
 
         try {
+            \App\Http\Controllers\UserController::ensureLastSeenColumn();
             $user->update(['last_seen_at' => now()]);
         } catch (\Throwable $e) {}
 
@@ -69,6 +70,7 @@ class AuthController extends Controller
         $u = $r->user();
         if ($u) {
             try {
+                \App\Http\Controllers\UserController::ensureLastSeenColumn();
                 // Mundurkan 95 detik agar status langsung terhitung offline (karena ambang batas online adalah 90 detik)
                 // Waktu terakhir aktif tetap tersimpan sehingga admin bisa melihat "Baru saja offline" / "x menit lalu"
                 $u->update(['last_seen_at' => now()->subSeconds(95)]);
