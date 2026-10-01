@@ -583,16 +583,17 @@ export default function KelolaUser() {
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 6,
-                              background: "#F1F5F9",
-                              color: "#64748B",
+                              background: u.last_seen_at ? "#F1F5F9" : "#F8FAFC",
+                              color: u.last_seen_at ? "#475569" : "#94A3B8",
                               padding: "4px 10px",
                               borderRadius: 20,
                               fontWeight: 600,
                               fontSize: 11.5,
+                              border: u.last_seen_at ? "1px solid #E2E8F0" : "1px dashed #CBD5E1",
                             }}
-                            title={u.last_seen_at ? `Terakhir aktif: ${new Date(u.last_seen_at).toLocaleString("id-ID")}` : "Belum pernah login"}
+                            title={u.last_seen_at ? `Terakhir aktif: ${new Date(u.last_seen_at).toLocaleString("id-ID")}` : "Pengguna belum pernah login"}
                           >
-                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#94A3B8" }} />
+                            <span style={{ width: 7, height: 7, borderRadius: "50%", background: u.last_seen_at ? "#94A3B8" : "#CBD5E1" }} />
                             {formatLastSeen(u.last_seen_at, u.is_online)}
                           </span>
                         )}

@@ -132,9 +132,13 @@ class UserController extends Controller
             $isOnline = false;
             $lastSeenStr = null;
             if (isset($u->last_seen_at) && $u->last_seen_at) {
-                // Dianggap online jika ping/aktif dalam 90 detik terakhir
-                $isOnline = now()->diffInSeconds($u->last_seen_at) <= 90;
-                $lastSeenStr = $u->last_seen_at->toIso8601String();
+                $lastSeen = $u->last_seen_at instanceof \Carbon\Carbon
+                    ? $u->last_seen_at
+                    : \Carbon\Carbon::parse($u->last_seen_at);
+
+                // Online jika aktif dalam 90 detik terakhir
+                $isOnline = $lastSeen->gt(now()->subSeconds(90));
+                $lastSeenStr = $lastSeen->toIso8601String();
             }
 
             return [
