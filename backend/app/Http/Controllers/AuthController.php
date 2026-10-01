@@ -69,7 +69,9 @@ class AuthController extends Controller
         $u = $r->user();
         if ($u) {
             try {
-                $u->update(['last_seen_at' => null]);
+                // Mundurkan 95 detik agar status langsung terhitung offline (karena ambang batas online adalah 90 detik)
+                // Waktu terakhir aktif tetap tersimpan sehingga admin bisa melihat "Baru saja offline" / "x menit lalu"
+                $u->update(['last_seen_at' => now()->subSeconds(95)]);
             } catch (\Throwable $e) {}
             $u->currentAccessToken()->delete();
         }
