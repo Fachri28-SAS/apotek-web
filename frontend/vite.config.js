@@ -60,8 +60,10 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
-        // Cache aset statis selain html agar index.html selalu fresh dari server
-        globPatterns: ['**/*.{js,css,ico,png,svg,woff,woff2}'],
+        // Precache aset statis termasuk index.html agar Workbox navigateFallback valid
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/],
         // Network-first untuk API calls (data selalu fresh dari server)
         runtimeCaching: [
           {

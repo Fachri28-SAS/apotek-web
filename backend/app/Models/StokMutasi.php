@@ -18,4 +18,9 @@ class StokMutasi extends Model
     {
         return $this->belongsTo(Obat::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
