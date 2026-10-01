@@ -21,14 +21,22 @@ class UserController extends Controller
     public static function ensureLastSeenColumn()
     {
         try {
-            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
-                \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
-                    $table->timestamp('last_seen_at')->nullable()->after('aktif');
-                });
+            $cols = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM users LIKE 'last_seen_at'");
+            if (empty($cols)) {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE users ADD COLUMN last_seen_at TIMESTAMP NULL DEFAULT NULL AFTER aktif");
             }
             return true;
         } catch (\Throwable $e) {
-            return false;
+            try {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at')) {
+                    \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+                        $table->timestamp('last_seen_at')->nullable()->after('aktif');
+                    });
+                }
+                return true;
+            } catch (\Throwable $e2) {
+                return false;
+            }
         }
     }
 
@@ -116,9 +124,10 @@ class UserController extends Controller
     {
         self::ensureLastSeenColumn();
         try {
-            $hasLastSeen = \Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at');
+            $cols = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM users LIKE 'last_seen_at'");
+            $hasLastSeen = !empty($cols);
         } catch (\Throwable $e) {
-            $hasLastSeen = false;
+            $hasLastSeen = \Illuminate\Support\Facades\Schema::hasColumn('users', 'last_seen_at');
         }
 
         $cols = ['id', 'nama', 'username', 'role', 'aktif', 'created_at'];

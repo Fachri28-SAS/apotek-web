@@ -36,7 +36,10 @@ export default function KelolaUser() {
   function formatLastSeen(isoStr, isOnline) {
     if (isOnline) return "Online Sekarang";
     if (!isoStr) return "Belum pernah login";
-    const d = new Date(isoStr);
+    // Normalisasi format tanggal jika MySQL mengembalikan "YYYY-MM-DD HH:mm:ss"
+    const safeStr = isoStr.includes("T") ? isoStr : isoStr.replace(" ", "T");
+    const d = new Date(safeStr);
+    if (isNaN(d.getTime())) return "Offline";
     const diffMenit = Math.round((Date.now() - d.getTime()) / 60000);
     if (diffMenit <= 1) return "Offline · Baru saja";
     if (diffMenit < 60) return `Offline · ${diffMenit} mnt lalu`;

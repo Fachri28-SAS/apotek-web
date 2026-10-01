@@ -55,12 +55,21 @@ Route::post('/pesanan/{kode_tracking}/batal', [TokoController::class, 'batalkanB
 // Endpoint Login Kasir & Admin
 Route::post('/login', [AuthController::class, 'login']);
 
-// Endpoint rahasia sekali pakai untuk membersihkan pesanan online uji coba (tanpa tombol UI)
-Route::get('/secret-bersihkan-online', function (\Illuminate\Http\Request $r, \App\Services\StokService $stok) {
+// Endpoint diagnostik & auto-create kolom last_seen_at dengan proteksi kunci
+Route::get('/debug-last-seen', function (\Illuminate\Http\Request $r) {
     if ($r->query('kunci') !== 'bima2026') {
         abort(403, 'Akses ditolak.');
     }
-    return (new \App\Http\Controllers\PembayaranOnlineController())->bersihkanSemuaPesananOnline($r, $stok);
+    \App\Http\Controllers\UserController::ensureLastSeenColumn();
+    $cols = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM users LIKE 'last_seen_at'");
+    $users = \Illuminate\Support\Facades\DB::table('users')
+        ->select('id', 'nama', 'username', 'role', 'aktif', 'last_seen_at')
+        ->get();
+    return response()->json([
+        'server_time' => now()->toIso8601String(),
+        'has_last_seen_column' => !empty($cols),
+        'users' => $users,
+    ]);
 });
 
 // =====================================================================

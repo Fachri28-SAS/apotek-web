@@ -54,7 +54,9 @@ class AuthController extends Controller
 
         try {
             \App\Http\Controllers\UserController::ensureLastSeenColumn();
-            $user->update(['last_seen_at' => now()]);
+            \Illuminate\Support\Facades\DB::table('users')
+                ->where('id', $user->id)
+                ->update(['last_seen_at' => now()]);
         } catch (\Throwable $e) {}
 
         $token = $user->createToken('sistem-kasir')->plainTextToken;
@@ -73,9 +75,14 @@ class AuthController extends Controller
                 \App\Http\Controllers\UserController::ensureLastSeenColumn();
                 // Mundurkan 95 detik agar status langsung terhitung offline (karena ambang batas online adalah 90 detik)
                 // Waktu terakhir aktif tetap tersimpan sehingga admin bisa melihat "Baru saja offline" / "x menit lalu"
-                $u->update(['last_seen_at' => now()->subSeconds(95)]);
+                \Illuminate\Support\Facades\DB::table('users')
+                    ->where('id', $u->id)
+                    ->update(['last_seen_at' => now()->subSeconds(95)]);
             } catch (\Throwable $e) {}
-            $u->currentAccessToken()->delete();
+
+            try {
+                $u->currentAccessToken()?->delete();
+            } catch (\Throwable $e) {}
         }
         return response()->json(['message' => 'Berhasil logout']);
     }
