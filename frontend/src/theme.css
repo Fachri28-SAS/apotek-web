@@ -33,6 +33,10 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+input, select, textarea, button {
+  font-family: inherit;
+  color-scheme: light;
+}
 h1, h2, h3, .font-display { font-family: 'Fraunces', serif; letter-spacing: -0.01em; }
 a { text-decoration: none; color: inherit; }
 img, svg { display: block; max-width: 100%; }
