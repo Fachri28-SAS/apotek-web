@@ -83,6 +83,8 @@ export default function KasirShell({ children }) {
   const [showToast, setShowToast] = useState(false);
   const [gantiPasswordOpen, setGantiPasswordOpen] = useState(false);
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
+  const [konfirmasiLogoutOpen, setKonfirmasiLogoutOpen] = useState(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
 
@@ -130,8 +132,14 @@ export default function KasirShell({ children }) {
   }, [location.pathname]);
 
   async function handleLogout() {
-    await logout();
-    navigate("/portal-bima", { replace: true });
+    setLoadingLogout(true);
+    try {
+      await logout();
+      navigate("/portal-bima", { replace: true });
+    } finally {
+      setLoadingLogout(false);
+      setKonfirmasiLogoutOpen(false);
+    }
   }
 
   const menuTerlihat = MENU.filter((m) => !m.hanyaAdmin || user?.role === "admin");
@@ -213,7 +221,7 @@ export default function KasirShell({ children }) {
               className="kasir-logout-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                handleLogout();
+                setKonfirmasiLogoutOpen(true);
               }}
               title="Keluar dari Akun"
               aria-label="Keluar"
@@ -447,6 +455,104 @@ export default function KasirShell({ children }) {
 
         {gantiPasswordOpen && (
           <GantiPasswordModal user={user} onClose={() => setGantiPasswordOpen(false)} />
+        )}
+
+        {/* Modal Konfirmasi Logout */}
+        {konfirmasiLogoutOpen && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(15, 23, 42, 0.65)",
+              backdropFilter: "blur(6px)",
+              zIndex: 99999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 16,
+              animation: "fadeIn 0.2s ease-out",
+            }}
+            onClick={() => !loadingLogout && setKonfirmasiLogoutOpen(false)}
+          >
+            <div
+              style={{
+                background: "#FFFFFF",
+                borderRadius: 20,
+                maxWidth: 380,
+                width: "100%",
+                padding: "26px 22px",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                textAlign: "center",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  background: "#FEE2E2",
+                  color: "#DC2626",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 28, height: 28 }}>
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+              </div>
+
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1E293B", margin: "0 0 8px" }}>
+                Yakin Ingin Keluar?
+              </h3>
+              <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 22px", lineHeight: 1.5 }}>
+                Sesi akun <strong>{user?.nama || "Anda"}</strong> akan diakhiri. Anda perlu login kembali untuk mengakses kasir.
+              </p>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  disabled={loadingLogout}
+                  onClick={() => setKonfirmasiLogoutOpen(false)}
+                  style={{
+                    flex: 1,
+                    padding: "11px 16px",
+                    borderRadius: 12,
+                    border: "1px solid #CBD5E1",
+                    background: "#F8FAFC",
+                    color: "#475569",
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={loadingLogout}
+                  onClick={handleLogout}
+                  style={{
+                    flex: 1,
+                    padding: "11px 16px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "#DC2626",
+                    color: "#FFFFFF",
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+                    opacity: loadingLogout ? 0.7 : 1,
+                  }}
+                >
+                  {loadingLogout ? "Memproses..." : "Ya, Keluar"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
