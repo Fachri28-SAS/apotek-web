@@ -152,11 +152,9 @@ class PenjualanController extends Controller
         });
     }
 
-    /** GET /api/penjualan — dipakai halaman Riwayat Penjualan nanti */
+    /** GET /api/penjualan */
     public function index(Request $r)
     {
-        // Cuma yang sudah lunas atau selesai — pesanan online yang masih 'pending'/'batal'
-        // tidak dianggap "riwayat penjualan", karena belum benar-benar terjual.
         $q = Penjualan::whereIn('status', ['lunas', 'selesai']);
 
         if ($r->filled('sumber') && $r->sumber !== 'semua') {

@@ -36,7 +36,6 @@ export default function KelolaUser() {
   function formatLastSeen(isoStr, isOnline) {
     if (isOnline) return "Online Sekarang";
     if (!isoStr) return "Belum pernah login";
-    // Normalisasi format tanggal jika MySQL mengembalikan "YYYY-MM-DD HH:mm:ss"
     const safeStr = isoStr.includes("T") ? isoStr : isoStr.replace(" ", "T");
     const d = new Date(safeStr);
     if (isNaN(d.getTime())) return "Offline";
@@ -78,7 +77,6 @@ export default function KelolaUser() {
   useEffect(() => {
     muatUsers();
     muatOperasional();
-    // Polling status online/offline realtime & jam operasional setiap 8 detik
     const timer = setInterval(() => {
       muatUsers(true);
       muatOperasional();
@@ -669,7 +667,6 @@ export default function KelolaUser() {
         </div>
       </div>
 
-      {/* ---------- MODAL TAMBAH / EDIT USER ---------- */}
       {modalOpen && (
         <div className="modal-backdrop" onClick={() => setModalOpen(false)}>
           <div

@@ -11,10 +11,6 @@ class AuthController extends Controller
 {
     /**
      * POST /api/login
-     * Body: { "username": "yunita", "password": "rahasia123" }
-     *
-     * Dipakai kasir & admin login ke Sistem Kasir. Pembeli di Toko Online
-     * TIDAK lewat sini — checkout mereka tanpa akun (lihat BACKLOG.md).
      */
     public function login(Request $r)
     {
@@ -37,7 +33,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Pembatasan jam operasional khusus role kasir (Admin tetap bebas login 24 jam)
+        // Cek jam operasional kasir
         if ($user->role === 'kasir') {
             $operasional = \App\Services\OperasionalService::getStatus();
             if (!$operasional['is_open']) {
@@ -48,9 +44,6 @@ class AuthController extends Controller
                 ]);
             }
         }
-
-        // Pertahankan sesi aktif agar tidak saling memutus / logout saat buka multi-tab atau refresh
-        // $user->tokens()->delete();
 
         try {
             \App\Http\Controllers\UserController::ensureLastSeenColumn();
@@ -73,8 +66,6 @@ class AuthController extends Controller
         if ($u) {
             try {
                 \App\Http\Controllers\UserController::ensureLastSeenColumn();
-                // Mundurkan 95 detik agar status langsung terhitung offline (karena ambang batas online adalah 90 detik)
-                // Waktu terakhir aktif tetap tersimpan sehingga admin bisa melihat "Baru saja offline" / "x menit lalu"
                 \Illuminate\Support\Facades\DB::table('users')
                     ->where('id', $u->id)
                     ->update(['last_seen_at' => now()->subSeconds(95)]);
@@ -94,7 +85,6 @@ class AuthController extends Controller
 
     /**
      * POST /api/ganti-password
-     * Kasir atau Admin ganti kata sandi sendiri
      */
     public function gantiPassword(Request $r)
     {

@@ -27,7 +27,6 @@ class PengeluaranController extends Controller
             [$mulai, $selesai] = $this->rentangTanggal($periode, $dari, $sampai);
         }
 
-        // 0. Query Laba Kotor Penjualan (selisih Penjualan - HPP Modal Obat Terjual)
         $queryPenjualan = Penjualan::whereIn('status', ['lunas', 'selesai'])->whereBetween('tanggal', [$mulai, $selesai]);
         $totalPenjualan = (float) (clone $queryPenjualan)->sum('total');
         $penjualanIds = (clone $queryPenjualan)->pluck('id');
@@ -38,7 +37,6 @@ class PengeluaranController extends Controller
             ->value('modal') ?? 0);
         $totalLabaPenjualan = (float) ($totalPenjualan - $totalModal);
 
-        // 1. Query Pengeluaran Operasional
         $queryOperasional = Pengeluaran::whereBetween('tanggal', [$mulai, $selesai]);
         if ($r->kategori && $r->kategori !== 'semua') {
             $queryOperasional->where('kategori', $r->kategori);
@@ -50,7 +48,6 @@ class PengeluaranController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        // 2. Query Pembelian Obat / Faktur Supplier (dari tabel penerimaan)
         $queryPenerimaan = Penerimaan::whereBetween('tanggal_terima', [$mulai, $selesai]);
         $totalPembelianSupplier = (float) (clone $queryPenerimaan)->sum('total');
         $fakturSupplier = (clone $queryPenerimaan)
@@ -58,10 +55,8 @@ class PengeluaranController extends Controller
             ->orderByDesc('id')
             ->get(['id', 'nama_supplier', 'no_faktur', 'tanggal_terima', 'tanggal_jatuh_tempo', 'total', 'status_bayar']);
 
-        // 3. Total Keseluruhan Pengeluaran
         $totalPengeluaran = $totalOperasional + $totalPembelianSupplier;
 
-        // 4. Breakdown Kategori
         $kategoriSummary = (clone $queryOperasional)
             ->select('kategori', DB::raw('SUM(nominal) as total'), DB::raw('COUNT(*) as jumlah'))
             ->groupBy('kategori')
@@ -71,7 +66,6 @@ class PengeluaranController extends Controller
         $breakdown = [];
         $totalGaji = (float) ($kategoriSummary['gaji']->total ?? 0);
         $totalOperasionalNonGaji = max(0, $totalOperasional - $totalGaji);
-        // Pendapatan Bersih = Total Laba Kotor Penjualan - Total Pengeluaran (Beban Operasional + Pembelian Obat Supplier)
         $pendapatanBersih = (float) ($totalLabaPenjualan - $totalPengeluaran);
 
         $daftarKategori = [

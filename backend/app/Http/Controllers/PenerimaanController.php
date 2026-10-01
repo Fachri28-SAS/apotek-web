@@ -131,12 +131,10 @@ class PenerimaanController extends Controller
             foreach ($itemsSiap as $item) {
                 $penerimaan->items()->create($item);
 
-                // Stok masuk dihitung dari kemasan (total unit dasar), fallback ke qty * faktor
                 $stokMasuk = isset($item['kemasan']) && $item['kemasan'] > 0
                     ? (int) $item['kemasan']
                     : (int) ($item['qty'] * $item['faktor']);
 
-                // 1. Stok bertambah lewat StokService (tercatat di stok_mutasi & menambah stok di Data Obat)
                 $stok->ubah(
                     $item['obat_id'],
                     $stokMasuk,
@@ -145,9 +143,6 @@ class PenerimaanController extends Controller
                     $penerimaan->id
                 );
 
-                // 2. Harga beli satuan di Data Obat dihitung per unit stok yang masuk:
-                // Misal: Terima 6 Box @ Rp100.000 (total Rp600.000), Kemasan masuk 60 Strip.
-                // Maka harga beli di Data Obat otomatis Rp600.000 / 60 = Rp10.000 per Strip.
                 $hargaBeliPerUnitMasuk = ($stokMasuk > 0 && $item['qty'] > 0)
                     ? round(($item['qty'] * $item['harga_beli']) / $stokMasuk)
                     : $item['harga_beli'];
@@ -162,14 +157,12 @@ class PenerimaanController extends Controller
 
                 ObatSatuan::where('id', $item['obat_satuan_id'])->update($updateSatuan);
 
-                // 3. Nomor batch & tanggal exp di Data Obat ikut update
                 if ($item['nomor_batch']) {
                     \App\Models\Obat::where('id', $item['obat_id'])->update([
                         'nomor_batch' => $item['nomor_batch'],
                         'tanggal_exp' => $item['tanggal_exp'],
                     ]);
 
-                    // 4. Catat juga di obat_batch
                     ObatBatch::updateOrCreate(
                         ['obat_id' => $item['obat_id'], 'nomor_batch' => $item['nomor_batch']],
                         [

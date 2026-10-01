@@ -20,8 +20,7 @@ export default function CartTable({ items, onUbah, onHapus }) {
 
   return (
     <>
-      {/* ---------- TAMPILAN MOBILE: LIST CARDS DENGAN QTY MINI (SESUAI PREVIEW) ---------- */}
-      <div className="mobile-only" style={{ marginBottom: 16 }}>
+            <div className="mobile-only" style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 800, color: "var(--ink)", marginBottom: 8, display: "flex", justifyContent: "space-between" }}>
           <span>Keranjang ({items.length} item)</span>
         </div>
@@ -178,8 +177,7 @@ export default function CartTable({ items, onUbah, onHapus }) {
         })}
       </div>
 
-      {/* ---------- TAMPILAN DESKTOP: TABEL KASIR LENGKAP ---------- */}
-      <div className="obat-table-wrap desktop-only">
+            <div className="obat-table-wrap desktop-only">
         <table className="cart-table" style={{ minWidth: 620 }}>
           <thead>
             <tr>

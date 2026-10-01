@@ -34,12 +34,10 @@ class LaporanController extends Controller
 
         $queryPeriode = Penjualan::whereIn('status', ['lunas', 'selesai'])->whereBetween('tanggal', [$mulai, $selesai]);
 
-        // --- KPI mengikuti periode yang dipilih ---
         $totalPenjualan = (float) (clone $queryPeriode)->sum('total');
         $jumlahTransaksi = (clone $queryPeriode)->count();
         $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
 
-        // --- Hitung Total Modal (HPP) & Total Pendapatan (Laba) ---
         $penjualanIds = (clone $queryPeriode)->pluck('id');
         $totalModal = (float) (DB::table('penjualan_item')
             ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
@@ -50,7 +48,6 @@ class LaporanController extends Controller
         $totalPendapatan = (float) ($totalPenjualan - $totalModal);
         $marginPersen = $totalModal > 0 ? round(($totalPendapatan / $totalModal) * 100, 1) : 0;
 
-        // --- Breakdown metode pembayaran (untuk progress bar) ---
         $metodeBreakdown = (clone $queryPeriode)
             ->select('metode_bayar', DB::raw('COUNT(*) as jumlah'), DB::raw('SUM(total) as total'))
             ->groupBy('metode_bayar')
@@ -62,7 +59,7 @@ class LaporanController extends Controller
                 'persen' => $jumlahTransaksi > 0 ? round($m->jumlah / $jumlahTransaksi * 100) : 0,
             ]);
 
-        // --- Grafik 7 hari — SELALU trend 7 hari terakhir, tidak ikut filter periode ---
+        // Tren 7 hari terakhir
         $grafik = DB::table('penjualan')
             ->selectRaw("tanggal, COUNT(*) as jml_transaksi, SUM(total) as omzet")
             ->whereIn('status', ['lunas', 'selesai'])
@@ -89,7 +86,6 @@ class LaporanController extends Controller
             ->orderBy('tanggal_exp')
             ->get(['id', 'nama', 'satuan_dasar', 'stok', 'nomor_batch', 'tanggal_exp']);
 
-        // --- Tabel transaksi ikut periode yang dipilih beserta laba per transaksi ---
         $transaksi = (clone $queryPeriode)
             ->with(['items' => function ($q) {
                 $q->select('id', 'penjualan_id', 'obat_satuan_id', 'qty', 'harga_beli', 'subtotal');

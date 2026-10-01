@@ -175,8 +175,7 @@ export default function Navbar({ cartCount, onOpenCart }) {
         </div>
       </header>
 
-      {/* ---------- MODAL CEK STATUS PESANAN (DI LUAR HEADER SUPAYA TIDAK KEPOTONG) ---------- */}
-      {modalCek && (
+            {modalCek && (
         <div
           style={{
             position: "fixed",

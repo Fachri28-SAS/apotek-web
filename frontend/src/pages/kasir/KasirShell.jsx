@@ -50,7 +50,6 @@ function JamRealtime() {
   );
 }
 
-// Suara notifikasi lembut menggunakan Web Audio API murni (tanpa butuh file eksternal)
 function mainkanSuaraNotifikasi() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -58,9 +57,8 @@ function mainkanSuaraNotifikasi() {
     const gain = ctx.createGain();
 
     osc.type = "sine";
-    // Nada ding-dong ganda yang ramah & elegan
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12);
 
     gain.gain.setValueAtTime(0.18, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
@@ -70,9 +68,7 @@ function mainkanSuaraNotifikasi() {
 
     osc.start();
     osc.stop(ctx.currentTime + 0.45);
-  } catch (e) {
-    // browser auto-play policy fallback
-  }
+  } catch (e) {}
 }
 
 export default function KasirShell({ children }) {
@@ -88,12 +84,10 @@ export default function KasirShell({ children }) {
 
   const halamanAktif = MENU.find((m) => m.path === location.pathname);
 
-  // Tutup sidebar mobile saat navigasi pindah halaman
   useEffect(() => {
     setSidebarMobileOpen(false);
   }, [location.pathname]);
 
-  // Kunci scroll background saat sidebar drawer mobile terbuka
   useEffect(() => {
     if (sidebarMobileOpen) {
       document.body.style.overflow = "hidden";
@@ -105,7 +99,6 @@ export default function KasirShell({ children }) {
     };
   }, [sidebarMobileOpen]);
 
-  // Polling badge notifikasi pesanan online yang menunggu verifikasi kasir secara realtime (setiap 3.5 detik)
   useEffect(() => {
     let lastCount = -1;
 
@@ -115,7 +108,6 @@ export default function KasirShell({ children }) {
           const count = res.menunggu_verifikasi || res.total_notifikasi || 0;
           setBadgeCounter(count);
 
-          // Jika ada pesanan baru bertambah & bukan di halaman pembayaran online, bunyikan notifikasi & tampilkan toast
           if (lastCount !== -1 && count > lastCount && location.pathname !== "/kasir/pembayaran-online") {
             mainkanSuaraNotifikasi();
             setShowToast(true);
@@ -314,7 +306,6 @@ export default function KasirShell({ children }) {
 
         <main className="kasir-content">{children}</main>
 
-        {/* ---------- BOTTOM NAVIGATION (KHUSUS MOBILE SCREEN) ---------- */}
         <nav className="bottom-nav-mobile" aria-label="Navigasi Bawah">
           <Link
             to="/kasir"

@@ -17,11 +17,7 @@ use App\Http\Controllers\PengeluaranController;
 use App\Http\Controllers\DuitkuController;
 use Illuminate\Support\Facades\Route;
 
-// =====================================================================
-// PUBLIK — tidak perlu login sama sekali
-// Dipakai Toko Online, dan juga dipakai Kasir untuk cari obat (sebelum
-// kasir/admin login pun data ini boleh diakses, karena tidak sensitif).
-// =====================================================================
+// Publik
 Route::get('/obat', [ObatController::class, 'index']);
 Route::get('/obat/{obat}', [ObatController::class, 'show']);
 Route::get('/suppliers', [SupplierController::class, 'index']);
@@ -37,25 +33,23 @@ Route::get('/storage/{path}', function ($path) {
     abort(404);
 })->where('path', '.*');
 
-// ---- Toko Online — publik, checkout tanpa akun ----
+// Toko online
 Route::get('/toko/status-operasional', [TokoController::class, 'statusOperasional']);
 Route::post('/toko/checkout', [TokoController::class, 'checkout']);
 
-// ---- Duitku Payment Gateway (Inquiry & Callback) ----
+// Duitku payment gateway
 Route::post('/duitku/create/{kodeTracking}', [DuitkuController::class, 'createInvoice']);
 Route::post('/duitku/callback', [DuitkuController::class, 'callback']);
 
-// ---- Tracking Pesanan & Upload Bukti Publik (via kode_tracking) ----
+// Tracking pesanan
 Route::get('/pesanan-cari', [TokoController::class, 'cari']);
 Route::get('/pesanan/{kode_tracking}', [TokoController::class, 'showByTracking']);
 Route::get('/pesanan/{kode_tracking}/status', [TokoController::class, 'statusByTracking']);
 Route::post('/pesanan/{kode_tracking}/bukti', [TokoController::class, 'uploadBuktiByTracking']);
 Route::post('/pesanan/{kode_tracking}/batal', [TokoController::class, 'batalkanByTracking']);
 
-// Endpoint Login Kasir & Admin
 Route::post('/login', [AuthController::class, 'login']);
 
-// Endpoint diagnostik & auto-create kolom last_seen_at dengan proteksi kunci
 Route::get('/debug-last-seen', function (\Illuminate\Http\Request $r) {
     if ($r->query('kunci') !== 'bima2026') {
         abort(403, 'Akses ditolak.');
@@ -72,23 +66,21 @@ Route::get('/debug-last-seen', function (\Illuminate\Http\Request $r) {
     ]);
 });
 
-// =====================================================================
-// WAJIB LOGIN — kasir & admin
-// =====================================================================
+// Autentikasi
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/user/ping', [UserController::class, 'ping']);
     Route::post('/ganti-password', [AuthController::class, 'gantiPassword']);
 
-    // ---- Audit Log (Kasir boleh POST, Admin boleh GET & DELETE) ----
+    // Audit log
     Route::post('/audit-logs', [AuditLogController::class, 'store']);
     Route::middleware('role:admin')->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index']);
         Route::delete('/audit-logs', [AuditLogController::class, 'destroyAll']);
     });
 
-    // ---- Kasir & admin DUA-DUANYA boleh — operasional harian ----
+    // Kasir & admin
     Route::middleware('role:admin,kasir')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index']);
         Route::get('/obat/{obat}/batches', [ObatController::class, 'getBatches']);
@@ -119,13 +111,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pembayaran-online/{pembayaran}/konfirmasi', [PembayaranOnlineController::class, 'konfirmasi']);
         Route::post('/pembayaran-online/{pembayaran}/kurang-bayar', [PembayaranOnlineController::class, 'kurangBayar']);
         Route::post('/pembayaran-online/{pembayaran}/tolak', [PembayaranOnlineController::class, 'tolak']);
-
-        // Mobile Alias
         Route::get('/pesanan-online', [PembayaranOnlineController::class, 'index']);
         Route::post('/pesanan-online/{pembayaran}/verifikasi', [PembayaranOnlineController::class, 'konfirmasi']);
     });
 
-    // ---- HANYA admin — Laporan, Pengeluaran & Kelola Pengguna Kasir/Staf ----
+    // Khusus admin
     Route::middleware('role:admin')->group(function () {
         Route::get('/laporan', [LaporanController::class, 'index']);
         Route::get('/pengeluaran', [PengeluaranController::class, 'index']);

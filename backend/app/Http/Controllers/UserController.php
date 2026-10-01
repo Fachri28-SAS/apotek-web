@@ -40,16 +40,10 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * POST /api/user/ping
-     * Heartbeat kasir/admin yang sedang membuka aplikasi
-     */
     public function ping(Request $r)
     {
         $user = $r->user();
         if ($user) {
-            // Jika role kasir dan saat ini apotek sudah tutup di luar jam operasional,
-            // beri tahu klien kasir agar sesi kasir dinonaktifkan
             if ($user->role === 'kasir') {
                 $operasional = \App\Services\OperasionalService::getStatus();
                 if (!$operasional['is_open']) {
@@ -69,19 +63,11 @@ class UserController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    /**
-     * GET /api/pengaturan-operasional
-     * Khusus Admin: Ambil status dan konfigurasi jam operasional
-     */
     public function getPengaturanOperasional()
     {
         return response()->json(\App\Services\OperasionalService::getStatus());
     }
 
-    /**
-     * POST /api/pengaturan-operasional
-     * Khusus Admin: Perbarui jam operasional dan override buka/tutup manual
-     */
     public function setPengaturanOperasional(Request $r)
     {
         $data = $r->validate([
@@ -91,7 +77,6 @@ class UserController extends Controller
             'pesan_tutup' => 'nullable|string|max:500',
         ]);
 
-        // Standarisasi format HH:mm (2 digit jam)
         $jamBuka = str_pad(trim($data['jam_buka']), 5, '0', STR_PAD_LEFT);
         $jamTutup = str_pad(trim($data['jam_tutup']), 5, '0', STR_PAD_LEFT);
 
@@ -116,10 +101,6 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/users/kelola
-     * Khusus Admin: Ambil semua user (aktif & nonaktif) dengan detail & status online
-     */
     public function kelola()
     {
         self::ensureLastSeenColumn();
@@ -145,7 +126,6 @@ class UserController extends Controller
                     ? $u->last_seen_at
                     : \Carbon\Carbon::parse($u->last_seen_at);
 
-                // Online jika aktif dalam 90 detik terakhir
                 $isOnline = $lastSeen->gt(now()->subSeconds(90));
                 $lastSeenStr = $lastSeen->toIso8601String();
             }

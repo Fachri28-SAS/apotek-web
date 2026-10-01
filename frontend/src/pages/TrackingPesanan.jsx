@@ -239,8 +239,7 @@ export default function TrackingPesanan() {
 
   return (
     <div className="tracking-page">
-      {/* ---------- NAVBAR TRACKING ---------- */}
-      <header className="tracking-nav">
+            <header className="tracking-nav">
         <div className="tracking-nav-inner">
           <Link to="/toko" className="tracking-brand">
             <svg><use href="#cross-mark" /></svg>
@@ -260,8 +259,7 @@ export default function TrackingPesanan() {
       </header>
 
       <div className="tracking-container">
-        {/* ---------- HERO STATUS BANNER (REAKTIF VIA POLLING) ---------- */}
-        <div className={`status-hero status-${statusPembayaran} ${statusPembayaran}`}>
+                <div className={`status-hero status-${statusPembayaran} ${statusPembayaran}`}>
           <div className="status-icon-wrap">
             {statusPembayaran === "pending" && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -327,8 +325,7 @@ export default function TrackingPesanan() {
           </div>
         </div>
 
-        {/* ---------- 2-KOLOM: DETAIL & PEMBAYARAN ---------- */}
-        <div className="tracking-grid">
+                <div className="tracking-grid">
           {/* KOLOM KIRI: DETAIL PESANAN */}
           <div className="tracking-card">
             <div className="tracking-card-head">

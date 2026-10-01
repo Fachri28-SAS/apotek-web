@@ -173,8 +173,7 @@ export default function Dashboard() {
 
       {/* ==================== TAMPILAN KHUSUS DESKTOP ==================== */}
       <div className="desktop-only">
-        {/* ---------- KPI DESKTOP ---------- */}
-        <div className="kpi-grid">
+                <div className="kpi-grid">
           {KPI.map((k) => (
             <div className={`kpi-card ${k.warna}`} key={k.key}>
               <div className="kpi-icon">
@@ -189,8 +188,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ---------- TRANSAKSI TERBARU DESKTOP ---------- */}
-        <div className="panel">
+                <div className="panel">
           <div className="panel-head"><h3>Transaksi Terbaru</h3></div>
           {data?.transaksi_terbaru?.length ? (
             <div className="obat-table-wrap">
@@ -219,8 +217,7 @@ export default function Dashboard() {
         </div>
 
         <div className="dashboard-2kolom">
-          {/* ---------- STOK MENIPIS ---------- */}
-          <div className="panel">
+                    <div className="panel">
             <div className="panel-head"><h3>Stok Menipis</h3></div>
             {data?.stok_menipis?.length ? (
               <div className="list-ringkas">
@@ -239,8 +236,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* ---------- AKAN KADALUWARSA ---------- */}
-          <div className="panel">
+                    <div className="panel">
             <div className="panel-head"><h3>Akan Kadaluwarsa</h3></div>
             {data?.akan_kadaluwarsa?.length ? (
               <div className="list-ringkas">

@@ -777,8 +777,7 @@ export default function Toko() {
         )}
       </section>
 
-      {/* ---------- OVERLAY + DRAWER ---------- */}
-      <div className={`overlay ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
+            <div className={`overlay ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
       <div className={`drawer ${drawerOpen ? "open" : ""}`}>
         <div className="drawer-head">
           <h3>

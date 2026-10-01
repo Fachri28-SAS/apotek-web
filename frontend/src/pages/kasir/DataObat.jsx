@@ -58,11 +58,10 @@ export default function DataObat() {
   const [filterMarginTipis, setFilterMarginTipis] = useState(false);
   const [sedangPerbaiki, setSedangPerbaiki] = useState(false);
 
-  // Kontrol Sembunyikan: ON (Hilang) / OFF (Tampil) untuk Kasir & Admin
   const [sembunyikan, setSembunyikan] = useState(() => {
     const saved = localStorage.getItem("bima_mode_sembunyikan");
     if (saved !== null) return saved === "true";
-    return false; // Default: OFF (tidak disembunyikan / kolom tampil)
+    return false;
   });
 
   function toggleSembunyikan() {
@@ -73,7 +72,7 @@ export default function DataObat() {
     });
   }
 
-  // Shortcut rahasia: Tekan tombol 'h' atau 'm' di keyboard untuk sembunyikan/tampilkan kolom secara senyap
+  // Shortcut h / m
   useEffect(() => {
     function handleKeyDown(e) {
       if (
@@ -302,7 +301,6 @@ export default function DataObat() {
     muatUlang();
   }
 
-  // --- LOGIKA EDIT HARGA JUAL LANGSUNG DI SITU (INLINE PRICE EDIT) ---
   function mulaiEditHarga(obat, satuan) {
     const targetSatuan = satuan || obat.satuan?.[0];
     if (!targetSatuan) return;
@@ -385,7 +383,6 @@ export default function DataObat() {
     }
   }
 
-  // --- LOGIKA EDIT HARGA BELI LANGSUNG DI SITU (INLINE BUY PRICE EDIT) ---
   function mulaiEditHargaBeli(obat, satuan) {
     const targetSatuan = satuan || obat.satuan?.[0];
     if (!targetSatuan) return;
@@ -468,7 +465,6 @@ export default function DataObat() {
     }
   }
 
-  // --- LOGIKA EDIT STOK LANGSUNG DI SITU (INLINE STOCK EDIT) ---
   function mulaiEditStok(obat) {
     const key = `stok_${obat.id}`;
     setEditingKey(key);
@@ -659,9 +655,6 @@ export default function DataObat() {
     }
   }
 
-  // --- EKSPOR DATA OBAT (PER HALAMAN ATAU SEMUA DATA) ---
-  // --- EKSPOR & CETAK DATA OBAT (PER HALAMAN ATAU SEMUA DATA) ---
-  // Kolom Margin % tidak pernah diikutsertakan dalam cetak/ekspor (rahasia apotek)
   function siapkanDataExport(scope = "semua") {
     const dataSumber = scope === "halaman" && perPage !== "semua" ? daftarHalaman : daftarTampil;
 
@@ -1167,8 +1160,7 @@ export default function DataObat() {
         </div>
       )}
 
-      {/* ---------- TAMPILAN KHUSUS MOBILE ---------- */}
-      <div className="mobile-only" style={{ marginBottom: 20 }}>
+            <div className="mobile-only" style={{ marginBottom: 20 }}>
         <div className="search-mobile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" />
@@ -1690,8 +1682,7 @@ export default function DataObat() {
         )}
       </div>
 
-      {/* ---------- TAMPILAN KHUSUS DESKTOP (SEARCH, KONTROL & TABEL) ---------- */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
         <div className="search-obat-input desktop-only" style={{ maxWidth: 360, margin: 0 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />

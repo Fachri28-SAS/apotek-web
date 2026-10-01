@@ -4,7 +4,6 @@ import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken, ap
 
 function getCachedUser() {
   if (typeof window === "undefined") return null;
-  // HANYA baca dari sessionStorage agar saat browser/tab ditutup sesi otomatis terhapus
   const raw = sessionStorage.getItem("bimafarma_user");
   try {
     return raw ? JSON.parse(raw) : null;
@@ -14,12 +13,10 @@ function getCachedUser() {
 }
 
 export function AuthProvider({ children }) {
-  // Ambil snapshot user dari cache agar render instan tanpa jeda blank screen
   const [user, setUser] = useState(getCachedUser);
   const [loading, setLoading] = useState(() => isLoggedIn() && !getCachedUser());
 
   useEffect(() => {
-    // Bersihkan sesi usang di localStorage dari versi sebelumnya jika ada
     try {
       localStorage.removeItem("bimafarma_user");
       localStorage.removeItem("bimafarma_token");
@@ -33,7 +30,6 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Sinkronisasi sesi dengan server di latar belakang jika ada token aktif
     getMe()
       .then((u) => {
         setUser(u);
@@ -44,7 +40,6 @@ export function AuthProvider({ children }) {
         }
       })
       .catch((err) => {
-        // HANYA hapus sesi jika server memberikan 401 eksplisit (token invalid/expired di database).
         if (err?.status === 401) {
           setUser(null);
           setToken(null);
@@ -60,7 +55,7 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  // Heartbeat pengirim status aktif (ping online) setiap 30 detik
+  // Heartbeat ping
   useEffect(() => {
     if (!user) return;
 

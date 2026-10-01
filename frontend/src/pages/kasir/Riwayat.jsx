@@ -95,8 +95,7 @@ export default function Riwayat() {
 
       {error && <div className="login-error">{error}</div>}
 
-      {/* ---------- TAMPILAN KHUSUS MOBILE (SESUAI PREVIEW LAYAR 4) ---------- */}
-      <div className="mobile-only">
+            <div className="mobile-only">
         {/* Kalender Filter Mobile */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12, padding: "0 2px" }}>
           <div>
@@ -165,8 +164,7 @@ export default function Riwayat() {
         )}
       </div>
 
-      {/* ---------- TAMPILAN KHUSUS DESKTOP (PANEL & TABEL LENGKAP) ---------- */}
-      <div className="panel desktop-only">
+            <div className="panel desktop-only">
         <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
           {/* Kalender Filter Tanggal */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>

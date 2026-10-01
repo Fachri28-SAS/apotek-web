@@ -242,8 +242,7 @@ export default function Penerimaan() {
       {error && <div className="login-error">{error}</div>}
       {sukses && <div className="pesan-sukses">{sukses}</div>}
 
-      {/* ---------- PANEL 1: FAKTUR PEMBELIAN (COMPACT & COLLAPSIBLE) ---------- */}
-      <div className="panel" style={{ padding: "12px 16px", marginBottom: 12 }}>
+            <div className="panel" style={{ padding: "12px 16px", marginBottom: 12 }}>
         <div
           className="panel-head"
           style={{
@@ -441,8 +440,7 @@ export default function Penerimaan() {
         )}
       </div>
 
-      {/* ---------- PANEL 2: DAFTAR ITEM (NAIK LEBIH KE ATAS) ---------- */}
-      <div className="panel" style={{ padding: "14px 16px" }}>
+            <div className="panel" style={{ padding: "14px 16px" }}>
         <div className="panel-head" style={{ marginBottom: 10 }}>
           <h3 style={{ margin: 0, fontSize: 16 }}>Daftar Item Faktur</h3>
         </div>
@@ -607,8 +605,7 @@ export default function Penerimaan() {
               </table>
             </div>
 
-            {/* ---------- RINGKASAN ---------- */}
-            <div className="penerimaan-ringkasan">
+                        <div className="penerimaan-ringkasan">
               <div className="payment-row"><span>Subtotal (DPP)</span><strong>{rupiah(subtotal)}</strong></div>
               <div className="payment-row"><span>Total Pajak (PPN {isPkp ? `${persenPpn}%` : "0%"})</span><span>{rupiah(ppn)}</span></div>
               <div className="payment-row payment-total"><span>Total Tagihan</span><strong>{rupiah(totalTagihan)}</strong></div>

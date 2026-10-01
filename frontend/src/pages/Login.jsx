@@ -4,7 +4,6 @@ import { useAuth } from "../context/useAuth";
 import Spinner from "../components/Spinner";
 import "./Login.css";
 
-// Kunci izin akses resmi untuk mendaftarkan perangkat staf/kasir
 const KUNCI_RESMI = ["bima2026", "bimafarma2026"];
 
 function cekKunciValid(input) {
@@ -20,7 +19,6 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-  // Bersihkan sisa nama pengguna yang tersimpan agar input selalu kosong saat halaman dibuka
   useEffect(() => {
     try {
       localStorage.removeItem("bf_ingat_username");
@@ -29,7 +27,6 @@ export default function Login() {
     }
   }, []);
 
-  // Status Izin Perangkat (Client Authorization)
   const [terotorisasi, setTerotorisasi] = useState(() => {
     return localStorage.getItem("bf_perangkat_izin") === "true";
   });
@@ -43,19 +40,16 @@ export default function Login() {
   const location = useLocation();
   const tujuanAwal = location.state?.dari || "/kasir";
 
-  // Deteksi otomatis jika URL dibuka dengan query ?kunci=bima2026 atau ?key=bima2026
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const paramKunci = params.get("kunci") || params.get("key") || params.get("token");
     if (paramKunci && cekKunciValid(paramKunci)) {
       localStorage.setItem("bf_perangkat_izin", "true");
       setTerotorisasi(true);
-      // Bersihkan param dari address bar agar kunci rahasia tidak tersimpan di riwayat browser
       navigate("/portal-bima", { replace: true });
     }
   }, [location.search, navigate]);
 
-  // Jika sudah login, otomatis alihkan ke dashboard kasir
   useEffect(() => {
     if (user && !authLoading) {
       navigate("/kasir", { replace: true });
@@ -96,7 +90,6 @@ export default function Login() {
 
   return (
     <div className="login-page" translate="no">
-      {/* ---------- PANEL KIRI ---------- */}
       <div className="login-brand">
         <div className="login-brand-logo">
           <svg><use href="#cross-mark" /></svg>
@@ -141,10 +134,8 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ---------- PANEL KANAN ---------- */}
       <div className="login-form-side">
         {!terotorisasi ? (
-          /* TAMPILAN JIKA PERANGKAT BELUM DIBERI IZIN */
           <div className="login-form-wrap">
             <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div
@@ -235,7 +226,6 @@ export default function Login() {
             </div>
           </div>
         ) : (
-          /* TAMPILAN JIKA PERANGKAT SUDAH DIBERI IZIN */
           <div className="login-form-wrap">
             <h1 className="login-form-title">Selamat datang kembali</h1>
             <p className="sub login-form-sub">Masuk untuk mulai bertugas di sistem kasir &amp; apotek.</p>

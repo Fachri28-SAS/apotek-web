@@ -1,13 +1,5 @@
-/**
- * Semua pemanggilan API lewat sini, bukan fetch() langsung di komponen —
- * supaya header Authorization otomatis terpasang di mana pun, dan
- * base URL cuma perlu diubah di satu tempat kalau nanti pindah hosting.
- */
 const BASE_URL = (() => {
   if (typeof window !== "undefined") {
-    // Di domain produksi (baik akses apotekbimafarma.com maupun www.apotekbimafarma.com atau vercel.app)
-    // SELALU gunakan https://www.apotekbimafarma.com/api agar tidak terkena 308 Permanent Redirect dari Vercel
-    // yang menyebabkan browser memunculkan "Failed to fetch" pada form Login & data katalog
     if (window.location.hostname.includes("apotekbimafarma.com") || window.location.hostname.includes("vercel.app")) {
       return "https://www.apotekbimafarma.com/api";
     }
@@ -17,12 +9,10 @@ const BASE_URL = (() => {
 
 function getToken() {
   if (typeof window === "undefined") return null;
-  // HANYA gunakan sessionStorage agar sesi otomatis tertutup saat browser/tab ditutup
   return sessionStorage.getItem("bimafarma_token");
 }
 
 function setToken(token) {
-  // Selalu bersihkan token dari localStorage agar tidak tersimpan permanen
   try {
     localStorage.removeItem("bimafarma_token");
   } catch {
@@ -37,14 +27,9 @@ function setToken(token) {
   sessionStorage.setItem("bimafarma_token", token);
 }
 
-/**
- * Wrapper fetch: otomatis nempelin token & handle error jadi pesan
- * yang bisa langsung ditampilkan ke user (bukan objek Error mentah).
- */
 async function api(path, options = {}) {
   const token = getToken();
   const controller = new AbortController();
-  // Alokasikan batas timeout lebih longgar (75s untuk katalog obat & laporan besar, 45s untuk aksi lain)
   const isKatalog = path.startsWith("/obat") || path.startsWith("/laporan") || path.startsWith("/stok");
   const timeoutMs = options.timeout || (isKatalog ? 75000 : 45000);
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -69,7 +54,6 @@ async function api(path, options = {}) {
       if (res.status === 401 && path === "/me") {
         setToken(null);
       }
-      // Laravel validation error: {"message": "...", "errors": {"username": ["..."]}}
       const pesan =
         data?.errors ? Object.values(data.errors).flat()[0] : data?.message || "Terjadi kesalahan, coba lagi.";
       const err = new Error(pesan);
@@ -100,7 +84,7 @@ export async function logout() {
   try {
     await api("/logout", { method: "POST" });
   } finally {
-    setToken(null); // tetap hapus token lokal walau request logout gagal (misal internet putus)
+    setToken(null);
   }
 }
 

@@ -264,8 +264,7 @@ export default function StokOpname() {
       {error && <div className="login-error">{error}</div>}
       {sukses && <div className="pesan-sukses">{sukses}</div>}
 
-      {/* ---------- PANEL INPUT DAFTAR SEMUA OBAT ---------- */}
-      <div className="panel">
+            <div className="panel">
         <div
           className="panel-head"
           style={{ flexWrap: "wrap", gap: 12, alignItems: "center" }}
@@ -595,8 +594,7 @@ export default function StokOpname() {
         )}
       </div>
 
-      {/* ---------- MODAL RINCIAN BATCH ---------- */}
-      {modalBatchObat && (
+            {modalBatchObat && (
         <DetailBatchModal
           obat={modalBatchObat}
           onClose={() => setModalBatchObat(null)}
@@ -606,8 +604,7 @@ export default function StokOpname() {
         />
       )}
 
-      {/* ---------- RIWAYAT PENYESUAIAN ---------- */}
-      <div className="panel">
+            <div className="panel">
         <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
           <h3>Riwayat Penyesuaian</h3>
           <div
