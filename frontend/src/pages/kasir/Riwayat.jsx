@@ -31,7 +31,12 @@ export default function Riwayat() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api("/users").then(setKasirList).catch(() => setKasirList([]));
+    api("/users")
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res?.data || [];
+        setKasirList(Array.isArray(list) ? list : []);
+      })
+      .catch(() => setKasirList([]));
   }, []);
 
   function muatUlang() {
@@ -43,8 +48,15 @@ export default function Riwayat() {
     if (sumber) params.set("sumber", sumber);
 
     api(`/penjualan?${params}`)
-      .then((d) => { setDaftar(d); setError(""); })
-      .catch((e) => setError(e.message))
+      .then((d) => {
+        const list = Array.isArray(d) ? d : d?.data || [];
+        setDaftar(Array.isArray(list) ? list : []);
+        setError("");
+      })
+      .catch((e) => {
+        setDaftar([]);
+        setError(e.message);
+      })
       .finally(() => setLoading(false));
   }
 
@@ -67,7 +79,8 @@ export default function Riwayat() {
     }
   }
 
-  const daftarTersaring = daftar.filter((t) => {
+  const daftarList = Array.isArray(daftar) ? daftar : [];
+  const daftarTersaring = daftarList.filter((t) => {
     if (!t) return false;
     const tgl = (t.tanggal ? String(t.tanggal).slice(0, 10) : "") || (t.created_at ? String(t.created_at).slice(0, 10) : "");
     if (dariTanggal && tgl && tgl < dariTanggal) return false;
@@ -141,7 +154,7 @@ export default function Riwayat() {
         ) : daftarTersaring.length === 0 ? (
           <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Belum ada transaksi pada periode tanggal ini.</div>
         ) : (
-          daftarTersaring.map((t) => (
+          (Array.isArray(daftarTersaring) ? daftarTersaring : []).map((t) => (
             <div
               className="list-card"
               key={t.id}
@@ -225,7 +238,7 @@ export default function Riwayat() {
 
           <select className="filter-select" value={kasirId} onChange={(e) => setKasirId(e.target.value)}>
             <option value="">Semua Kasir</option>
-            {kasirList.map((k) => <option key={k.id} value={k.id}>{k.nama}</option>)}
+            {(Array.isArray(kasirList) ? kasirList : []).map((k) => <option key={k.id} value={k.id}>{k.nama}</option>)}
           </select>
 
           <div className="periode-chips">
@@ -249,7 +262,7 @@ export default function Riwayat() {
                 </tr>
               </thead>
               <tbody>
-                {daftarTersaring.map((t) => (
+                {(Array.isArray(daftarTersaring) ? daftarTersaring : []).map((t) => (
                   <tr key={t.id} className="baris-klik" onClick={() => bukaStruk(t.id)}>
                     <td className="obat-batch-cell">{t.no_struk}</td>
                     <td>
