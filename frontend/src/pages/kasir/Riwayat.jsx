@@ -67,7 +67,17 @@ export default function Riwayat() {
     }
   }
 
-  const totalOmzet = daftar.reduce((s, t) => s + Number(t.total), 0);
+  const daftarTersaring = daftar.filter((t) => {
+    if (!t) return false;
+    const tgl = (t.tanggal ? String(t.tanggal).slice(0, 10) : "") || (t.created_at ? String(t.created_at).slice(0, 10) : "");
+    if (dariTanggal && tgl && tgl < dariTanggal) return false;
+    if (sampaiTanggal && tgl && tgl > sampaiTanggal) return false;
+    if (kasirId && String(t.user_id) !== String(kasirId)) return false;
+    if (sumber && sumber !== "semua" && t.sumber !== sumber) return false;
+    return true;
+  });
+
+  const totalOmzet = daftarTersaring.reduce((s, t) => s + Number(t.total), 0);
   const labelRentang = dariTanggal === sampaiTanggal
     ? formatTglIndo(dariTanggal)
     : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`;
@@ -78,7 +88,7 @@ export default function Riwayat() {
         <div>
           <h1 style={{ fontSize: 24 }}>Data Penjualan</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${labelRentang} · ${daftar.length} transaksi`}
+            {loading ? "Memuat…" : `${labelRentang} · ${daftarTersaring.length} transaksi (${rupiah(totalOmzet)})`}
           </p>
         </div>
       </div>
@@ -129,10 +139,10 @@ export default function Riwayat() {
 
         {loading ? (
           <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Memuat transaksi…</div>
-        ) : daftar.length === 0 ? (
+        ) : daftarTersaring.length === 0 ? (
           <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Belum ada transaksi pada periode tanggal ini.</div>
         ) : (
-          daftar.map((t) => (
+          daftarTersaring.map((t) => (
             <div
               className="list-card"
               key={t.id}
@@ -229,7 +239,7 @@ export default function Riwayat() {
 
         {loading ? (
           <div className="panel-kosong">Memuat…</div>
-        ) : daftar.length === 0 ? (
+        ) : daftarTersaring.length === 0 ? (
           <div className="panel-kosong">Belum ada transaksi pada rentang tanggal ini.</div>
         ) : (
           <div className="obat-table-wrap">
@@ -241,7 +251,7 @@ export default function Riwayat() {
                 </tr>
               </thead>
               <tbody>
-                {daftar.map((t) => (
+                {daftarTersaring.map((t) => (
                   <tr key={t.id} className="baris-klik" onClick={() => bukaStruk(t.id)}>
                     <td className="obat-batch-cell">{t.no_struk}</td>
                     <td>

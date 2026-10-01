@@ -167,13 +167,25 @@ class PenjualanController extends Controller
             $q->where('user_id', $r->kasir_id);
         }
 
-        if ($r->filled('dari_tanggal') && $r->filled('sampai_tanggal')) {
-            $q->whereBetween('tanggal', [$r->dari_tanggal, $r->sampai_tanggal]);
-        } elseif ($r->filled('dari_tanggal')) {
-            $q->whereDate('tanggal', '>=', $r->dari_tanggal);
-        } elseif ($r->filled('sampai_tanggal')) {
-            $q->whereDate('tanggal', '<=', $r->sampai_tanggal);
-        } else {
+        $dari = $r->dari_tanggal ?: $r->dari;
+        $sampai = $r->sampai_tanggal ?: $r->sampai;
+
+        if ($dari && $sampai) {
+            $q->where(function ($sub) use ($dari, $sampai) {
+                $sub->whereBetween('tanggal', [$dari, $sampai])
+                    ->orWhereBetween(DB::raw('DATE(created_at)'), [$dari, $sampai]);
+            });
+        } elseif ($dari) {
+            $q->where(function ($sub) use ($dari) {
+                $sub->whereDate('tanggal', '>=', $dari)
+                    ->orWhereDate('created_at', '>=', $dari);
+            });
+        } elseif ($sampai) {
+            $q->where(function ($sub) use ($sampai) {
+                $sub->whereDate('tanggal', '<=', $sampai)
+                    ->orWhereDate('created_at', '<=', $sampai);
+            });
+        } elseif ($r->filled('periode')) {
             match ($r->periode) {
                 'hari-ini' => $q->whereDate('tanggal', now()->toDateString()),
                 'minggu-ini' => $q->whereBetween('tanggal', [now()->startOfWeek(), now()->endOfWeek()]),
@@ -183,7 +195,7 @@ class PenjualanController extends Controller
             };
         }
 
-        return $q->withCount('items')->orderByDesc('id')->limit(200)->get();
+        return $q->withCount('items')->orderByDesc('id')->limit(500)->get();
     }
 
     /** GET /api/penjualan/{id} — buka ulang struk dari Riwayat */
