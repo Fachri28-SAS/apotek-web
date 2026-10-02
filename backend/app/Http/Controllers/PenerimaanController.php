@@ -77,7 +77,7 @@ class PenerimaanController extends Controller
 
                 $kemasan = isset($it['kemasan']) && $it['kemasan'] > 0
                     ? (float) $it['kemasan']
-                    : ($it['qty'] * $satuan->faktor);
+                    : (float) ($satuan->faktor ?: 1);
 
                 $itemsSiap[] = [
                     'obat_id' => $obat->id,
@@ -131,9 +131,11 @@ class PenerimaanController extends Controller
             foreach ($itemsSiap as $item) {
                 $penerimaan->items()->create($item);
 
-                $stokMasuk = isset($item['kemasan']) && $item['kemasan'] > 0
-                    ? (int) $item['kemasan']
-                    : (int) ($item['qty'] * $item['faktor']);
+                $isiKemasan = isset($item['kemasan']) && $item['kemasan'] > 0
+                    ? (float) $item['kemasan']
+                    : (float) ($item['faktor'] ?: 1);
+
+                $stokMasuk = (int) round($item['qty'] * $isiKemasan);
 
                 $stok->ubah(
                     $item['obat_id'],
@@ -143,8 +145,8 @@ class PenerimaanController extends Controller
                     $penerimaan->id
                 );
 
-                $hargaBeliPerUnitMasuk = ($stokMasuk > 0 && $item['qty'] > 0)
-                    ? round(($item['qty'] * $item['harga_beli']) / $stokMasuk)
+                $hargaBeliPerUnitMasuk = ($isiKemasan > 0)
+                    ? round($item['harga_beli'] / $isiKemasan)
                     : $item['harga_beli'];
 
                 $updateSatuan = [

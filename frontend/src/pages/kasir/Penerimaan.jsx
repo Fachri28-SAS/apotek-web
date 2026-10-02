@@ -141,11 +141,7 @@ export default function Penerimaan() {
   function ubahItem(key, field, value) {
     setItems((prev) => prev.map((it) => {
       if (it.key !== key) return it;
-      const updated = { ...it, [field]: value };
-      if (field === "qty") {
-        updated.kemasan = value;
-      }
-      return updated;
+      return { ...it, [field]: value };
     }));
   }
 
@@ -194,7 +190,7 @@ export default function Penerimaan() {
               obat_id: it.obat_id,
               obat_satuan_id: it.obat_satuan_id,
               qty: Number(it.qty),
-              kemasan: Number(it.kemasan || it.qty),
+              kemasan: Number(it.kemasan || 1),
               harga_beli: unitBeli,
               diskon: Math.round(nominalDiskon * 100) / 100,
               nomor_batch: it.nomor_batch,
@@ -455,7 +451,7 @@ export default function Penerimaan() {
               <table className="obat-table" style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
-                    <th>Nama Obat</th><th>Jumlah Satuan</th><th>Harga Satuan</th>
+                    <th>Nama Obat</th><th>TERIMA</th><th>KEMASAN</th><th>HARGA BELI</th>
                     <th>Diskon %</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
                     <th>Margin %</th><th>Subtotal</th><th></th>
                   </tr>
@@ -478,23 +474,13 @@ export default function Penerimaan() {
 
                     return (
                       <tr key={it.key}>
-                        <td><span className="obat-nama-cell">{it.nama_obat}</span></td>
                         <td>
-                          <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                            <input
-                              type="number"
-                              min="1"
-                              className="cart-input-angka"
-                              style={{ width: 65, textAlign: "center", fontWeight: 700 }}
-                              value={it.qty}
-                              onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
-                              placeholder="1"
-                              title="Jumlah satuan obat yang diterima"
-                            />
+                          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                            <span className="obat-nama-cell">{it.nama_obat}</span>
                             {it.satuanOptions && it.satuanOptions.length > 1 ? (
                               <select
                                 className="cart-input-angka"
-                                style={{ fontSize: 11, fontWeight: 700, padding: "2px 4px", borderRadius: 4, border: "1px solid var(--line)" }}
+                                style={{ fontSize: 11, fontWeight: 700, padding: "2px 6px", borderRadius: 6, border: "1px solid var(--line)", width: "max-content" }}
                                 value={it.obat_satuan_id}
                                 onChange={(e) => {
                                   const sid = Number(e.target.value);
@@ -506,6 +492,7 @@ export default function Penerimaan() {
                                         ...item,
                                         obat_satuan_id: sat.id,
                                         nama_satuan: sat.nama_satuan,
+                                        kemasan: sat.faktor || 1,
                                         harga_beli: sat.harga_beli,
                                       };
                                     }));
@@ -525,13 +512,37 @@ export default function Penerimaan() {
                         </td>
                         <td>
                           <input
+                            type="number"
+                            min="1"
+                            className="cart-input-angka"
+                            style={{ width: 60, textAlign: "center", fontWeight: 700 }}
+                            value={it.qty}
+                            onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
+                            placeholder="1"
+                            title="Jumlah yang diterima dari faktur (TERIMA)"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            min="1"
+                            className="cart-input-angka"
+                            style={{ width: 60, textAlign: "center", fontWeight: 700 }}
+                            value={it.kemasan ?? 1}
+                            onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
+                            placeholder="1"
+                            title="Isi kemasan / faktor konversi satuan obat (KEMASAN)"
+                          />
+                        </td>
+                        <td>
+                          <input
                             type="text"
                             inputMode="decimal"
                             className="cart-input-angka"
                             value={it.harga_beli}
                             onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)}
                             placeholder="0"
-                            title="Harga beli satuan faktur (bisa desimal misal 9.819,82)"
+                            title="Harga beli satuan faktur (bisa desimal)"
                           />
                           {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
                           {(diskonPersen > 0 || isPkp) && unitBeli > 0 && (

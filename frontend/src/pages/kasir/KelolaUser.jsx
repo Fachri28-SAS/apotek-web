@@ -457,6 +457,15 @@ export default function KelolaUser() {
           </div>
         )}
 
+        {error && (
+          <div style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #FECACA", padding: "12px 18px", borderRadius: 10, fontWeight: 700, fontSize: 13, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>⚠️ {error}</span>
+            <button type="button" onClick={() => muatUsers()} style={{ background: "#DC2626", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
+              Muat Ulang
+            </button>
+          </div>
+        )}
+
         {/* Ringkasan Akun & Status Realtime */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 22 }}>
           <div style={{ background: "#F0FDF4", padding: "14px 18px", borderRadius: 12, border: "1px solid #BBF7D0" }}>

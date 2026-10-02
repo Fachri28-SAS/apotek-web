@@ -228,7 +228,7 @@ export default function Kasir() {
           type="button"
           className="kasir-tab-closing-btn"
           onClick={() => setModalClosingOpen(true)}
-          title="Closing kasir & selesai shift (akun dinonaktifkan otomatis sampai diaktifkan Admin)"
+          title="Closing kasir (akun dinonaktifkan otomatis sampai diaktifkan Admin di Kelola Pengguna)"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -327,10 +327,10 @@ export default function Kasir() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "#991B1B" }}>
-                    Closing Kasir &amp; Selesai Shift
+                    Closing Kasir
                   </h3>
                   <div style={{ fontSize: 11.5, color: "#B91C1C", marginTop: 2 }}>
-                    Tutup sesi dan nonaktifkan akses akun kasir
+                    Tutup sesi &amp; nonaktifkan akun kasir (Aktivasi manual oleh Admin)
                   </div>
                 </div>
               </div>
@@ -400,12 +400,13 @@ export default function Kasir() {
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  Ketentuan Selesai Shift:
+                  Ketentuan Closing Kasir:
                 </div>
                 <ul style={{ margin: "4px 0 0 0", paddingLeft: 18 }}>
-                  <li>Sesi shift kasir Anda akan <strong>ditutup dengan aman</strong> dan Anda akan langsung keluar (logout).</li>
-                  <li>Kasir shift berikutnya dapat <strong>langsung masuk bertugas</strong> selama jam operasional apotek (07:00 – 22:00 WIB).</li>
-                  <li>Seluruh riwayat penjualan shift Anda telah tercatat rapi di laporan sistem.</li>
+                  <li>Sesi kasir Anda akan <strong>ditutup dengan aman</strong> dan Anda akan langsung logout.</li>
+                  <li>Akun Anda akan <strong>dinonaktifkan otomatis</strong> untuk keamanan transaksi kasir.</li>
+                  <li>Untuk bertugas kembali, <strong>Admin harus mengaktifkan akun Anda secara manual</strong> di menu <strong>Kelola Pengguna</strong>.</li>
+                  <li>Seluruh riwayat transaksi Anda telah tercatat rapi di sistem.</li>
                 </ul>
               </div>
 
