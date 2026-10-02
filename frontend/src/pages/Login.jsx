@@ -130,7 +130,10 @@ export default function Login() {
         </div>
 
         <div className="login-brand-foot">
-          © 2026 Apotek Bima Farma — Jl. Tanimulya Raya No. 1, Haji Gofur
+          <div>© 2026 Apotek Bima Farma — Jl. Tanimulya Raya No. 1, Haji Gofur</div>
+          <div style={{ marginTop: 4, fontSize: 11, opacity: 0.82 }}>
+            Sistem &amp; Hak Paten dilindungi resmi oleh <strong>Core Partners</strong>
+          </div>
         </div>
       </div>
 
@@ -393,6 +396,10 @@ export default function Login() {
               >
                 Kunci Perangkat
               </button>
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: 18, fontSize: 11, color: "var(--ink-soft)" }}>
+              Hak Paten &amp; Lisensi Sistem © 2026 <strong>Core Partners</strong>
             </div>
           </div>
         )}

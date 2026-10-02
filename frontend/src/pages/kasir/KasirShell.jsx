@@ -239,6 +239,21 @@ export default function KasirShell({ children }) {
             </svg>
             <span>Ganti Kata Sandi</span>
           </button>
+
+          <div
+            style={{
+              paddingTop: 8,
+              borderTop: "1px dashed #E2E8F0",
+              textAlign: "center",
+              fontSize: 10,
+              color: "#94A3B8",
+              lineHeight: 1.4,
+              userSelect: "none",
+            }}
+          >
+            <div>Hak Paten Sistem Dilindungi</div>
+            <div style={{ fontWeight: 700, color: "#64748B" }}>© 2026 Core Partners</div>
+          </div>
         </div>
       </aside>
 

@@ -240,6 +240,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
           <div>Semoga Lekas Sembuh!</div>
           <div style="font-size: ${is50 ? "8px" : "8.8px"}; margin-top: 2px;">Barang yg sudah dibeli tdk dapat ditukar/dikembalikan</div>
           <div style="font-weight: 700; margin-top: 2px;">CS Apotek: 0821-2702-6272</div>
+          <div style="font-size: ${is50 ? "7.5px" : "8px"}; margin-top: 3px; letter-spacing: 0.2px;">[ POS System © Core Partners ]</div>
         </div>
 
         <!-- FEED SPACE: Ruang kosong 18mm agar kertas melewati pisau cutter fisik printer EPPOS -->
@@ -676,6 +677,9 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
                 Barang yg sudah dibeli tdk dapat ditukar/dikembalikan
               </div>
               <div style={{ marginTop: 2, fontWeight: 700 }}>CS Apotek: 0821-2702-6272</div>
+              <div style={{ fontSize: is58 ? 8 : 8.5, color: "#64748B", marginTop: 3, letterSpacing: "0.2px" }}>
+                [ POS System © Core Partners ]
+              </div>
             </div>
 
             {/* Indikator Ruang Feed Kertas di Preview */}

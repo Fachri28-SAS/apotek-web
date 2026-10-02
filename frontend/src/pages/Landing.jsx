@@ -539,8 +539,11 @@ function Footer({ onOpenCaraBayar }) {
           <span>Apotek Resmi Berizin SIA &amp; SIPA</span>
         </div>
 
-        <div className="foot-bottom" style={{ marginTop: 16 }}>
+        <div className="foot-bottom" style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
           <span>© 2026 Apotek Bima Farma (apotekbimafarma.com). Seluruh hak cipta dilindungi.</span>
+          <span style={{ fontSize: "11px", opacity: 0.85, color: "var(--ink-soft)" }}>
+            Sistem Informasi &amp; Platform POS Apotek ini dilindungi Hak Paten &amp; Hak Cipta oleh <strong>Core Partners</strong>.
+          </span>
         </div>
       </div>
     </footer>
