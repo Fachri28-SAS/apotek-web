@@ -252,7 +252,7 @@ export default function Login() {
                   Closing Kasir Berhasil
                 </div>
                 <div>
-                  Akun kasir Anda telah dinonaktifkan untuk pergantian shift. Untuk login kembali pada shift berikutnya, silakan hubungi Admin agar mengaktifkan akun Anda di menu <strong>Kelola Pengguna</strong>.
+                  Sesi shift kasir Anda telah ditutup dengan aman. Kasir shift berikutnya dapat langsung login menggunakan akun masing-masing selama jam operasional apotek (07:00 – 22:00 WIB).
                 </div>
               </div>
             )}

@@ -385,28 +385,27 @@ export default function Kasir() {
               {/* Warning Alert */}
               <div
                 style={{
-                  background: "#FFFBEB",
-                  border: "1px solid #FDE68A",
+                  background: "#F0FDF4",
+                  border: "1px solid #BBF7D0",
                   borderRadius: 12,
                   padding: "12px 14px",
                   fontSize: 12.5,
-                  color: "#92400E",
+                  color: "#166534",
                   lineHeight: 1.5,
                   marginBottom: 16,
                 }}
               >
-                <div style={{ fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 6, color: "#B45309" }}>
+                <div style={{ fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 6, color: "#15803D" }}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
-                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  Konsekuensi Tindakan Closing:
+                  Ketentuan Selesai Shift:
                 </div>
                 <ul style={{ margin: "4px 0 0 0", paddingLeft: 18 }}>
-                  <li>Akun kasir Anda akan <strong>otomatis dinonaktifkan</strong> di sistem.</li>
-                  <li>Sesi login Anda akan <strong>langsung diakhiri (logout)</strong>.</li>
-                  <li>Untuk login kembali pada shift berikutnya, Admin harus <strong>mengaktifkan akun Anda lewat menu Kelola Pengguna</strong>.</li>
+                  <li>Sesi shift kasir Anda akan <strong>ditutup dengan aman</strong> dan Anda akan langsung keluar (logout).</li>
+                  <li>Kasir shift berikutnya dapat <strong>langsung masuk bertugas</strong> selama jam operasional apotek (07:00 – 22:00 WIB).</li>
+                  <li>Seluruh riwayat penjualan shift Anda telah tercatat rapi di laporan sistem.</li>
                 </ul>
               </div>
 

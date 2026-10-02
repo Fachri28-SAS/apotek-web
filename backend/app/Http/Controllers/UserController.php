@@ -65,7 +65,10 @@ class UserController extends Controller
 
     /**
      * POST /api/user/closing
-     * Kasir menutup shift: Akun otomatis dinonaktifkan (aktif = false), token dicabut.
+     * Kasir menutup shift (Opsi A: Fleksibel & Otomatis sesuai jam operasional):
+     * - Catat log audit closing shift kasir
+     * - Cabut seluruh token login kasir ini agar logout dengan aman
+     * - Kasir shift berikutnya dapat langsung login selama jam operasional (07:00 - 22:00 WIB)
      */
     public function closing(Request $r)
     {
@@ -77,15 +80,20 @@ class UserController extends Controller
         $nama = $user->nama;
         $username = $user->username;
 
-        // Nonaktifkan akun kasir
-        $user->update(['aktif' => false]);
+        try {
+            \App\Models\AuditLog::create([
+                'user_id' => $user->id,
+                'aksi' => 'CLOSING_KASIR',
+                'deskripsi' => "Kasir {$nama} (@{$username}) telah melakukan closing dan menyelesaikan shift kasir.",
+            ]);
+        } catch (\Throwable $e) {}
 
-        // Cabut seluruh token login pengguna ini
+        // Cabut seluruh token sesi login kasir ini agar langsung logout dengan aman
         $user->tokens()->delete();
 
         return response()->json([
             'status' => 'ok',
-            'message' => "Closing shift untuk kasir {$nama} (@{$username}) berhasil. Akun Anda telah dinonaktifkan sampai diaktifkan kembali oleh Admin di menu Kelola Pengguna.",
+            'message' => "Closing shift untuk kasir {$nama} (@{$username}) berhasil. Sesi kasir telah ditutup dengan aman.",
         ]);
     }
 
