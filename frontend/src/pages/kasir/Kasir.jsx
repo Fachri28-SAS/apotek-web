@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
 import { rupiah } from "../../utils/format";
 import KasirShell from "./KasirShell";
@@ -23,11 +25,27 @@ function tabKosong(id) {
 }
 
 export default function Kasir() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [tabs, setTabs] = useState([tabKosong(Date.now())]);
   const [tabAktifId, setTabAktifId] = useState(tabs[0].id);
   const [struk, setStruk] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [modalClosingOpen, setModalClosingOpen] = useState(false);
+  const [loadingClosing, setLoadingClosing] = useState(false);
+
+  async function handleClosingKasir() {
+    setLoadingClosing(true);
+    try {
+      await api("/user/closing", { method: "POST" });
+      await logout();
+      navigate("/login?pesan=closing", { replace: true });
+    } catch (err) {
+      alert(err.message || "Gagal melakukan closing kasir. Silakan coba lagi.");
+      setLoadingClosing(false);
+    }
+  }
 
   const tabAktif = tabs.find((t) => t.id === tabAktifId);
 
@@ -206,6 +224,18 @@ export default function Kasir() {
           <span style={{ fontSize: 16, fontWeight: 800 }}>+</span>
           <span>Transaksi Baru</span>
         </button>
+        <button
+          type="button"
+          className="kasir-tab-closing-btn"
+          onClick={() => setModalClosingOpen(true)}
+          title="Closing kasir & selesai shift (akun dinonaktifkan otomatis sampai diaktifkan Admin)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Closing</span>
+        </button>
       </div>
 
       <div className="kasir-jual-grid">
@@ -266,6 +296,175 @@ export default function Kasir() {
       )}
 
       <StrukModal data={struk} onClose={() => setStruk(null)} />
+
+      {modalClosingOpen && (
+        <div
+          className="struk-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !loadingClosing) setModalClosingOpen(false);
+          }}
+        >
+          <div className="struk-modal" style={{ maxWidth: 440, padding: 0, overflow: "hidden" }}>
+            <div className="struk-modal-head" style={{ background: "#FEF2F2", borderBottom: "1px solid #FECACA" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    background: "#FEE2E2",
+                    color: "#DC2626",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 20, height: 20 }}>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: "#991B1B" }}>
+                    Closing Kasir &amp; Selesai Shift
+                  </h3>
+                  <div style={{ fontSize: 11.5, color: "#B91C1C", marginTop: 2 }}>
+                    Tutup sesi dan nonaktifkan akses akun kasir
+                  </div>
+                </div>
+              </div>
+              <button
+                className="kasir-logout-btn"
+                onClick={() => !loadingClosing && setModalClosingOpen(false)}
+                disabled={loadingClosing}
+                aria-label="Tutup"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <div style={{ padding: "20px 22px" }}>
+              {/* Info Kasir */}
+              <div
+                style={{
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  marginBottom: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  fontSize: 12.5,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748B", fontWeight: 600 }}>Kasir Bertugas:</span>
+                  <span style={{ fontWeight: 700, color: "#0F172A" }}>
+                    {user?.nama || "Kasir"} (@{user?.username || "-"})
+                  </span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748B", fontWeight: 600 }}>Waktu Closing:</span>
+                  <span style={{ fontWeight: 700, color: "#0F172A" }}>
+                    {new Date().toLocaleString("id-ID", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    WIB
+                  </span>
+                </div>
+              </div>
+
+              {/* Warning Alert */}
+              <div
+                style={{
+                  background: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  fontSize: 12.5,
+                  color: "#92400E",
+                  lineHeight: 1.5,
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ fontWeight: 800, marginBottom: 4, display: "flex", alignItems: "center", gap: 6, color: "#B45309" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  Konsekuensi Tindakan Closing:
+                </div>
+                <ul style={{ margin: "4px 0 0 0", paddingLeft: 18 }}>
+                  <li>Akun kasir Anda akan <strong>otomatis dinonaktifkan</strong> di sistem.</li>
+                  <li>Sesi login Anda akan <strong>langsung diakhiri (logout)</strong>.</li>
+                  <li>Untuk login kembali pada shift berikutnya, Admin harus <strong>mengaktifkan akun Anda lewat menu Kelola Pengguna</strong>.</li>
+                </ul>
+              </div>
+
+              {tabAktif.items.length > 0 && (
+                <div
+                  style={{
+                    background: "#FEE2E2",
+                    color: "#991B1B",
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    marginBottom: 8,
+                  }}
+                >
+                  ⚠️ Masih ada {tabAktif.items.length} item obat di keranjang transaksi saat ini. Pastikan semua transaksi sudah selesai atau dibatalkan sebelum closing.
+                </div>
+              )}
+            </div>
+
+            <div className="struk-actions" style={{ background: "#F8FAFC", borderTop: "1px solid #E2E8F0", padding: "14px 22px" }}>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setModalClosingOpen(false)}
+                disabled={loadingClosing}
+                style={{ flex: 1 }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleClosingKasir}
+                disabled={loadingClosing}
+                style={{
+                  flex: 1.4,
+                  background: "#DC2626",
+                  color: "#fff",
+                  border: "none",
+                  boxShadow: "0 4px 14px rgba(220, 38, 38, 0.3)",
+                }}
+              >
+                {loadingClosing ? (
+                  "Menutup Shift..."
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 16, height: 16 }}>
+                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                      <line x1="12" y1="2" x2="12" y2="12" />
+                    </svg>
+                    Ya, Closing Sekarang
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </KasirShell>
   );
 }

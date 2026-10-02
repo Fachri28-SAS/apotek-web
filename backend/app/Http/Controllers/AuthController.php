@@ -29,7 +29,7 @@ class AuthController extends Controller
 
         if (!$user->aktif) {
             throw ValidationException::withMessages([
-                'username' => ['Akun ini sudah dinonaktifkan. Hubungi admin.'],
+                'username' => ['Akun kasir ini sedang nonaktif (setelah closing). Silakan minta Admin mengaktifkan kembali di menu Kelola Pengguna sebelum memulai shift.'],
             ]);
         }
 

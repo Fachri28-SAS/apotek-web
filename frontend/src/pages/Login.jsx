@@ -230,6 +230,33 @@ export default function Login() {
             <h1 className="login-form-title">Selamat datang kembali</h1>
             <p className="sub login-form-sub">Masuk untuk mulai bertugas di sistem kasir &amp; apotek.</p>
 
+            {new URLSearchParams(location.search).get("pesan") === "closing" && (
+              <div
+                style={{
+                  background: "#EFF6FF",
+                  border: "1.5px solid #93C5FD",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  fontSize: 13,
+                  color: "#1E40AF",
+                  lineHeight: 1.5,
+                  marginBottom: 18,
+                  boxShadow: "0 2px 6px rgba(59, 130, 246, 0.08)",
+                }}
+              >
+                <div style={{ fontWeight: 800, color: "#1D4ED8", marginBottom: 3, display: "flex", alignItems: "center", gap: 6 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 16, height: 16, flexShrink: 0 }}>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  Closing Kasir Berhasil
+                </div>
+                <div>
+                  Akun kasir Anda telah dinonaktifkan untuk pergantian shift. Untuk login kembali pada shift berikutnya, silakan hubungi Admin agar mengaktifkan akun Anda di menu <strong>Kelola Pengguna</strong>.
+                </div>
+              </div>
+            )}
+
             {error && <div className="login-error">{error}</div>}
 
             <form onSubmit={handleSubmit}>

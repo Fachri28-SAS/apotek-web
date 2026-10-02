@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/user/ping', [UserController::class, 'ping']);
+    Route::post('/user/closing', [UserController::class, 'closing']);
     Route::post('/ganti-password', [AuthController::class, 'gantiPassword']);
 
     // Audit log

@@ -878,6 +878,31 @@
   border-style: solid;
   transform: translateY(-1px);
 }
+.kasir-tab-closing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #fecdd3;
+  background: #fff1f2;
+  color: #e11d48;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(225, 29, 72, 0.08);
+}
+.kasir-tab-closing-btn:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #be123c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(225, 29, 72, 0.16);
+}
+
 
 /* ---------- LAYOUT HALAMAN KASIR ---------- */
 .kasir-jual-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
