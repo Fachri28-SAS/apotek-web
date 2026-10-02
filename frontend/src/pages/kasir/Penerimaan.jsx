@@ -463,12 +463,17 @@ export default function Penerimaan() {
                 <tbody>
                   {items.map((it) => {
                     const unitBeli = parseAngka(it.harga_beli);
+                    const diskonPersen = parseAngka(it.diskon || 0);
+                    const hargaBeliNetto = unitBeli > 0 ? unitBeli * (1 - diskonPersen / 100) : 0;
+                    // HPP Netto riil: memperhitungkan diskon dan PPN (jika supplier PKP)
+                    const hppNetto = isPkp ? hargaBeliNetto * (1 + Number(persenPpn || 0) / 100) : hargaBeliNetto;
+
                     const badge = badgeHarga(unitBeli, it.harga_beli_sebelumnya);
                     const hargaJualAktif = parseAngka(it.harga_jual_baru ?? it.harga_jual_referensi ?? 0);
-                    const margin = hitungMarginPersen(unitBeli, hargaJualAktif);
+                    const margin = hitungMarginPersen(hppNetto, hargaJualAktif);
                     const marginStat = getStatusMargin(margin);
                     const brutoItem = Number(it.qty || 0) * unitBeli;
-                    const potonganItem = (brutoItem * parseAngka(it.diskon || 0)) / 100;
+                    const potonganItem = (brutoItem * diskonPersen) / 100;
                     const subtotalItem = brutoItem - potonganItem;
 
                     return (
@@ -529,6 +534,11 @@ export default function Penerimaan() {
                             title="Harga beli satuan faktur (bisa desimal misal 9.819,82)"
                           />
                           {badge && <div className={`harga-badge ${badge.warna}`}>{badge.teks}</div>}
+                          {(diskonPersen > 0 || isPkp) && unitBeli > 0 && (
+                            <div style={{ fontSize: 10, color: "var(--ink-soft)", marginTop: 2, fontWeight: 600 }} title="Modal riil (HPP Netto) setelah dikurangi diskon dan ditambah PPN">
+                              Netto: {rupiah(hppNetto)}
+                            </div>
+                          )}
                         </td>
                         <td>
                           <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
@@ -573,19 +583,19 @@ export default function Penerimaan() {
                                 padding: 0,
                                 textAlign: "left"
                               }}
-                              title="Hitung otomatis margin 25% kelipatan Rp 500"
+                              title="Hitung otomatis margin 25% dari HPP Netto kelipatan Rp 500"
                               onClick={() => {
-                                const auto = hitungHargaJualOtomatis(unitBeli, 25);
+                                const auto = hitungHargaJualOtomatis(hppNetto, 25);
                                 ubahItem(it.key, "harga_jual_baru", auto);
                               }}
                             >
-                               Auto 25% (Bulat 500)
+                              Auto 25% ({rupiah(hitungHargaJualOtomatis(hppNetto, 25))})
                             </button>
                           </div>
                         </td>
                         <td className="obat-margin-cell">
                           {marginStat.status !== "kosong" ? (
-                            <span className={`margin-badge ${marginStat.warna}`}>
+                            <span className={`margin-badge ${marginStat.warna}`} title={`Modal Netto: ${rupiah(hppNetto)}, Harga Jual: ${rupiah(hargaJualAktif)}`}>
                               {marginStat.label}
                             </span>
                           ) : (
