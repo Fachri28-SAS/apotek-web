@@ -101,7 +101,7 @@ export default function Riwayat() {
         <div>
           <h1 style={{ fontSize: 24 }}>Data Penjualan</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${labelRentang} · ${daftarTersaring.length} transaksi (${rupiah(totalOmzet)})`}
+            {loading ? "Memuat…" : `${labelRentang} · ${daftarTersaring.length} transaksi`}
           </p>
         </div>
       </div>
