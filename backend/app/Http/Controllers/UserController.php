@@ -249,38 +249,5 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Akun berhasil dinonaktifkan.']);
     }
-
-    /**
-     * POST /api/user/closing
-     * Kasir melakukan closing shift:
-     * - Akun kasir dinonaktifkan (aktif = false)
-     * - Token sanctum dicabut agar langsung logout
-     * - Perlu diaktifkan kembali oleh Admin di menu Kelola Pengguna untuk shift berikutnya
-     */
-    public function closing(Request $r)
-    {
-        $user = $r->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
-        try {
-            \App\Models\AuditLog::create([
-                'user_id' => $user->id,
-                'aksi' => 'CLOSING_KASIR',
-                'deskripsi' => "Kasir {$user->nama} (@{$user->username}) melakukan closing shift. Akun dinonaktifkan otomatis.",
-            ]);
-        } catch (\Throwable $e) {}
-
-        // Nonaktifkan user
-        $user->update(['aktif' => false]);
-
-        // Cabut token sanctum
-        $user->tokens()->delete();
-
-        return response()->json([
-            'message' => 'Closing kasir berhasil. Akun Anda telah dinonaktifkan. Hubungi Admin di Kelola Pengguna untuk mengaktifkan kembali saat shift berikutnya.',
-        ]);
-    }
 }
 
