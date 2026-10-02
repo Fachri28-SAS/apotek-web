@@ -66,6 +66,15 @@ Route::get('/debug-last-seen', function (\Illuminate\Http\Request $r) {
     ]);
 });
 
+Route::get('/sync-okt-2026', function (\Illuminate\Http\Request $r) {
+    if ($r->query('kunci') !== 'bima2026') {
+        abort(403, 'Akses ditolak.');
+    }
+    ini_set('max_execution_time', 300);
+    $seeder = new \Database\Seeders\UpdateObatOktSeeder();
+    return response()->json($seeder->run());
+});
+
 // Autentikasi
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
