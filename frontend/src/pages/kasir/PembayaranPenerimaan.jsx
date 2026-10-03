@@ -41,6 +41,8 @@ export default function PembayaranPenerimaan() {
 
   const [konfirmasiBayar, setKonfirmasiBayar] = useState(null);
   const [loadingToggle, setLoadingToggle] = useState(false);
+  const [modalTglBayar, setModalTglBayar] = useState("");
+  const [modalPetugasBayar, setModalPetugasBayar] = useState("");
 
   // Ambil daftar supplier aktif
   useEffect(() => {
@@ -74,6 +76,43 @@ export default function PembayaranPenerimaan() {
     return "Admin (Sistem)";
   }
 
+  // Buka modal konfirmasi dengan tgl bayar dan nama petugas default siap diedit manual
+  function bukaModalBayar(faktur) {
+    setKonfirmasiBayar(faktur);
+    setModalTglBayar(
+      faktur.tanggal_bayar
+        ? String(faktur.tanggal_bayar).slice(0, 10)
+        : new Date().toISOString().slice(0, 10)
+    );
+    setModalPetugasBayar(
+      faktur.petugas_bayar || user?.nama || user?.username || "Petugas"
+    );
+  }
+
+  // Simpan perubahan tgl bayar / petugas bayar langsung dari input baris tabel
+  async function simpanPerubahanFaktur(fakturId, fields) {
+    try {
+      const res = await api(`/penerimaan/${fakturId}/toggle-bayar`, {
+        method: "PUT",
+        body: JSON.stringify(fields),
+      });
+      setDaftar((prev) =>
+        prev.map((it) =>
+          it.id === fakturId
+            ? {
+                ...it,
+                status_bayar: res.penerimaan.status_bayar,
+                tanggal_bayar: res.penerimaan.tanggal_bayar,
+                petugas_bayar: res.penerimaan.petugas_bayar ?? fields.petugas_bayar,
+              }
+            : it
+        )
+      );
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   // Ambil data faktur penerimaan
   useEffect(() => {
     muatData();
@@ -101,14 +140,22 @@ export default function PembayaranPenerimaan() {
     return () => clearTimeout(timer);
   }
 
-  // Proses ubah status pembayaran faktur (Lunas <-> Belum Lunas)
+  // Proses ubah status pembayaran faktur (Lunas <-> Belum Lunas) dengan tgl dan petugas bayar
   async function prosesToggleBayar() {
     if (!konfirmasiBayar) return;
     setLoadingToggle(true);
     try {
-      const res = await api(`/penerimaan/${konfirmasiBayar.id}/toggle-bayar`, { method: "PUT" });
-      const statusBaru = res.penerimaan.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
-      const statusLama = konfirmasiBayar.status_bayar === "lunas" ? "Lunas" : "Belum Lunas";
+      const statusBaru = konfirmasiBayar.status_bayar === "lunas" ? "belum" : "lunas";
+      const payload = {
+        status_bayar: statusBaru,
+        tanggal_bayar: statusBaru === "lunas" ? (modalTglBayar || new Date().toISOString().slice(0, 10)) : null,
+        petugas_bayar: statusBaru === "lunas" ? modalPetugasBayar : null,
+      };
+
+      const res = await api(`/penerimaan/${konfirmasiBayar.id}/toggle-bayar`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
 
       const namaAkun = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
       tambahLogPerubahan({
@@ -117,15 +164,20 @@ export default function PembayaranPenerimaan() {
         kategori: "Faktur Penerimaan",
         aksi: "Ubah Status Bayar",
         judul: `Faktur ${konfirmasiBayar.no_faktur} (${konfirmasiBayar.nama_supplier})`,
-        sebelum: statusLama,
-        sesudah: statusBaru,
-        keterangan: `Total tagihan: ${rupiah(konfirmasiBayar.total)}`,
+        sebelum: konfirmasiBayar.status_bayar === "lunas" ? "Lunas" : "Belum Lunas",
+        sesudah: statusBaru === "lunas" ? "Lunas" : "Belum Lunas",
+        keterangan: `Total tagihan: ${rupiah(konfirmasiBayar.total)}, Tgl Bayar: ${payload.tanggal_bayar || "-"}, Petugas: ${payload.petugas_bayar || "-"}`,
       });
 
       setDaftar((prev) =>
         prev.map((it) =>
           it.id === konfirmasiBayar.id
-            ? { ...it, status_bayar: res.penerimaan.status_bayar, tanggal_bayar: res.penerimaan.tanggal_bayar }
+            ? {
+                ...it,
+                status_bayar: res.penerimaan.status_bayar,
+                tanggal_bayar: res.penerimaan.tanggal_bayar,
+                petugas_bayar: res.penerimaan.petugas_bayar ?? payload.petugas_bayar,
+              }
             : it
         )
       );
@@ -209,12 +261,15 @@ export default function PembayaranPenerimaan() {
   function siapkanDataExportBayar() {
     const headers = [
       { label: "NO", align: "center", width: "40px" },
-      { label: "Tgl", align: "center" },
       { label: "Nama PBF", align: "left" },
+      { label: "Tgl Faktur", align: "center" },
       { label: "Nomor Faktur", align: "left" },
       { label: "Besar Uang", align: "right" },
       { label: "Jumlah", align: "right" },
+      { label: "Tgl Jth Tempo", align: "center" },
       { label: "Tgl Bayar", align: "center" },
+      { label: "Lunas", align: "center" },
+      { label: "Petugas", align: "center" },
     ];
 
     const rows = [];
@@ -224,18 +279,22 @@ export default function PembayaranPenerimaan() {
       grup.fakturs.forEach((faktur, fIdx) => {
         grandTotal += Number(faktur.total || 0);
         const isLunas = faktur.status_bayar === "lunas";
-        const tglBayarStr = isLunas
-          ? (faktur.tanggal_bayar ? formatTgl(faktur.tanggal_bayar) : "Lunas")
-          : (faktur.tanggal_jatuh_tempo ? `Tempo: ${formatTgl(faktur.tanggal_jatuh_tempo)}` : "Belum");
+        const tglTempoStr = faktur.tanggal_jatuh_tempo ? formatTgl(faktur.tanggal_jatuh_tempo) : "—";
+        const tglBayarStr = faktur.tanggal_bayar ? formatTgl(faktur.tanggal_bayar) : (isLunas ? "Lunas" : "—");
+        const statusStr = isLunas ? "Lunas" : "Belum Lunas";
+        const petugasStr = faktur.petugas_bayar || "—";
 
         rows.push([
           fIdx === 0 ? gIdx + 1 : "",
-          fIdx === 0 ? formatTgl(grup.tanggal) : "",
           fIdx === 0 ? grup.namaSupplier : "",
+          fIdx === 0 ? formatTgl(grup.tanggal) : "",
           faktur.no_faktur || "—",
           rupiah(faktur.total),
           fIdx === 0 ? rupiah(grup.totalJumlah) : "",
+          tglTempoStr,
           tglBayarStr,
+          statusStr,
+          petugasStr,
         ]);
       });
     });
@@ -245,7 +304,7 @@ export default function PembayaranPenerimaan() {
         { label: `TOTAL BESAR UANG (${daftarTampil.length} Faktur) :`, colspan: 4, align: "right" },
         { label: rupiah(grandTotal), align: "right" },
         { label: rupiah(grandTotal), align: "right" },
-        { label: "-", align: "center" },
+        { label: `Lunas: ${rupiah(totalLunas)} | Belum: ${rupiah(totalBelumLunas)}`, colspan: 4, align: "center" },
       ],
     ];
 
@@ -511,17 +570,20 @@ export default function PembayaranPenerimaan() {
           </div>
         ) : (
           <div className="obat-table-wrap">
-            {/* Tabel 7 Kolom Sesuai Buku Catatan Pembayaran Foto 2 */}
-            <table className="obat-table" style={{ minWidth: 880, fontSize: 13.5 }}>
+            {/* Tabel Tagihan PBF 10 Kolom */}
+            <table className="obat-table" style={{ minWidth: 1080, fontSize: 13 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 48, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 95, textAlign: "center" }}>Tgl</th>
-                  <th style={{ width: 170 }}>Nama PBF</th>
-                  <th style={{ width: 150 }}>Nomor Faktur</th>
-                  <th style={{ width: 140, textAlign: "right" }}>Besar Uang</th>
-                  <th style={{ width: 145, textAlign: "right" }}>Jumlah</th>
-                  <th style={{ minWidth: 170, textAlign: "center" }}>Tgl Bayar</th>
+                  <th style={{ width: 44, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 160 }}>Nama PBF</th>
+                  <th style={{ width: 95, textAlign: "center" }}>Tgl Faktur</th>
+                  <th style={{ width: 130 }}>Nomor Faktur</th>
+                  <th style={{ width: 120, textAlign: "right" }}>Besar Uang</th>
+                  <th style={{ width: 125, textAlign: "right" }}>Jumlah</th>
+                  <th style={{ width: 105, textAlign: "center" }}>Tgl Jth Tempo</th>
+                  <th style={{ width: 135, textAlign: "center" }}>Tgl Bayar</th>
+                  <th style={{ width: 95, textAlign: "center" }}>Lunas</th>
+                  <th style={{ width: 125, textAlign: "center" }}>Petugas</th>
                 </tr>
               </thead>
               <tbody>
@@ -531,9 +593,6 @@ export default function PembayaranPenerimaan() {
 
                   return fakturs.map((faktur, fIdx) => {
                     const isLunas = faktur.status_bayar === "lunas";
-                    const tglBayarStr = isLunas
-                      ? (faktur.tanggal_bayar ? formatTgl(faktur.tanggal_bayar) : "Lunas")
-                      : (faktur.tanggal_jatuh_tempo ? formatTgl(faktur.tanggal_jatuh_tempo) : "—");
 
                     return (
                       <tr
@@ -561,24 +620,7 @@ export default function PembayaranPenerimaan() {
                           </td>
                         )}
 
-                        {/* 2. Tgl (rowspan grup) */}
-                        {fIdx === 0 && (
-                          <td
-                            rowSpan={rowSpan}
-                            style={{
-                              textAlign: "center",
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              verticalAlign: "middle",
-                              borderRight: "1px solid var(--line)",
-                              background: "#fff",
-                            }}
-                          >
-                            {formatTgl(grup.tanggal)}
-                          </td>
-                        )}
-
-                        {/* 3. Nama PBF (rowspan grup) */}
+                        {/* 2. Nama PBF (pindah setelah no urut, rowspan grup) */}
                         {fIdx === 0 && (
                           <td
                             rowSpan={rowSpan}
@@ -591,7 +633,7 @@ export default function PembayaranPenerimaan() {
                             }}
                           >
                             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 14 }}>{grup.namaSupplier}</span>
+                              <span style={{ fontSize: 13.5 }}>{grup.namaSupplier}</span>
                               {grup.namaSupplier && (
                                 <button
                                   type="button"
@@ -614,7 +656,7 @@ export default function PembayaranPenerimaan() {
                                     cursor: "pointer",
                                   }}
                                 >
-                                   Hutang
+                                  Hutang
                                 </button>
                               )}
                             </div>
@@ -626,14 +668,28 @@ export default function PembayaranPenerimaan() {
                           </td>
                         )}
 
+                        {/* 3. Tgl Faktur (kolom Tgl diganti namanya jd Tgl Faktur, rowspan grup) */}
+                        {fIdx === 0 && (
+                          <td
+                            rowSpan={rowSpan}
+                            style={{
+                              textAlign: "center",
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              verticalAlign: "middle",
+                              borderRight: "1px solid var(--line)",
+                              background: "#fff",
+                            }}
+                          >
+                            {formatTgl(grup.tanggal)}
+                          </td>
+                        )}
+
                         {/* 4. Nomor Faktur */}
                         <td className="obat-batch-cell" style={{ fontWeight: 600 }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
                             <div>
                               <span>{faktur.no_faktur}</span>
-                              <span style={{ fontSize: 11, color: "var(--ink-soft)", display: "block", marginTop: 2, fontWeight: 500 }}>
-                                👤 {getNamaPetugas(faktur)}
-                              </span>
                             </div>
                             <div style={{ display: "inline-flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
                               <button
@@ -653,7 +709,7 @@ export default function PembayaranPenerimaan() {
                                   fontSize: 10.5,
                                 }}
                               >
-                                
+                                🖨️
                               </button>
                             </div>
                           </div>
@@ -683,42 +739,108 @@ export default function PembayaranPenerimaan() {
                           </td>
                         )}
 
-                        {/* 7. Tgl Bayar & Status Toggle */}
+                        {/* 7. Tgl Jth Tempo (setelah kolom Jumlah) */}
+                        <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--ink-soft)" }}>
+                          {faktur.tanggal_jatuh_tempo ? formatTgl(faktur.tanggal_jatuh_tempo) : "—"}
+                        </td>
+
+                        {/* 8. Tgl Bayar (setelah Tgl Jth Tempo, diisi manual) */}
                         <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap" }}>
-                            <div style={{ textAlign: "left", minWidth: 65 }}>
-                              <div style={{ fontSize: 12, fontWeight: 700, color: isLunas ? "#15803D" : "#B91C1C" }}>
-                                {isLunas ? "Lunas" : "Tempo"}
-                              </div>
-                              <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                                {tglBayarStr}
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setKonfirmasiBayar(faktur);
-                              }}
-                              title="Klik untuk mengubah status pembayaran"
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 4,
-                                padding: "4px 10px",
-                                borderRadius: 16,
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                cursor: "pointer",
-                                border: isLunas ? "1px solid #86EFAC" : "1px solid #FCA5A5",
-                                background: isLunas ? "#DCFCE7" : "#FEF2F2",
-                                color: isLunas ? "#15803D" : "#DC2626",
-                                transition: "all 0.15s ease",
-                              }}
-                            >
-                              {isLunas ? "Lunas" : "Lunaskan"}
-                            </button>
-                          </div>
+                          <input
+                            type="date"
+                            value={faktur.tanggal_bayar ? String(faktur.tanggal_bayar).slice(0, 10) : ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDaftar((prev) =>
+                                prev.map((it) => (it.id === faktur.id ? { ...it, tanggal_bayar: val } : it))
+                              );
+                            }}
+                            onBlur={(e) => {
+                              simpanPerubahanFaktur(faktur.id, {
+                                tanggal_bayar: e.target.value || null,
+                                petugas_bayar: faktur.petugas_bayar,
+                                status_bayar: faktur.status_bayar,
+                              });
+                            }}
+                            style={{
+                              padding: "4px 6px",
+                              fontSize: 12,
+                              borderRadius: 6,
+                              border: "1px solid var(--line)",
+                              outline: "none",
+                              fontFamily: "inherit",
+                              background: faktur.tanggal_bayar ? "#F0FDF4" : "#fff",
+                              color: faktur.tanggal_bayar ? "#166534" : "var(--ink)",
+                              fontWeight: faktur.tanggal_bayar ? 600 : 400,
+                              width: 125,
+                              textAlign: "center",
+                            }}
+                            title="Tanggal pembayaran faktur (diisi manual)"
+                          />
+                        </td>
+
+                        {/* 9. Lunas (Status Pembayaran) */}
+                        <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              bukaModalBayar(faktur);
+                            }}
+                            title="Klik untuk mengubah status pembayaran"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "4px 10px",
+                              borderRadius: 16,
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              border: isLunas ? "1px solid #86EFAC" : "1px solid #FCA5A5",
+                              background: isLunas ? "#DCFCE7" : "#FEF2F2",
+                              color: isLunas ? "#15803D" : "#DC2626",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            {isLunas ? "✓ Lunas" : "Lunaskan"}
+                          </button>
+                        </td>
+
+                        {/* 10. Petugas (setelah kolom Lunas, diisi manual) */}
+                        <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="text"
+                            placeholder="Petugas bayar"
+                            value={faktur.petugas_bayar || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setDaftar((prev) =>
+                                prev.map((it) => (it.id === faktur.id ? { ...it, petugas_bayar: val } : it))
+                              );
+                            }}
+                            onBlur={(e) => {
+                              simpanPerubahanFaktur(faktur.id, {
+                                tanggal_bayar: faktur.tanggal_bayar,
+                                petugas_bayar: e.target.value || null,
+                                status_bayar: faktur.status_bayar,
+                              });
+                            }}
+                            style={{
+                              padding: "4px 8px",
+                              fontSize: 12,
+                              borderRadius: 6,
+                              border: "1px solid var(--line)",
+                              outline: "none",
+                              fontFamily: "inherit",
+                              background: faktur.petugas_bayar ? "#F5F3FF" : "#fff",
+                              color: faktur.petugas_bayar ? "#5B21B6" : "var(--ink)",
+                              fontWeight: faktur.petugas_bayar ? 600 : 400,
+                              width: 120,
+                              textAlign: "left",
+                            }}
+                            title="Nama petugas bayar (diisi manual)"
+                          />
                         </td>
                       </tr>
                     );
@@ -730,14 +852,14 @@ export default function PembayaranPenerimaan() {
                   <td colSpan={4} style={{ textAlign: "right", padding: "11px 14px", color: "var(--ink)" }}>
                     TOTAL BESAR UANG ({daftarTampil.length} Faktur) :
                   </td>
-                  <td style={{ textAlign: "right", padding: "11px 14px", color: "var(--magenta-dark)", fontSize: 14 }}>
+                  <td style={{ textAlign: "right", padding: "11px 14px", color: "var(--ink)", fontSize: 14 }}>
                     {rupiah(totalTagihan)}
                   </td>
                   <td style={{ textAlign: "right", padding: "11px 14px", color: "var(--magenta-dark)", fontSize: 14 }}>
                     {rupiah(totalTagihan)}
                   </td>
-                  <td style={{ textAlign: "center", padding: "11px 14px", fontSize: 12, color: "var(--ink-soft)" }}>
-                    Lunas: {rupiah(totalLunas)}
+                  <td colSpan={4} style={{ textAlign: "center", padding: "11px 14px", color: "#15803D" }}>
+                    Lunas: {rupiah(totalLunas)} | Belum: {rupiah(totalBelumLunas)}
                   </td>
                 </tr>
               </tfoot>
@@ -746,7 +868,7 @@ export default function PembayaranPenerimaan() {
         )}
       </div>
 
-      {/* Modal Konfirmasi Pembayaran Faktur */}
+      {/* Modal Konfirmasi Pembayaran Faktur dengan Input Manual Tgl Bayar & Petugas */}
       {konfirmasiBayar && (
         <div className="struk-overlay" onClick={() => !loadingToggle && setKonfirmasiBayar(null)}>
           <div className="struk-modal" style={{ maxWidth: 440, padding: 24, textAlign: "center" }}>
@@ -755,12 +877,60 @@ export default function PembayaranPenerimaan() {
                 ? "Ubah Status Jadi Belum Lunas?"
                 : "Tandai Faktur Sudah Lunas?"}
             </h3>
-            <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 20 }}>
+            <p style={{ fontSize: 13.5, color: "var(--ink-soft)", lineHeight: 1.5, marginBottom: 16 }}>
               Faktur <strong>{konfirmasiBayar.no_faktur}</strong> dari <strong>{konfirmasiBayar.nama_supplier}</strong> senilai <strong>{rupiah(konfirmasiBayar.total)}</strong> akan diubah statusnya menjadi{" "}
               <strong style={{ color: konfirmasiBayar.status_bayar === "lunas" ? "#DC2626" : "#15803D" }}>
                 {konfirmasiBayar.status_bayar === "lunas" ? "Belum Lunas (Tempo)" : "Lunas (Sudah Dibayar)"}
               </strong>.
             </p>
+
+            {konfirmasiBayar.status_bayar !== "lunas" && (
+              <div style={{ textAlign: "left", marginBottom: 18, display: "flex", flexDirection: "column", gap: 10, background: "#F8FAFC", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--line)" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                    Tanggal Bayar (diisi manual):
+                  </label>
+                  <input
+                    type="date"
+                    value={modalTglBayar}
+                    onChange={(e) => setModalTglBayar(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "7px 10px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 13,
+                      fontFamily: "inherit",
+                      outline: "none",
+                    }}
+                  />
+                  <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
+                    Krn tgl jatuh tempo dgn tgl bayar blm tentu sama (mungkin diundur)
+                  </span>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--ink)", marginBottom: 4 }}>
+                    Nama Petugas Bayar (diisi manual):
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Apt. Yunita / Kasir"
+                    value={modalPetugasBayar}
+                    onChange={(e) => setModalPetugasBayar(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "7px 10px",
+                      borderRadius: 8,
+                      border: "1.5px solid var(--line)",
+                      fontSize: 13,
+                      fontFamily: "inherit",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
               <button
                 type="button"

@@ -122,6 +122,7 @@ export default function RiwayatPenerimaan() {
         no: noUrut++,
         fakturId: p.id,
         faktur: p,
+        tglInput: p.created_at || p.tanggal_terima,
         tanggal: p.tanggal_terima,
         noFaktur: p.no_faktur,
         pbf: p.nama_supplier,
@@ -151,6 +152,7 @@ export default function RiwayatPenerimaan() {
           no: noUrut++,
           fakturId: p.id,
           faktur: p,
+          tglInput: p.created_at || p.tanggal_terima,
           tanggal: p.tanggal_terima,
           noFaktur: p.no_faktur,
           pbf: p.nama_supplier,
@@ -209,9 +211,10 @@ export default function RiwayatPenerimaan() {
   function siapkanDataExportPenerimaan() {
     const headers = [
       { label: "NO", align: "center", width: "35px" },
-      { label: "Tanggal", align: "center" },
+      { label: "Tgl Input", align: "center" },
+      { label: "Nama PBF", align: "left" },
       { label: "No Faktur", align: "left" },
-      { label: "PBF", align: "left" },
+      { label: "Tgl Faktur", align: "center" },
       { label: "Nama Barang", align: "left" },
       { label: "Jumlah", align: "center" },
       { label: "Satuan", align: "center" },
@@ -225,9 +228,10 @@ export default function RiwayatPenerimaan() {
 
     const rows = barisItemTampil.map((b, idx) => [
       idx + 1,
-      formatTgl(b.tanggal),
-      b.noFaktur || "—",
+      formatTgl(b.tglInput),
       b.pbf || "—",
+      b.noFaktur || "—",
+      formatTgl(b.tanggal),
       b.namaBarang || "—",
       b.jumlah,
       b.satuan || "—",
@@ -425,9 +429,10 @@ export default function RiwayatPenerimaan() {
               <thead>
                 <tr>
                   <th style={{ width: 44, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 85, textAlign: "center" }}>Tanggal</th>
+                  <th style={{ width: 95, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 140 }}>Nama PBF</th>
                   <th style={{ width: 110 }}>No Faktur</th>
-                  <th style={{ width: 130 }}>PBF</th>
+                  <th style={{ width: 90, textAlign: "center" }}>Tgl Faktur</th>
                   <th style={{ minWidth: 180 }}>Nama Barang</th>
                   <th style={{ width: 65, textAlign: "center" }}>Jumlah</th>
                   <th style={{ width: 70, textAlign: "center" }}>Satuan</th>
@@ -452,22 +457,27 @@ export default function RiwayatPenerimaan() {
                       {b.no}
                     </td>
 
-                    {/* 2. Tanggal */}
+                    {/* 2. Tgl Input */}
                     <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap" }}>
-                      {formatTgl(b.tanggal)}
+                      {formatTgl(b.tglInput)}
                     </td>
 
-                    {/* 3. No Faktur */}
-                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)" }}>
-                      {b.noFaktur}
-                    </td>
-
-                    {/* 4. PBF */}
+                    {/* 3. Nama PBF */}
                     <td style={{ fontWeight: 700, color: "var(--ink)" }}>
                       {b.pbf}
                     </td>
 
-                    {/* 5. Nama Barang */}
+                    {/* 4. No Faktur */}
+                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                      {b.noFaktur}
+                    </td>
+
+                    {/* 5. Tgl Faktur */}
+                    <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap" }}>
+                      {formatTgl(b.tanggal)}
+                    </td>
+
+                    {/* 6. Nama Barang */}
                     <td style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>
                       {b.namaBarang}
                     </td>

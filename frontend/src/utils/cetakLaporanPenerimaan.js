@@ -59,15 +59,17 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
       totalJumlahRp += Number(b.jumlahRp || 0);
       totalJumlahPpnRp += Number(b.jumlahPpnRp || 0);
 
+      const tglInputStr = b.tglInput ? formatTglIndo(b.tglInput) : (b.tanggal ? formatTglIndo(b.tanggal) : "—");
       const tglStr = b.tanggal ? formatTglIndo(b.tanggal) : "—";
       const expStr = b.exp ? formatTglIndo(b.exp) : "—";
 
       return `
       <tr>
         <td style="text-align: center;">${idx + 1}</td>
+        <td style="text-align: center; white-space: nowrap;">${tglInputStr}</td>
+        <td style="text-align: left; font-weight: 600;">${b.pbf || "—"}</td>
+        <td style="text-align: left;">${b.noFaktur || "—"}</td>
         <td style="text-align: center; white-space: nowrap;">${tglStr}</td>
-        <td style="text-align: left; font-weight: 600;">${b.noFaktur || "—"}</td>
-        <td style="text-align: left;">${b.pbf || "—"}</td>
         <td style="text-align: left; font-weight: 600;">${b.namaBarang || "—"}</td>
         <td style="text-align: center;">${formatAngka(b.jumlah)}</td>
         <td style="text-align: center;">${b.satuan || "—"}</td>
@@ -76,6 +78,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <td style="text-align: right;">${formatRp(b.hargaSatuan)}</td>
         <td style="text-align: right; font-weight: 600;">${formatRp(b.jumlahRp)}</td>
         <td style="text-align: right; font-weight: 700;">${formatRp(b.jumlahPpnRp)}</td>
+        <td style="text-align: center;">${b.petugas || "—"}</td>
       </tr>
     `;
     })
@@ -181,9 +184,10 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           <thead>
             <tr>
               <th style="width: 28px;">NO</th>
-              <th style="width: 68px;">Tanggal</th>
+              <th style="width: 68px;">Tgl Input</th>
+              <th style="width: 95px;">Nama PBF</th>
               <th style="width: 80px;">No Faktur</th>
-              <th style="width: 95px;">PBF</th>
+              <th style="width: 68px;">Tgl Faktur</th>
               <th>Nama Barang</th>
               <th style="width: 48px;">Jumlah</th>
               <th style="width: 50px;">Satuan</th>
@@ -192,6 +196,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
               <th style="width: 78px;">Harga Satuan (Rp)</th>
               <th style="width: 82px;">Jumlah (Rp)</th>
               <th style="width: 90px;">Jumlah + PPN</th>
+              <th style="width: 70px;">Petugas</th>
             </tr>
           </thead>
           <tbody>
@@ -243,8 +248,8 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
       if (fIdx === 0) {
         rowsHtml += `
           <td rowspan="${rowSpan}" style="text-align: center; font-weight: bold;">${gIdx + 1}</td>
-          <td rowspan="${rowSpan}" style="text-align: center; white-space: nowrap;">${tglStr}</td>
           <td rowspan="${rowSpan}" style="text-align: left; font-weight: bold;">${grup.namaSupplier || "—"}</td>
+          <td rowspan="${rowSpan}" style="text-align: center; white-space: nowrap;">${tglStr}</td>
         `;
       }
 
@@ -260,9 +265,12 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
       }
 
       rowsHtml += `
-        <td style="text-align: center; font-size: 9px; ${isLunas ? "color: #15803D; font-weight: bold;" : "color: #B91C1C;"}">
-          ${tglBayarStr}
+        <td style="text-align: center; white-space: nowrap;">${faktur.tanggal_jatuh_tempo ? formatTglIndo(faktur.tanggal_jatuh_tempo) : "—"}</td>
+        <td style="text-align: center; white-space: nowrap;">${faktur.tanggal_bayar ? formatTglIndo(faktur.tanggal_bayar) : "—"}</td>
+        <td style="text-align: center; font-weight: bold; ${isLunas ? "color: #15803D;" : "color: #B91C1C;"}">
+          ${isLunas ? "Lunas" : "Belum"}
         </td>
+        <td style="text-align: center;">${faktur.petugas_bayar || "—"}</td>
       </tr>`;
     });
   });
@@ -368,13 +376,16 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
         <table>
           <thead>
             <tr>
-              <th style="width: 38px;">NO</th>
-              <th style="width: 80px;">Tgl</th>
-              <th style="width: 130px;">Nama PBF</th>
-              <th style="width: 120px;">Nomor Faktur</th>
-              <th style="width: 110px;">Besar Uang</th>
-              <th style="width: 110px;">Jumlah</th>
-              <th style="width: 95px;">Tgl Bayar</th>
+              <th style="width: 32px;">NO</th>
+              <th style="width: 140px;">Nama PBF</th>
+              <th style="width: 75px;">Tgl Faktur</th>
+              <th style="width: 110px;">Nomor Faktur</th>
+              <th style="width: 95px;">Besar Uang</th>
+              <th style="width: 95px;">Jumlah</th>
+              <th style="width: 80px;">Tgl Jth Tempo</th>
+              <th style="width: 80px;">Tgl Bayar</th>
+              <th style="width: 65px;">Status</th>
+              <th style="width: 85px;">Petugas</th>
             </tr>
           </thead>
           <tbody>
@@ -385,7 +396,7 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
               <td colspan="4" style="text-align: right;">TOTAL BESAR UANG :</td>
               <td style="text-align: right;">${formatRp(totalBesarUang)}</td>
               <td style="text-align: right;">${formatRp(totalBesarUang)}</td>
-              <td></td>
+              <td colspan="4"></td>
             </tr>
           </tfoot>
         </table>

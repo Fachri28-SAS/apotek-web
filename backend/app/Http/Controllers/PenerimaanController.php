@@ -235,17 +235,36 @@ class PenerimaanController extends Controller
         return $penerimaan->load(['items', 'user:id,nama,username,role']);
     }
 
-    /** PUT /api/penerimaan/{penerimaan}/toggle-bayar — tandai lunas atau belum lunas (seperti checklist buku register) */
-    public function toggleBayar(Penerimaan $penerimaan)
+    /** PUT /api/penerimaan/{penerimaan}/toggle-bayar — update status bayar, tgl bayar manual, dan nama petugas bayar manual */
+    public function toggleBayar(Request $r, Penerimaan $penerimaan)
     {
-        $baru = $penerimaan->status_bayar === 'lunas' ? 'belum' : 'lunas';
-        $penerimaan->update([
-            'status_bayar' => $baru,
-            'tanggal_bayar' => $baru === 'lunas' ? now()->toDateString() : null,
-        ]);
+        $statusBaru = $r->input('status_bayar');
+        if (!$statusBaru) {
+            $statusBaru = $penerimaan->status_bayar === 'lunas' ? 'belum' : 'lunas';
+        }
+
+        $tanggalBayar = $r->has('tanggal_bayar')
+            ? ($r->input('tanggal_bayar') ?: null)
+            : ($statusBaru === 'lunas' ? ($penerimaan->tanggal_bayar ?: now()->toDateString()) : null);
+
+        $defaultPetugas = $r->user() ? ($r->user()->nama ?: $r->user()->username) : 'Petugas';
+        $petugasBayar = $r->has('petugas_bayar')
+            ? $r->input('petugas_bayar')
+            : ($penerimaan->petugas_bayar ?: ($statusBaru === 'lunas' ? $defaultPetugas : null));
+
+        $updateData = [
+            'status_bayar' => $statusBaru,
+            'tanggal_bayar' => $tanggalBayar,
+        ];
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('penerimaan', 'petugas_bayar')) {
+            $updateData['petugas_bayar'] = $petugasBayar;
+        }
+
+        $penerimaan->update($updateData);
 
         return response()->json([
-            'message' => "Faktur {$penerimaan->no_faktur} ditandai " . ($baru === 'lunas' ? 'LUNAS (Sudah Dibayar)' : 'BELUM LUNAS'),
+            'message' => "Faktur {$penerimaan->no_faktur} ditandai " . ($statusBaru === 'lunas' ? 'LUNAS (Sudah Dibayar)' : 'BELUM LUNAS'),
             'penerimaan' => $penerimaan->fresh()->load('items'),
         ]);
     }

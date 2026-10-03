@@ -12,7 +12,7 @@ class Penerimaan extends Model
         'supplier_id', 'nama_supplier', 'no_faktur', 'tanggal_terima', 'tanggal_jatuh_tempo',
         'tempo_label', 'is_pkp', 'persen_ppn', 'subtotal', 'diskon_faktur_rp',
         'diskon_faktur_persen', 'subtotal_setelah_diskon', 'dpp', 'ppn', 'total',
-        'status_bayar', 'tanggal_bayar', 'user_id',
+        'status_bayar', 'tanggal_bayar', 'petugas_bayar', 'user_id',
     ];
 
     protected $casts = [
