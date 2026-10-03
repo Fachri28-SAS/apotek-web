@@ -203,6 +203,14 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           <tbody>
             ${rowsHtml}
           </tbody>
+          <tfoot>
+            <tr style="background-color: #f0f0f0; font-weight: bold;">
+              <td colspan="10" style="text-align: right; font-weight: bold; padding: 5px 6px;">TOTAL BESAR UANG (${barisItem.length} Item) :</td>
+              <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahRp)}</td>
+              <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahRp)}</td>
+              <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahPpnRp)}</td>
+            </tr>
+          </tfoot>
         </table>
 
         <div class="footer-row">

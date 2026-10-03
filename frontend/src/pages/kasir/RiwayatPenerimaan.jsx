@@ -563,7 +563,48 @@ export default function RiwayatPenerimaan() {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr style={{ background: "#F8FAFC", borderTop: "2px solid #CBD5E1", fontWeight: 800 }}>
+                  <td colSpan={10} style={{ textAlign: "right", padding: "10px 12px", fontSize: 12.5, color: "var(--ink-soft)" }}>
+                    TOTAL ({barisItemTampil.length} Item) :
+                  </td>
+                  <td style={{ textAlign: "right", padding: "10px 6px", fontSize: 12, color: "var(--ink)" }}>
+                    {rupiah(totalJumlahSemua)}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "10px 6px", fontSize: 12, color: "var(--ink)" }}>
+                    {rupiah(totalJumlahSemua)}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13, color: "#6B21A8", fontWeight: 800 }}>
+                    {rupiah(totalJumlahPpnSemua)}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
+
+            {/* Ringkasan Jumlah Besar Uang di Pojok Kanan Bawah */}
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: 14 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "12px 20px",
+                  borderRadius: 12,
+                  background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
+                  border: "1.5px solid #D8B4FE",
+                  boxShadow: "0 2px 10px rgba(147, 51, 234, 0.08)",
+                }}
+              >
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#6B21A8", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Jumlah Besar Uang ({barisItemTampil.length} Item)
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "#581C87", marginTop: 2 }}>
+                    {rupiah(totalJumlahPpnSemua)}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
