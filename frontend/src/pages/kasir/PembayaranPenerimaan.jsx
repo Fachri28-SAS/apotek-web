@@ -726,18 +726,13 @@ export default function PembayaranPenerimaan() {
                           </td>
                         )}
 
-                        {/* 4. Nomor Faktur & Rincian Barang */}
+                        {/* 4. Nomor Faktur */}
                         <td className="obat-batch-cell" style={{ fontWeight: 600 }}>
-                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
                             <div>
                               <span style={{ fontSize: 13, fontWeight: 700 }}>{faktur.no_faktur}</span>
-                              {faktur.items && faktur.items.length > 0 && (
-                                <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 500, marginTop: 3 }}>
-                                  📦 {faktur.items.length} Barang: {faktur.items.map((it) => it.nama_obat).join(", ")}
-                                </div>
-                              )}
                             </div>
-                            <div style={{ display: "inline-flex", gap: 3, marginTop: 2 }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: "inline-flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 onClick={(e) => {
