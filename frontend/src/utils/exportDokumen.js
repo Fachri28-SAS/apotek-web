@@ -126,12 +126,21 @@ export function cetakDokumenA4({
         <style>
           @page {
             size: A4 ${orientation};
-            margin: 0 !important;
+            margin: 0mm !important;
+          }
+          @media print {
+            @page {
+              margin: 0mm !important;
+            }
+            body {
+              margin: 0 !important;
+              padding: 8mm 10mm !important;
+            }
           }
           * { box-sizing: border-box; }
           body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 10.5px;
+            font-size: 10px;
             color: #000;
             background: #fff;
             margin: 0;
@@ -168,7 +177,7 @@ export function cetakDokumenA4({
         </style>
       </head>
       <body>
-        ${customKop || KOP_HTML}
+        ${customKop !== null && customKop !== undefined ? customKop : KOP_HTML}
         ${sembunyikanJudulDokumen ? "" : `<div class="judul-dokumen">${judul}</div>`}
 
         <div class="meta-row">
@@ -195,9 +204,14 @@ export function cetakDokumenA4({
   `);
   doc.close();
 
+  const originalTitle = document.title;
+  document.title = "";
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 2000);
   }, 250);
 }
 

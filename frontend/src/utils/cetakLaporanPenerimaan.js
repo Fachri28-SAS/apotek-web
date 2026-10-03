@@ -107,7 +107,16 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <style>
           @page {
             size: A4 landscape;
-            margin: 0 !important;
+            margin: 0mm !important;
+          }
+          @media print {
+            @page {
+              margin: 0mm !important;
+            }
+            body {
+              margin: 0 !important;
+              padding: 8mm 10mm !important;
+            }
           }
           * { box-sizing: border-box; }
           body {
@@ -117,28 +126,6 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
             background: #fff;
             margin: 0;
             padding: 8mm 10mm;
-          }
-          .header-center {
-            text-align: center;
-            margin-bottom: 8px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 6px;
-          }
-          .judul-laporan {
-            font-size: 13.5px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
-          }
-          .nama-apotek {
-            font-size: 15px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-          }
-          .alamat-apotek {
-            font-size: 10px;
-            color: #222;
-            margin-top: 2px;
           }
           .meta-row {
             display: flex;
@@ -172,12 +159,6 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         </style>
       </head>
       <body>
-        <div class="header-center">
-          <div class="judul-laporan">DAFTAR PENERIMAAN BARANG</div>
-          <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
-        </div>
-
         <div class="meta-row">
           <div>Periode: <strong>${periodeTeks}</strong> &middot; Total: <strong>${barisItem.length} Item Masuk</strong></div>
         </div>
@@ -221,9 +202,14 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
   `);
   doc.close();
 
+  const originalTitle = document.title;
+  document.title = "";
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 2000);
   }, 250);
 }
 
@@ -304,7 +290,16 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
         <style>
           @page {
             size: A4 portrait;
-            margin: 0 !important;
+            margin: 0mm !important;
+          }
+          @media print {
+            @page {
+              margin: 0mm !important;
+            }
+            body {
+              margin: 0 !important;
+              padding: 8mm 10mm !important;
+            }
           }
           * { box-sizing: border-box; }
           body {
@@ -389,9 +384,14 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
   `);
   doc.close();
 
+  const originalTitle = document.title;
+  document.title = "";
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 2000);
   }, 250);
 }
 
