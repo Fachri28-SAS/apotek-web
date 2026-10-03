@@ -197,7 +197,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
               <th style="width: 65px;">No Batch</th>
               <th style="width: 80px;">Hrg Satuan</th>
               <th style="width: 85px;">Jumlah</th>
-              <th style="width: 95px;">Total + PPN</th>
+              <th style="width: 95px;">Jumlah + PPN</th>
             </tr>
           </thead>
           <tbody>
@@ -205,8 +205,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           </tbody>
           <tfoot>
             <tr style="background-color: #f0f0f0; font-weight: bold;">
-              <td colspan="10" style="text-align: right; font-weight: bold; padding: 5px 6px;">TOTAL BESAR UANG (${barisItem.length} Item) :</td>
-              <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahRp)}</td>
+              <td colspan="11" style="text-align: right; font-weight: bold; padding: 5px 6px;">TOTAL BESAR UANG (${barisItem.length} Item) :</td>
               <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahRp)}</td>
               <td style="text-align: right; font-weight: bold; padding: 5px 6px;">${formatRp(totalJumlahPpnRp)}</td>
             </tr>

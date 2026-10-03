@@ -438,7 +438,7 @@ export default function RiwayatPenerimaan() {
                   <th style={{ width: 75, textAlign: "center" }}>No Batch</th>
                   <th style={{ width: 90, textAlign: "right" }}>Hrg Satuan</th>
                   <th style={{ width: 90, textAlign: "right" }}>Jumlah</th>
-                  <th style={{ width: 105, textAlign: "right" }}>Total + PPN</th>
+                  <th style={{ width: 110, textAlign: "right" }}>Jumlah + PPN</th>
                 </tr>
               </thead>
               <tbody>
@@ -565,16 +565,13 @@ export default function RiwayatPenerimaan() {
               </tbody>
               <tfoot>
                 <tr style={{ background: "#F8FAFC", borderTop: "2px solid #CBD5E1", fontWeight: 800 }}>
-                  <td colSpan={10} style={{ textAlign: "right", padding: "10px 12px", fontSize: 12.5, color: "var(--ink-soft)" }}>
+                  <td colSpan={11} style={{ textAlign: "right", padding: "10px 12px", fontSize: 12.5, color: "var(--ink-soft)" }}>
                     TOTAL ({barisItemTampil.length} Item) :
                   </td>
                   <td style={{ textAlign: "right", padding: "10px 6px", fontSize: 12, color: "var(--ink)" }}>
                     {rupiah(totalJumlahSemua)}
                   </td>
-                  <td style={{ textAlign: "right", padding: "10px 6px", fontSize: 12, color: "var(--ink)" }}>
-                    {rupiah(totalJumlahSemua)}
-                  </td>
-                  <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13, color: "#6B21A8", fontWeight: 800 }}>
+                  <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13.5, color: "#6B21A8", fontWeight: 800 }}>
                     {rupiah(totalJumlahPpnSemua)}
                   </td>
                 </tr>
@@ -588,7 +585,7 @@ export default function RiwayatPenerimaan() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 14,
-                  padding: "12px 20px",
+                  padding: "12px 22px",
                   borderRadius: 12,
                   background: "linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)",
                   border: "1.5px solid #D8B4FE",
@@ -596,10 +593,10 @@ export default function RiwayatPenerimaan() {
                 }}
               >
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#6B21A8", textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    Jumlah Besar Uang ({barisItemTampil.length} Item)
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: "#6B21A8", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Jumlah Besar Uang (Jumlah + PPN) &middot; {barisItemTampil.length} Item
                   </div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: "#581C87", marginTop: 2 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#581C87", marginTop: 2 }}>
                     {rupiah(totalJumlahPpnSemua)}
                   </div>
                 </div>
