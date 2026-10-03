@@ -52,6 +52,10 @@ class AuthController extends Controller
                 ->update(['last_seen_at' => now()]);
         } catch (\Throwable $e) {}
 
+        // Aturan 1 Akun Hanya 1 Perangkat:
+        // Cabut seluruh token sesi login sebelumnya agar perangkat lama otomatis logout
+        $user->tokens()->delete();
+
         $token = $user->createToken('sistem-kasir')->plainTextToken;
 
         return response()->json([
@@ -105,8 +109,11 @@ class AuthController extends Controller
             'password' => Hash::make($data['password_baru']),
         ]);
 
+        // Cabut seluruh token sesi agar semua perangkat yang sedang login langsung ter-logout
+        $user->tokens()->delete();
+
         return response()->json([
-            'message' => 'Kata sandi berhasil diperbarui.',
+            'message' => 'Kata sandi berhasil diperbarui. Seluruh sesi telah dikeluarkan, silakan masuk kembali.',
         ]);
     }
 }

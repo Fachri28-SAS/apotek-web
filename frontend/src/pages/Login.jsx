@@ -260,6 +260,30 @@ export default function Login() {
               </div>
             )}
 
+            {location.search.includes("pesan=sandi_diubah") && (
+              <div
+                style={{
+                  background: "#F0FDF4",
+                  border: "1.5px solid #86EFAC",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  fontSize: 13,
+                  color: "#166534",
+                  lineHeight: 1.5,
+                  marginBottom: 18,
+                  boxShadow: "0 2px 6px rgba(34, 197, 94, 0.08)",
+                }}
+              >
+                <div style={{ fontWeight: 800, color: "#15803D", marginBottom: 3, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>🔒</span>
+                  Kata Sandi Berhasil Diperbarui
+                </div>
+                <div>
+                  Seluruh sesi akun ini telah dikeluarkan dari semua perangkat untuk keamanan. Silakan masuk kembali menggunakan kata sandi baru Anda.
+                </div>
+              </div>
+            )}
+
             {error && <div className="login-error">{error}</div>}
 
             <form onSubmit={handleSubmit}>

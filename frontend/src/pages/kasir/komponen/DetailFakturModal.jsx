@@ -3,10 +3,16 @@ import { rupiah } from "../../../utils/format";
 import { cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../../utils/exportDokumen";
 import TombolExportGroup from "./TombolExportGroup";
 
-export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier }) {
+export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier, userMap = {} }) {
   if (!data) return null;
 
   const isLunas = data.status_bayar === "lunas";
+  const namaPetugas =
+    data.petugas ||
+    data.user?.nama ||
+    data.user?.username ||
+    (data.user_id && userMap[data.user_id]) ||
+    (data.user_id ? `User #${data.user_id}` : "Admin (Sistem)");
 
   return (
     <div
@@ -154,6 +160,12 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
               <span style={{ color: "#64748B", display: "block" }}>Status Pembayaran</span>
               <strong style={{ color: isLunas ? "#15803D" : "#DC2626" }}>
                 {isLunas ? "Lunas" : "Belum Lunas"}
+              </strong>
+            </div>
+            <div>
+              <span style={{ color: "#64748B", display: "block" }}>Diinput Oleh</span>
+              <strong style={{ color: "#4A044E", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                👤 {namaPetugas}
               </strong>
             </div>
           </div>

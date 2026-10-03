@@ -126,7 +126,7 @@ export default function Penerimaan() {
       obat_satuan_id: satuan.id,
       nama_satuan: satuan.nama_satuan || obat.satuan_dasar || "",
       qty: initialQty,
-      kemasan: initialKemasan,
+      kemasan: satuan.faktor || 1,
       harga_beli: satuan.harga_beli,
       diskon: 0,
       nomor_batch: "",
@@ -214,7 +214,7 @@ export default function Penerimaan() {
         keterangan: `Supplier: ${namaSupplier}, ${items.length} item obat diterima (PPN ${isPkp ? `${persenPpn}%` : "0%"})`,
       });
 
-      setSukses(`Faktur ${noFaktur} berhasil disimpan. Stok & harga obat sudah diperbarui.`);
+      setSukses(`Faktur ${noFaktur} berhasil disimpan oleh ${namaAkun}. Stok & harga obat sudah diperbarui.`);
       setItems([]);
       setNoFaktur("");
       setDiskonFakturRp(0);
@@ -228,10 +228,42 @@ export default function Penerimaan() {
 
   return (
     <KasirShell>
-      <div className="halaman-header" style={{ marginBottom: 12 }}>
+      <div className="halaman-header" style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
         <div>
           <h1 style={{ fontSize: 22, margin: 0 }}>Input Penerimaan Barang</h1>
           <p className="halaman-sub" style={{ margin: "2px 0 0" }}>Catat faktur pembelian dari supplier</p>
+        </div>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            background: "#F5F3FF",
+            border: "1px solid #DDD6FE",
+            padding: "6px 14px",
+            borderRadius: 10,
+            fontSize: 12.5,
+            color: "#5B21B6",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+          }}
+        >
+          <span style={{ color: "#7C3AED", fontWeight: 600 }}>👤 Petugas Input:</span>
+          <strong style={{ color: "#4C1D95", fontSize: 13 }}>
+            {user?.nama || user?.username || "Petugas"}
+          </strong>
+          <span
+            style={{
+              fontSize: 11,
+              background: "#EDE9FE",
+              color: "#6D28D9",
+              padding: "2px 7px",
+              borderRadius: 5,
+              fontWeight: 700,
+              textTransform: "capitalize",
+            }}
+          >
+            {user?.role || "kasir"}
+          </span>
         </div>
       </div>
 
@@ -451,9 +483,16 @@ export default function Penerimaan() {
               <table className="obat-table" style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
-                    <th>Nama Obat</th><th>TERIMA</th><th>KEMASAN</th><th>HARGA BELI</th>
-                    <th>Diskon %</th><th>Batch</th><th>Exp. Date</th><th>Harga Jual Baru</th>
-                    <th>Margin %</th><th>Subtotal</th><th></th>
+                    <th>Nama Obat</th>
+                    <th>Jumlah Satuan</th>
+                    <th>Harga Satuan</th>
+                    <th>Harga Jual Baru</th>
+                    <th>Margin %</th>
+                    <th>Diskon %</th>
+                    <th>Batch</th>
+                    <th>Exp. Date</th>
+                    <th>Subtotal</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -475,8 +514,20 @@ export default function Penerimaan() {
                     return (
                       <tr key={it.key}>
                         <td>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                            <span className="obat-nama-cell">{it.nama_obat}</span>
+                          <span className="obat-nama-cell">{it.nama_obat}</span>
+                        </td>
+                        <td>
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <input
+                              type="number"
+                              min="1"
+                              className="cart-input-angka"
+                              style={{ width: 60, textAlign: "center", fontWeight: 700 }}
+                              value={it.qty}
+                              onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
+                              placeholder="1"
+                              title="Jumlah satuan obat yang diterima"
+                            />
                             {it.satuanOptions && it.satuanOptions.length > 1 ? (
                               <select
                                 className="cart-input-angka"
@@ -512,33 +563,10 @@ export default function Penerimaan() {
                         </td>
                         <td>
                           <input
-                            type="number"
-                            min="1"
-                            className="cart-input-angka"
-                            style={{ width: 60, textAlign: "center", fontWeight: 700 }}
-                            value={it.qty}
-                            onChange={(e) => ubahItem(it.key, "qty", e.target.value)}
-                            placeholder="1"
-                            title="Jumlah yang diterima dari faktur (TERIMA)"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            min="1"
-                            className="cart-input-angka"
-                            style={{ width: 60, textAlign: "center", fontWeight: 700 }}
-                            value={it.kemasan ?? 1}
-                            onChange={(e) => ubahItem(it.key, "kemasan", e.target.value)}
-                            placeholder="1"
-                            title="Isi kemasan / faktor konversi satuan obat (KEMASAN)"
-                          />
-                        </td>
-                        <td>
-                          <input
                             type="text"
                             inputMode="decimal"
                             className="cart-input-angka"
+                            style={{ width: 85 }}
                             value={it.harga_beli}
                             onChange={(e) => ubahItem(it.key, "harga_beli", e.target.value)}
                             placeholder="0"
@@ -550,26 +578,6 @@ export default function Penerimaan() {
                               Netto: {rupiah(hppNetto)}
                             </div>
                           )}
-                        </td>
-                        <td>
-                          <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              className="cart-input-angka"
-                              style={{ width: 70, textAlign: "right", paddingRight: 16 }}
-                              value={it.diskon}
-                              onChange={(e) => ubahItem(it.key, "diskon", e.target.value)}
-                              placeholder="0"
-                              title="Diskon persen (%)"
-                            />
-                            <span style={{ position: "absolute", right: 4, fontSize: 11, color: "var(--ink-soft)", pointerEvents: "none", fontWeight: 600 }}>%</span>
-                          </div>
-                        </td>
-                        <td><input type="text" className="cart-input-angka" style={{ width: 90 }} value={it.nomor_batch} onChange={(e) => ubahItem(it.key, "nomor_batch", e.target.value)} placeholder="wajib" /></td>
-                        <td>
-                          <input type="date" className="cart-input-angka" value={it.tanggal_exp} onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)} />
-                          <div className="exp-default-hint">Default 3 bln, bisa diubah</div>
                         </td>
                         <td>
                           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -613,9 +621,43 @@ export default function Penerimaan() {
                             "-"
                           )}
                         </td>
+                        <td>
+                          <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              className="cart-input-angka"
+                              style={{ width: 70, textAlign: "right", paddingRight: 16 }}
+                              value={it.diskon}
+                              onChange={(e) => ubahItem(it.key, "diskon", e.target.value)}
+                              placeholder="0"
+                              title="Diskon persen (%)"
+                            />
+                            <span style={{ position: "absolute", right: 4, fontSize: 11, color: "var(--ink-soft)", pointerEvents: "none", fontWeight: 600 }}>%</span>
+                          </div>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="cart-input-angka"
+                            style={{ width: 90 }}
+                            value={it.nomor_batch}
+                            onChange={(e) => ubahItem(it.key, "nomor_batch", e.target.value)}
+                            placeholder="wajib"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            className="cart-input-angka"
+                            value={it.tanggal_exp}
+                            onChange={(e) => ubahItem(it.key, "tanggal_exp", e.target.value)}
+                          />
+                          <div className="exp-default-hint">Default 3 bln, bisa diubah</div>
+                        </td>
                         <td style={{ fontWeight: 700 }}>{rupiah(subtotalItem)}</td>
                         <td>
-                          <button className="cart-hapus-btn" onClick={() => hapusItem(it.key)}>
+                          <button className="cart-hapus-btn" onClick={() => hapusItem(it.key)} title="Hapus item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></svg>
                           </button>
                         </td>

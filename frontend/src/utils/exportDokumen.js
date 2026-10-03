@@ -492,7 +492,8 @@ export function cetakSatuFakturA4(faktur, { namaUser = "Petugas" } = {}) {
             <td style="width: 55%;">
               <strong>No. Faktur:</strong> ${faktur.no_faktur || "-"}<br/>
               <strong>Supplier:</strong> ${faktur.nama_supplier || "-"}<br/>
-              <strong>Tgl Terima:</strong> ${formatTgl(faktur.tanggal_terima)}
+              <strong>Tgl Terima:</strong> ${formatTgl(faktur.tanggal_terima)}<br/>
+              <strong>Petugas Input:</strong> ${faktur.petugas || faktur.user?.nama || faktur.user?.username || namaUser || "Petugas"}
             </td>
             <td style="width: 45%; text-align: right;">
               <strong>Status:</strong> ${isLunas ? "LUNAS" : "BELUM LUNAS"}<br/>
@@ -524,7 +525,7 @@ export function cetakSatuFakturA4(faktur, { namaUser = "Petugas" } = {}) {
         </div>
         <div class="ttd-wrap">
           <div class="ttd-box">Pengirim / Supplier,<div class="ttd-gap"></div>( .................................. )</div>
-          <div class="ttd-box">Penerima,<div class="ttd-gap"></div><strong>( ${namaUser} )</strong></div>
+          <div class="ttd-box">Penerima (Petugas),<div class="ttd-gap"></div><strong>( ${faktur.petugas || faktur.user?.nama || faktur.user?.username || namaUser || "Petugas"} )</strong></div>
         </div>
       </body>
     </html>
@@ -583,7 +584,8 @@ export function exportSatuFakturWord(faktur, { namaUser = "Petugas" } = {}) {
               <td style="border: none; width: 50%; font-size: 9.5pt;">
                 <strong>No. Faktur:</strong> ${faktur.no_faktur || "-"}<br/>
                 <strong>Supplier:</strong> ${faktur.nama_supplier || "-"}<br/>
-                <strong>Tgl Terima:</strong> ${formatTgl(faktur.tanggal_terima)}
+                <strong>Tgl Terima:</strong> ${formatTgl(faktur.tanggal_terima)}<br/>
+                <strong>Petugas Input:</strong> ${faktur.petugas || faktur.user?.nama || faktur.user?.username || namaUser || "Petugas"}
               </td>
               <td style="border: none; width: 50%; text-align: right; font-size: 9.5pt;">
                 <strong>Status:</strong> ${isLunas ? "LUNAS" : "BELUM LUNAS"}<br/>
@@ -617,7 +619,7 @@ export function exportSatuFakturWord(faktur, { namaUser = "Petugas" } = {}) {
             <table border="0" style="width: 100%; border: none;">
               <tr>
                 <td style="border: none; text-align: center; width: 50%;">Pengirim / Supplier,<br/><br/><br/><br/>( ..................................... )</td>
-                <td style="border: none; text-align: center; width: 50%;">Penerima,<br/><br/><br/><br/><strong>( ${namaUser} )</strong></td>
+                <td style="border: none; text-align: center; width: 50%;">Penerima (Petugas),<br/><br/><br/><br/><strong>( ${faktur.petugas || faktur.user?.nama || faktur.user?.username || namaUser || "Petugas"} )</strong></td>
               </tr>
             </table>
           </div>
@@ -681,6 +683,9 @@ export function exportSatuFakturExcel(faktur) {
           <tr>
             <td colspan="4">Jatuh Tempo: ${formatTgl(faktur.tanggal_jatuh_tempo)}</td>
             <td colspan="5" style="text-align: right;">Tipe: ${faktur.is_pkp ? "PKP" : "Non-PKP"}</td>
+          </tr>
+          <tr>
+            <td colspan="9" style="font-weight: bold; color: #1B5E20;">Petugas Input: ${faktur.petugas || faktur.user?.nama || faktur.user?.username || "Petugas"}</td>
           </tr>
           <tr><td></td></tr>
           <tr style="background-color: #2E7D32; color: #fff; font-weight: bold;">

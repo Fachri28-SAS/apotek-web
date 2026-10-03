@@ -38,9 +38,14 @@ export default function GantiPasswordModal({ onClose, user }) {
         }),
       });
       setSukses(true);
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      setTimeout(async () => {
+        try {
+          await api("/logout", { method: "POST" });
+        } catch {}
+        sessionStorage.clear();
+        localStorage.removeItem("bimafarma_token");
+        window.location.href = "/login?pesan=sandi_diubah";
+      }, 1800);
     } catch (err) {
       setError(err.message || "Gagal mengubah kata sandi.");
     } finally {
@@ -92,7 +97,7 @@ export default function GantiPasswordModal({ onClose, user }) {
               fontSize: 14,
             }}
           >
-             Kata sandi berhasil diubah!
+             Kata sandi berhasil diubah! Seluruh perangkat otomatis ter-logout. Mengalihkan ke login...
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>

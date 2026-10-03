@@ -20,6 +20,7 @@ export default function KelolaUser() {
   const [nama, setNama] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordLama, setPasswordLama] = useState("");
   const [role, setRole] = useState("kasir");
   const [aktif, setAktif] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -113,6 +114,7 @@ export default function KelolaUser() {
     setNama("");
     setUsername("");
     setPassword("");
+    setPasswordLama("");
     setRole("kasir");
     setAktif(true);
     setError("");
@@ -124,6 +126,7 @@ export default function KelolaUser() {
     setNama(u.nama);
     setUsername(u.username);
     setPassword(""); // kosong jika tidak ingin ganti password
+    setPasswordLama("");
     setRole(u.role);
     setAktif(Boolean(u.aktif));
     setError("");
@@ -142,9 +145,15 @@ export default function KelolaUser() {
       setError("Kata sandi awal wajib diisi (minimal 6 karakter).");
       return;
     }
-    if (userEdit && password && password.length < 6) {
-      setError("Kata sandi baru minimal 6 karakter.");
-      return;
+    if (userEdit && password) {
+      if (!passwordLama) {
+        setError("Masukkan kata sandi lama akun ini terlebih dahulu untuk mengganti kata sandi.");
+        return;
+      }
+      if (password.length < 6) {
+        setError("Kata sandi baru minimal 6 karakter.");
+        return;
+      }
     }
 
     setSaving(true);
@@ -157,7 +166,10 @@ export default function KelolaUser() {
           role,
           aktif,
         };
-        if (password) body.password = password;
+        if (password) {
+          body.password = password;
+          body.password_lama = passwordLama;
+        }
 
         await api(`/users/${userEdit.id}`, {
           method: "PUT",
@@ -175,6 +187,14 @@ export default function KelolaUser() {
           sesudah: `Role: ${role}, Status: ${aktif ? "Aktif" : "Nonaktif"}`,
           keterangan: `Pembaruan data akun pengguna (${namaAkun})`,
         });
+
+        if (password && (userEdit.id === currentUser?.id || userEdit.username === currentUser?.username)) {
+          alert("Kata sandi akun Anda telah diperbarui. Seluruh sesi telah dikeluarkan, silakan masuk kembali.");
+          sessionStorage.clear();
+          localStorage.removeItem("bimafarma_token");
+          window.location.href = "/login?pesan=sandi_diubah";
+          return;
+        }
 
         setSuksesPesan(`Data akun @${username} berhasil diperbarui.`);
       } else {
@@ -731,9 +751,28 @@ export default function KelolaUser() {
                 />
               </div>
 
+              {userEdit && (
+                <div>
+                  <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, marginBottom: 5, color: "var(--ink)" }}>
+                    Kata Sandi Lama Akun Ini {password ? <span style={{ color: "#DC2626" }}>(Wajib Diisi)</span> : "(Hanya jika ganti sandi)"}
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Masukkan kata sandi lama akun ini"
+                    value={passwordLama}
+                    onChange={(e) => setPasswordLama(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 13.5 }}
+                    required={Boolean(password)}
+                  />
+                  <div style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 3 }}>
+                    *Wajib memasukkan sandi lama agar kata sandi tidak bisa diubah tanpa izin pemilik akun.
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, marginBottom: 5, color: "var(--ink)" }}>
-                  {userEdit ? "Ganti Kata Sandi (Kosongkan jika tidak ingin diubah)" : "Kata Sandi Awal"}
+                  {userEdit ? "Kata Sandi Baru (Kosongkan jika tidak ingin diubah)" : "Kata Sandi Awal"}
                 </label>
                 <input
                   type="password"

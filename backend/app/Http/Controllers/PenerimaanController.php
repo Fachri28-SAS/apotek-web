@@ -222,13 +222,17 @@ class PenerimaanController extends Controller
             $q->where('status_bayar', $r->status_bayar);
         }
 
-        return $q->withCount('items')->with('items')->orderByDesc('tanggal_terima')->orderByDesc('id')->limit(1000)->get();
+        if ($r->filled('user_id') && $r->user_id !== 'semua') {
+            $q->where('user_id', $r->user_id);
+        }
+
+        return $q->withCount('items')->with(['items', 'user:id,nama,username,role'])->orderByDesc('tanggal_terima')->orderByDesc('id')->limit(1000)->get();
     }
 
     /** GET /api/penerimaan/{id} — detail lengkap untuk modal Riwayat */
     public function show(Penerimaan $penerimaan)
     {
-        return $penerimaan->load('items');
+        return $penerimaan->load(['items', 'user:id,nama,username,role']);
     }
 
     /** PUT /api/penerimaan/{penerimaan}/toggle-bayar — tandai lunas atau belum lunas (seperti checklist buku register) */

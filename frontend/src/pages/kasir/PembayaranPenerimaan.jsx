@@ -30,6 +30,7 @@ export default function PembayaranPenerimaan() {
   const [filterStatus, setFilterStatus] = useState("semua"); // "semua" | "belum" | "lunas"
   const [filterSupplier, setFilterSupplier] = useState("semua"); // "semua" | nama PT
   const [daftarSupplierList, setDaftarSupplierList] = useState([]);
+  const [daftarUserList, setDaftarUserList] = useState([]);
   const [modalHutangSupplier, setModalHutangSupplier] = useState(null); // string nama PT atau null
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,28 @@ export default function PembayaranPenerimaan() {
       })
       .catch(() => {});
   }, []);
+
+  // Ambil daftar akun pengguna/kasir
+  useEffect(() => {
+    api("/users")
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res?.data || [];
+        setDaftarUserList(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  const userMap = {};
+  daftarUserList.forEach((u) => {
+    userMap[u.id] = u.nama || u.username;
+  });
+
+  function getNamaPetugas(faktur) {
+    if (faktur.user?.nama) return faktur.user.nama;
+    if (faktur.user?.username) return faktur.user.username;
+    if (faktur.user_id && userMap[faktur.user_id]) return userMap[faktur.user_id];
+    return "Admin (Sistem)";
+  }
 
   // Ambil data faktur penerimaan
   useEffect(() => {
@@ -606,7 +629,12 @@ export default function PembayaranPenerimaan() {
                         {/* 4. Nomor Faktur */}
                         <td className="obat-batch-cell" style={{ fontWeight: 600 }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                            <span>{faktur.no_faktur}</span>
+                            <div>
+                              <span>{faktur.no_faktur}</span>
+                              <span style={{ fontSize: 11, color: "var(--ink-soft)", display: "block", marginTop: 2, fontWeight: 500 }}>
+                                👤 {getNamaPetugas(faktur)}
+                              </span>
+                            </div>
                             <div style={{ display: "inline-flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
@@ -771,6 +799,7 @@ export default function PembayaranPenerimaan() {
             setDetail(null);
             setModalHutangSupplier(sup);
           }}
+          userMap={userMap}
         />
       )}
 

@@ -24,7 +24,9 @@ export default function RiwayatPenerimaan() {
   const [dariTanggal, setDariTanggal] = useState(awalBulanDefault);
   const [sampaiTanggal, setSampaiTanggal] = useState(hariIniDefault);
   const [filterSupplier, setFilterSupplier] = useState("semua"); // "semua" | nama PT
+  const [filterPetugas, setFilterPetugas] = useState("semua"); // "semua" | user_id
   const [daftarSupplierList, setDaftarSupplierList] = useState([]);
+  const [daftarUserList, setDaftarUserList] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
@@ -41,6 +43,29 @@ export default function RiwayatPenerimaan() {
       })
       .catch(() => {});
   }, []);
+
+  // Ambil daftar akun pengguna/kasir
+  useEffect(() => {
+    api("/users")
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res?.data || [];
+        setDaftarUserList(list);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Map ID user ke nama
+  const userMap = {};
+  daftarUserList.forEach((u) => {
+    userMap[u.id] = u.nama || u.username;
+  });
+
+  function getNamaPetugas(faktur) {
+    if (faktur.user?.nama) return faktur.user.nama;
+    if (faktur.user?.username) return faktur.user.username;
+    if (faktur.user_id && userMap[faktur.user_id]) return userMap[faktur.user_id];
+    return "Admin (Sistem)";
+  }
 
   // Ambil data faktur penerimaan
   useEffect(() => {
@@ -72,20 +97,22 @@ export default function RiwayatPenerimaan() {
     ])
   ).sort((a, b) => a.localeCompare(b));
 
-  // Filter berdasarkan supplier jika dipilih
+  // Filter berdasarkan supplier dan petugas jika dipilih
   const daftarTampil = daftar.filter((p) => {
     if (filterSupplier !== "semua" && p.nama_supplier !== filterSupplier) return false;
+    if (filterPetugas !== "semua" && String(p.user_id) !== String(filterPetugas)) return false;
     return true;
   });
 
   // Flatten faktur menjadi deretan baris per-item (sesuai Foto 1 Buku Penerimaan Barang Fisik)
-  // Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN
+  // Kolom: NO, Tanggal, No Faktur, PBF, Nama Barang, Jumlah, Satuan, EXP, No Batch, Harga Satuan (Rp), Jumlah (Rp), Jumlah + PPN, Petugas
   const barisItem = [];
   let noUrut = 1;
 
   daftarTampil.forEach((p) => {
     const items = p.items || [];
     const tarifPpn = p.is_pkp ? (Number(p.persen_ppn) > 0 ? Number(p.persen_ppn) : 11) : 0;
+    const petugasNama = getNamaPetugas(p);
 
     if (items.length === 0) {
       const jmlRp = Number(p.total || 0);
@@ -109,6 +136,8 @@ export default function RiwayatPenerimaan() {
         nilaiPpnRp: nilaiPpn,
         tarifPpn: tarifPpn,
         isPkp: p.is_pkp,
+        petugas: petugasNama,
+        userId: p.user_id,
       });
     } else {
       items.forEach((it) => {
@@ -137,6 +166,8 @@ export default function RiwayatPenerimaan() {
           tarifPpn: tarifPpn,
           isPkp: p.is_pkp,
           rawItem: it,
+          petugas: petugasNama,
+          userId: p.user_id,
         });
       });
     }
@@ -150,7 +181,8 @@ export default function RiwayatPenerimaan() {
           b.namaBarang.toLowerCase().includes(term) ||
           b.noFaktur.toLowerCase().includes(term) ||
           b.pbf.toLowerCase().includes(term) ||
-          b.noBatch.toLowerCase().includes(term)
+          b.noBatch.toLowerCase().includes(term) ||
+          (b.petugas && b.petugas.toLowerCase().includes(term))
         );
       })
     : barisItem;
@@ -188,6 +220,7 @@ export default function RiwayatPenerimaan() {
       { label: "Harga Satuan (Rp)", align: "right" },
       { label: "Jumlah (Rp)", align: "right" },
       { label: "Jumlah + PPN", align: "right" },
+      { label: "Petugas", align: "center" },
     ];
 
     const rows = barisItemTampil.map((b, idx) => [
@@ -203,6 +236,7 @@ export default function RiwayatPenerimaan() {
       rupiah(b.hargaSatuan),
       rupiah(b.jumlahRp),
       rupiah(b.jumlahPpnRp),
+      b.petugas || "—",
     ]);
 
     const footers = [];
@@ -340,6 +374,35 @@ export default function RiwayatPenerimaan() {
               </select>
             </div>
 
+            {/* Filter Petugas Input */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: "var(--ink-soft)" }}>
+              <span>Petugas:</span>
+              <select
+                value={filterPetugas}
+                onChange={(e) => setFilterPetugas(e.target.value)}
+                style={{
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  border: filterPetugas !== "semua" ? "1.5px solid #8B5CF6" : "1.5px solid var(--line)",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                  background: filterPetugas !== "semua" ? "#F5F3FF" : "#fff",
+                  color: filterPetugas !== "semua" ? "#6D28D9" : "var(--ink)",
+                  fontWeight: filterPetugas !== "semua" ? 700 : 500,
+                  maxWidth: 180,
+                  cursor: "pointer",
+                }}
+              >
+                <option value="semua">Semua Petugas</option>
+                {daftarUserList.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nama || u.username} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <TombolExportGroup
               onCetakPdf={() => cetakBukuBarangMasuk(barisItemTampil, { dariTanggal, sampaiTanggal })}
               onExportExcel={handleExcel}
@@ -357,8 +420,8 @@ export default function RiwayatPenerimaan() {
           </div>
         ) : (
           <div className="obat-table-wrap">
-            {/* Tabel 12 Kolom Sesuai Buku Catatan Fisik Foto 1 */}
-            <table className="obat-table" style={{ minWidth: 1050, fontSize: 13 }}>
+            {/* Tabel Sesuai Buku Catatan Fisik + Kolom Petugas Input */}
+            <table className="obat-table" style={{ minWidth: 1160, fontSize: 13 }}>
               <thead>
                 <tr>
                   <th style={{ width: 44, textAlign: "center" }}>NO</th>
@@ -373,6 +436,7 @@ export default function RiwayatPenerimaan() {
                   <th style={{ width: 120, textAlign: "right" }}>Harga Satuan (Rp)</th>
                   <th style={{ width: 125, textAlign: "right" }}>Jumlah (Rp)</th>
                   <th style={{ width: 155, textAlign: "right" }}>Jumlah + PPN</th>
+                  <th style={{ width: 110, textAlign: "center" }}>Petugas</th>
                 </tr>
               </thead>
               <tbody>
@@ -471,6 +535,26 @@ export default function RiwayatPenerimaan() {
                         <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
                         <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN"></span>
                       </div>
+                    </td>
+
+                    {/* 13. Petugas Input */}
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "3px 8px",
+                          borderRadius: 6,
+                          background: "#F5F3FF",
+                          border: "1px solid #DDD6FE",
+                          color: "#5B21B6",
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        👤 {b.petugas}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -852,6 +936,7 @@ export default function RiwayatPenerimaan() {
           data={detail}
           onClose={() => setDetail(null)}
           onLihatHutangSupplier={() => {}}
+          userMap={userMap}
         />
       )}
     </KasirShell>

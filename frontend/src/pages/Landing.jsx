@@ -304,8 +304,8 @@ function BantuanCS() {
   const [kategori, setKategori] = useState("Kendala Pembayaran QRIS");
   const [pesan, setPesan] = useState("");
 
-  const CS_WA = "6282127026272";
-  const CS_DISPLAY = "0821-2702-6272";
+  const CS_WA = "6282119661953";
+  const CS_DISPLAY = "0821-1966-1953";
 
   function handleKirimPesan(e) {
     e.preventDefault();
@@ -506,7 +506,7 @@ function Footer({ onOpenCaraBayar }) {
                    <div>
             <h5>Kontak</h5>
             <ul>
-              <li><strong>Customer Service (CS):</strong> <a href="https://wa.me/6282127026272" target="_blank" rel="noreferrer" style={{ color: "#F0A9D2", fontWeight: 700 }}>0821-2702-6272</a></li>
+              <li><strong>Customer Service (CS):</strong> <a href="https://wa.me/6282119661953" target="_blank" rel="noreferrer" style={{ color: "#F0A9D2", fontWeight: 700 }}>0821-1966-1953</a></li>
               <li><strong>WhatsApp / Telp Apotek:</strong> 0812-2360-4900</li>
               <li><strong>Email:</strong> <a href="mailto:bimafarmaapotek2@gmail.com" style={{ color: "#F0A9D2", textDecoration: "underline" }}>bimafarmaapotek2@gmail.com</a></li>
               <li><strong>Alamat:</strong> Jl. Tanimulya Raya No. 1, Haji Gofur, Ngamprah, Kab. Bandung Barat</li>
@@ -659,8 +659,8 @@ function ModalCaraBayar({ onClose }) {
           <div className="cb-support-box">
             <span>Butuh bantuan pemesanan atau kendala bayar?</span>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
-              <a href="https://wa.me/6282127026272" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
-                 CS WhatsApp: 0821-2702-6272
+              <a href="https://wa.me/6282119661953" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
+                💬 CS WhatsApp: 0821-1966-1953
               </a>
               <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
                  Telp Apotek: 0812-2360-4900

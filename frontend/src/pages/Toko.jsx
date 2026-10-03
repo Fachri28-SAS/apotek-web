@@ -1169,7 +1169,7 @@ export default function Toko() {
                   </div>
 
                   <a
-                    href="https://wa.me/6282127026272?text=Halo%20CS%20Apotek%20Bima%20Farma%2C%20saya%20mengalami%20kendala%20saat%20pembayaran%20QRIS..."
+                    href="https://wa.me/6282119661953?text=Halo%20CS%20Apotek%20Bima%20Farma%2C%20saya%20mengalami%20kendala%20saat%20pembayaran%20QRIS..."
                     target="_blank"
                     rel="noreferrer"
                     style={{
@@ -1182,7 +1182,7 @@ export default function Toko() {
                       textDecoration: "none",
                     }}
                   >
-                     Butuh bantuan pembayaran? Chat CS (0821-2702-6272)
+                    💬 Butuh bantuan pembayaran? Chat CS (0821-1966-1953)
                   </a>
                 </div>
               )}
