@@ -347,7 +347,7 @@ export default function PembayaranPenerimaan() {
         <div>
           <h1 style={{ fontSize: 24 }}>Tagihan PBF</h1>
           <p className="halaman-sub">
-            {loading ? "Memuat…" : `${daftarTampil.length} faktur tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
+            {loading ? "Memuat…" : `${daftarTampil.length} faktur (${daftarTampil.reduce((s, p) => s + (p.items?.length || p.items_count || 1), 0)} item barang) tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
           </p>
         </div>
       </div>
@@ -474,6 +474,47 @@ export default function PembayaranPenerimaan() {
                     fontFamily: "inherit",
                   }}
                 />
+              </div>
+
+              <div style={{ display: "flex", gap: 5 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDariTanggal(awalBulanDefault);
+                    setSampaiTanggal(hariIniDefault);
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    background: dariTanggal === awalBulanDefault && sampaiTanggal === hariIniDefault ? "var(--magenta-soft)" : "#fff",
+                    color: dariTanggal === awalBulanDefault && sampaiTanggal === hariIniDefault ? "var(--magenta-dark)" : "var(--ink)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Bulan Ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDariTanggal("");
+                    setSampaiTanggal("");
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    background: !dariTanggal && !sampaiTanggal ? "var(--magenta-soft)" : "#fff",
+                    color: !dariTanggal && !sampaiTanggal ? "var(--magenta-dark)" : "var(--ink)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Semua Waktu
+                </button>
               </div>
             </div>
 
@@ -685,13 +726,18 @@ export default function PembayaranPenerimaan() {
                           </td>
                         )}
 
-                        {/* 4. Nomor Faktur */}
+                        {/* 4. Nomor Faktur & Rincian Barang */}
                         <td className="obat-batch-cell" style={{ fontWeight: 600 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
                             <div>
-                              <span>{faktur.no_faktur}</span>
+                              <span style={{ fontSize: 13, fontWeight: 700 }}>{faktur.no_faktur}</span>
+                              {faktur.items && faktur.items.length > 0 && (
+                                <div style={{ fontSize: 11, color: "var(--ink-soft)", fontWeight: 500, marginTop: 3 }}>
+                                  📦 {faktur.items.length} Barang: {faktur.items.map((it) => it.nama_obat).join(", ")}
+                                </div>
+                              )}
                             </div>
-                            <div style={{ display: "inline-flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: "inline-flex", gap: 3, marginTop: 2 }} onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 onClick={(e) => {
