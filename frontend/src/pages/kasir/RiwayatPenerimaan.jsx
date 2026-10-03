@@ -211,7 +211,7 @@ export default function RiwayatPenerimaan() {
   function siapkanDataExportPenerimaan() {
     const headers = [
       { label: "NO", align: "center", width: "35px" },
-      { label: "Tgl Input", align: "center" },
+      { label: "Tgl Input / Petugas", align: "center" },
       { label: "Nama PBF", align: "left" },
       { label: "No Faktur", align: "left" },
       { label: "Tgl Faktur", align: "center" },
@@ -220,15 +220,14 @@ export default function RiwayatPenerimaan() {
       { label: "Satuan", align: "center" },
       { label: "EXP", align: "center" },
       { label: "No Batch", align: "center" },
-      { label: "Harga Satuan (Rp)", align: "right" },
-      { label: "Jumlah (Rp)", align: "right" },
-      { label: "Jumlah + PPN", align: "right" },
-      { label: "Petugas", align: "center" },
+      { label: "Hrg Satuan", align: "right" },
+      { label: "Jumlah", align: "right" },
+      { label: "Total + PPN", align: "right" },
     ];
 
     const rows = barisItemTampil.map((b, idx) => [
       idx + 1,
-      formatTgl(b.tglInput),
+      `${formatTgl(b.tglInput)}${b.petugas ? ` (${b.petugas})` : ""}`,
       b.pbf || "—",
       b.noFaktur || "—",
       formatTgl(b.tanggal),
@@ -240,7 +239,6 @@ export default function RiwayatPenerimaan() {
       rupiah(b.hargaSatuan),
       rupiah(b.jumlahRp),
       rupiah(b.jumlahPpnRp),
-      b.petugas || "—",
     ]);
 
     const footers = [];
@@ -424,24 +422,23 @@ export default function RiwayatPenerimaan() {
           </div>
         ) : (
           <div className="obat-table-wrap">
-            {/* Tabel Sesuai Buku Catatan Fisik + Kolom Petugas Input */}
-            <table className="obat-table" style={{ minWidth: 1160, fontSize: 13 }}>
+            {/* Tabel Sesuai Buku Catatan Fisik: Ringkas & Pas Layar Penuh */}
+            <table className="obat-table" style={{ width: "100%", fontSize: 12.5 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 44, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 95, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 140 }}>Nama PBF</th>
-                  <th style={{ width: 110 }}>No Faktur</th>
-                  <th style={{ width: 90, textAlign: "center" }}>Tgl Faktur</th>
-                  <th style={{ minWidth: 180 }}>Nama Barang</th>
-                  <th style={{ width: 65, textAlign: "center" }}>Jumlah</th>
-                  <th style={{ width: 70, textAlign: "center" }}>Satuan</th>
-                  <th style={{ width: 85, textAlign: "center" }}>EXP</th>
-                  <th style={{ width: 95, textAlign: "center" }}>No Batch</th>
-                  <th style={{ width: 120, textAlign: "right" }}>Harga Satuan (Rp)</th>
-                  <th style={{ width: 125, textAlign: "right" }}>Jumlah (Rp)</th>
-                  <th style={{ width: 155, textAlign: "right" }}>Jumlah + PPN</th>
-                  <th style={{ width: 110, textAlign: "center" }}>Petugas</th>
+                  <th style={{ width: 36, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 95, textAlign: "center" }}>Tgl Input / Petugas</th>
+                  <th style={{ width: 110 }}>Nama PBF</th>
+                  <th style={{ width: 90 }}>No Faktur</th>
+                  <th style={{ width: 75, textAlign: "center" }}>Tgl Faktur</th>
+                  <th>Nama Barang</th>
+                  <th style={{ width: 48, textAlign: "center" }}>Jumlah</th>
+                  <th style={{ width: 50, textAlign: "center" }}>Satuan</th>
+                  <th style={{ width: 72, textAlign: "center" }}>EXP</th>
+                  <th style={{ width: 75, textAlign: "center" }}>No Batch</th>
+                  <th style={{ width: 90, textAlign: "right" }}>Hrg Satuan</th>
+                  <th style={{ width: 90, textAlign: "right" }}>Jumlah</th>
+                  <th style={{ width: 105, textAlign: "right" }}>Total + PPN</th>
                 </tr>
               </thead>
               <tbody>
@@ -457,13 +454,31 @@ export default function RiwayatPenerimaan() {
                       {b.no}
                     </td>
 
-                    {/* 2. Tgl Input */}
-                    <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap" }}>
-                      {formatTgl(b.tglInput)}
+                    {/* 2. Tgl Input & Petugas (Disatukan dalam 1 kolom) */}
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap", padding: "6px 4px" }}>
+                      <div style={{ fontWeight: 600, fontSize: 12 }}>{formatTgl(b.tglInput)}</div>
+                      {b.petugas && (
+                        <div
+                          style={{
+                            marginTop: 3,
+                            display: "inline-block",
+                            padding: "1px 5px",
+                            borderRadius: 4,
+                            background: "#F5F3FF",
+                            border: "1px solid #DDD6FE",
+                            color: "#5B21B6",
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                          }}
+                          title={`Petugas Input: ${b.petugas}`}
+                        >
+                          👤 {b.petugas}
+                        </div>
+                      )}
                     </td>
 
                     {/* 3. Nama PBF */}
-                    <td style={{ fontWeight: 700, color: "var(--ink)" }}>
+                    <td style={{ fontWeight: 700, color: "var(--ink)", wordBreak: "break-word" }}>
                       {b.pbf}
                     </td>
 
@@ -478,43 +493,43 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 6. Nama Barang */}
-                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)" }}>
+                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)", wordBreak: "break-word" }}>
                       {b.namaBarang}
                     </td>
 
-                    {/* 6. Jumlah */}
+                    {/* 7. Jumlah */}
                     <td style={{ textAlign: "center", fontWeight: 700 }}>
                       {b.jumlah}
                     </td>
 
-                    {/* 7. Satuan */}
+                    {/* 8. Satuan */}
                     <td style={{ textAlign: "center", color: "var(--ink-soft)" }}>
                       {b.satuan}
                     </td>
 
-                    {/* 8. EXP */}
-                    <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 12 }}>
+                    {/* 9. EXP */}
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 11.5 }}>
                       {b.exp ? formatTgl(b.exp) : "—"}
                     </td>
 
-                    {/* 9. No Batch */}
-                    <td style={{ textAlign: "center", fontSize: 12, fontFamily: "monospace", color: "var(--ink-soft)" }}>
+                    {/* 10. No Batch */}
+                    <td style={{ textAlign: "center", fontSize: 11.5, fontFamily: "monospace", color: "var(--ink-soft)" }}>
                       {b.noBatch}
                     </td>
 
-                    {/* 10. Harga Satuan (Rp) */}
-                    <td style={{ textAlign: "right" }}>
+                    {/* 11. Hrg Satuan */}
+                    <td style={{ textAlign: "right", fontSize: 12 }}>
                       {rupiah(b.hargaSatuan)}
                     </td>
 
-                    {/* 11. Jumlah (Rp) */}
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)" }}>
+                    {/* 12. Jumlah (Rp) */}
+                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 12 }}>
                       {rupiah(b.jumlahRp)}
                     </td>
 
-                    {/* 12. Jumlah + PPN */}
+                    {/* 13. Total + PPN */}
                     <td
-                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8" }}
+                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 12 }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setModalPpnItem(b);
@@ -527,7 +542,7 @@ export default function RiwayatPenerimaan() {
                           alignItems: "center",
                           gap: 5,
                           cursor: "pointer",
-                          padding: "5px 9px",
+                          padding: "4px 8px",
                           borderRadius: 8,
                           transition: "all 0.15s ease",
                           background: "#FAF5FF",
@@ -542,29 +557,8 @@ export default function RiwayatPenerimaan() {
                           e.currentTarget.style.borderColor = "#E9D5FF";
                         }}
                       >
-                        <span style={{ fontSize: 13 }}>{rupiah(b.jumlahPpnRp)}</span>
-                        <span style={{ fontSize: 10, color: "#7E22CE" }} title="Klik untuk rincian PPN"></span>
+                        <span style={{ fontSize: 12 }}>{rupiah(b.jumlahPpnRp)}</span>
                       </div>
-                    </td>
-
-                    {/* 13. Petugas Input */}
-                    <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          padding: "3px 8px",
-                          borderRadius: 6,
-                          background: "#F5F3FF",
-                          border: "1px solid #DDD6FE",
-                          color: "#5B21B6",
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                        }}
-                      >
-                        👤 {b.petugas}
-                      </span>
                     </td>
                   </tr>
                 ))}

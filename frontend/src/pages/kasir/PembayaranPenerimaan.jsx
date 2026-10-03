@@ -345,7 +345,7 @@ export default function PembayaranPenerimaan() {
     <KasirShell>
       <div className="halaman-header">
         <div>
-          <h1 style={{ fontSize: 24 }}>Bayar Tagihan PBF</h1>
+          <h1 style={{ fontSize: 24 }}>Tagihan PBF</h1>
           <p className="halaman-sub">
             {loading ? "Memuat…" : `${daftarTampil.length} faktur tercatat · Total Besar Uang: ${rupiah(totalTagihan)}`}
           </p>

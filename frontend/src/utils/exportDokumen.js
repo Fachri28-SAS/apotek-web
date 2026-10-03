@@ -126,7 +126,7 @@ export function cetakDokumenA4({
         <style>
           @page {
             size: A4 ${orientation};
-            margin: 10mm 12mm 12mm 12mm;
+            margin: 0 !important;
           }
           * { box-sizing: border-box; }
           body {
@@ -135,7 +135,7 @@ export function cetakDokumenA4({
             color: #000;
             background: #fff;
             margin: 0;
-            padding: 0;
+            padding: 8mm 10mm;
           }
           .judul-dokumen {
             font-size: 12px;

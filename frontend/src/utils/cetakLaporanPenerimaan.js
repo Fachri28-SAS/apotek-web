@@ -66,7 +66,10 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
       return `
       <tr>
         <td style="text-align: center;">${idx + 1}</td>
-        <td style="text-align: center; white-space: nowrap;">${tglInputStr}</td>
+        <td style="text-align: center; white-space: nowrap;">
+          ${tglInputStr}
+          ${b.petugas ? `<br><small style="color: #4B5563; font-size: 8px; font-weight: 600;">(${b.petugas})</small>` : ""}
+        </td>
         <td style="text-align: left; font-weight: 600;">${b.pbf || "—"}</td>
         <td style="text-align: left;">${b.noFaktur || "—"}</td>
         <td style="text-align: center; white-space: nowrap;">${tglStr}</td>
@@ -78,7 +81,6 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <td style="text-align: right;">${formatRp(b.hargaSatuan)}</td>
         <td style="text-align: right; font-weight: 600;">${formatRp(b.jumlahRp)}</td>
         <td style="text-align: right; font-weight: 700;">${formatRp(b.jumlahPpnRp)}</td>
-        <td style="text-align: center;">${b.petugas || "—"}</td>
       </tr>
     `;
     })
@@ -105,7 +107,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <style>
           @page {
             size: A4 landscape;
-            margin: 8mm 10mm 10mm 10mm;
+            margin: 0 !important;
           }
           * { box-sizing: border-box; }
           body {
@@ -114,7 +116,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
             color: #000;
             background: #fff;
             margin: 0;
-            padding: 0;
+            padding: 8mm 10mm;
           }
           .header-center {
             text-align: center;
@@ -184,8 +186,8 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           <thead>
             <tr>
               <th style="width: 28px;">NO</th>
-              <th style="width: 68px;">Tgl Input</th>
-              <th style="width: 95px;">Nama PBF</th>
+              <th style="width: 80px;">Tgl Input / Petugas</th>
+              <th style="width: 100px;">Nama PBF</th>
               <th style="width: 80px;">No Faktur</th>
               <th style="width: 68px;">Tgl Faktur</th>
               <th>Nama Barang</th>
@@ -193,10 +195,9 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
               <th style="width: 50px;">Satuan</th>
               <th style="width: 65px;">EXP</th>
               <th style="width: 65px;">No Batch</th>
-              <th style="width: 78px;">Harga Satuan (Rp)</th>
-              <th style="width: 82px;">Jumlah (Rp)</th>
-              <th style="width: 90px;">Jumlah + PPN</th>
-              <th style="width: 70px;">Petugas</th>
+              <th style="width: 80px;">Hrg Satuan</th>
+              <th style="width: 85px;">Jumlah</th>
+              <th style="width: 95px;">Total + PPN</th>
             </tr>
           </thead>
           <tbody>
@@ -296,44 +297,21 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
         <style>
           @page {
             size: A4 portrait;
-            margin: 10mm 12mm 12mm 12mm;
+            margin: 0 !important;
           }
           * { box-sizing: border-box; }
           body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 10.5px;
+            font-size: 10px;
             color: #000;
             background: #fff;
             margin: 0;
-            padding: 0;
-          }
-          .header-center {
-            text-align: center;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 6px;
-          }
-          .nama-apotek {
-            font-size: 15px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-          }
-          .alamat-apotek {
-            font-size: 10px;
-            margin-top: 2px;
-            color: #222;
-          }
-          .judul-laporan {
-            font-size: 13px;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-top: 8px;
-            letter-spacing: 0.5px;
+            padding: 8mm 10mm;
           }
           .meta-row {
             display: flex;
             justify-content: space-between;
-            font-size: 10.5px;
+            font-size: 10px;
             margin-bottom: 8px;
             font-weight: 600;
           }
@@ -362,12 +340,6 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
         </style>
       </head>
       <body>
-        <div class="header-center">
-          <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
-          <div class="judul-laporan">BUKU REGISTER PEMBAYARAN FAKTUR PBF</div>
-        </div>
-
         <div class="meta-row">
           <div>Periode: <strong>${periodeTeks}</strong></div>
           <div>Dicetak: ${tanggalCetak} &middot; Petugas: ${namaUser}</div>
