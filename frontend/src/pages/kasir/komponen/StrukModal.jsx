@@ -93,7 +93,7 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 1.5mm 8.5mm 0 1.5mm !important;
+            padding: 1.5mm 3.5mm 0 1.5mm !important;
             box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize} !important;
@@ -130,7 +130,7 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
             white-space: nowrap;
             flex-shrink: 0;
             font-weight: 700;
-            padding-right: 3px;
+            padding-right: 0px;
           }
           .struk-logo {
             max-height: 28px;
@@ -157,8 +157,8 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
 
         <!-- Meta Informasi Transaksi -->
         <div class="struk-baris">
-          <span>No. Struk</span>
-          <span>${data.no_struk || "-"}</span>
+          <span style="white-space: nowrap;">No. Struk</span>
+          <span style="font-size: ${subFontSize}; font-family: monospace;">${data.no_struk || "-"}</span>
         </div>
         <div class="struk-baris">
           <span>Waktu</span>
@@ -624,7 +624,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             margin-left: ${offsetKiri}mm !important;
             width: 100% !important;
             max-width: 100% !important;
-            padding: 1.5mm 8.5mm ${is50 ? "15mm" : is58 ? "18mm" : "25mm"} 1.5mm !important;
+            padding: 1.5mm 3.5mm ${is50 ? "15mm" : is58 ? "18mm" : "25mm"} 1.5mm !important;
             box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
             font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "13.5px"} !important;
