@@ -718,7 +718,7 @@ export default function DataObat() {
       <div style="font-size: 15px; font-weight: bold; letter-spacing: 0.5px; color: #000; text-transform: uppercase;">DAFTAR OBAT</div>
       <div style="font-size: 13.5px; font-weight: bold; letter-spacing: 0.5px; color: #000; margin-top: 2px;">APOTEK BIMA FARMA</div>
       <div style="font-size: 10.5px; color: #222; margin-top: 2px;">
-        Jl. Tanimulya Raya No.1, Kec. Ngamprah, Kab. Bandung Barat
+        Jln Tanimulya raya no 1 Ngamprah Bandung Barat
       </div>
     </div>
   `;

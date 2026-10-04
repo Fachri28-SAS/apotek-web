@@ -7,7 +7,7 @@ const KOP_HTML = `
   <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 6px;">
     <div style="font-size: 15px; font-weight: bold; letter-spacing: 0.5px; color: #000;">APOTEK BIMA FARMA</div>
     <div style="font-size: 10.5px; color: #222; margin-top: 2px;">
-      Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat
+      Jln Tanimulya raya no 1 Ngamprah Bandung Barat
     </div>
   </div>
 `;

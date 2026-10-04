@@ -185,7 +185,7 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         <div class="header-center">
           <div class="judul-laporan">DAFTAR PENERIMAAN BARANG</div>
           <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
+          <div class="alamat-apotek">Jln Tanimulya raya no 1 Ngamprah Bandung Barat</div>
         </div>
 
         <div class="meta-row">
@@ -369,6 +369,12 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
             border-bottom: 2px solid #000;
             padding-bottom: 6px;
           }
+          .judul-laporan {
+            font-size: 13.5px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+          }
           .nama-apotek {
             font-size: 15px;
             font-weight: bold;
@@ -378,13 +384,6 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
             font-size: 10px;
             margin-top: 2px;
             color: #222;
-          }
-          .judul-laporan {
-            font-size: 13px;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-top: 6px;
-            letter-spacing: 0.5px;
           }
           .meta-row {
             display: flex;
@@ -419,9 +418,9 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
       </head>
       <body>
         <div class="header-center">
-          <div class="nama-apotek">APOTEK BIMA FARMA</div>
-          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
           <div class="judul-laporan">TAGIHAN PBF</div>
+          <div class="nama-apotek">APOTEK BIMA FARMA</div>
+          <div class="alamat-apotek">Jln Tanimulya raya no 1 Ngamprah Bandung Barat</div>
         </div>
 
         <div class="meta-row">

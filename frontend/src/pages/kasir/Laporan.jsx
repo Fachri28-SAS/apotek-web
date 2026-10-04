@@ -156,6 +156,20 @@ export default function Laporan() {
     return { headers, rows, footers };
   }
 
+  const KOP_CETAK_LAPORAN = `
+    <div style="text-align: center; margin-bottom: 8px; border-bottom: 2px solid #000; padding-bottom: 6px;">
+      <div style="font-size: 13.5px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 3px;">
+        LAPORAN PENJUALAN
+      </div>
+      <div style="font-size: 15px; font-weight: bold; letter-spacing: 0.5px;">
+        APOTEK BIMA FARMA
+      </div>
+      <div style="font-size: 10px; color: #222; margin-top: 2px;">
+        Jln Tanimulya raya no 1 Ngamprah Bandung Barat
+      </div>
+    </div>
+  `;
+
   function handleCetakLaporan() {
     var exp = siapkanDataExportLaporan();
     cetakDokumenA4({
@@ -166,6 +180,8 @@ export default function Laporan() {
       footers: exp.footers,
       orientation: "landscape",
       namaUser: user?.nama || "Kasir",
+      customKop: KOP_CETAK_LAPORAN,
+      sembunyikanJudulDokumen: true,
     });
   }
 
