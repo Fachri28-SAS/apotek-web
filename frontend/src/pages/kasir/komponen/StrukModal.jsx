@@ -89,11 +89,10 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
             padding: 0;
           }
           html, body {
-            width: ${printWidth} !important;
-            max-width: ${printWidth} !important;
+            width: 100% !important;
+            max-width: 100% !important;
             margin: 0 !important;
-            margin-left: ${offsetKiri}mm !important;
-            padding: 1mm 3mm 0 1mm !important;
+            padding: 1.5mm 3mm 0 1.5mm !important;
             box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize};
