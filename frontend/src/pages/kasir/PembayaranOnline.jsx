@@ -150,9 +150,6 @@ export default function PembayaranOnline() {
           <h1 style={{ fontSize: 24, display: "flex", alignItems: "center", gap: 8 }}>
             <span></span> Pesanan Toko Online
           </h1>
-          <p className="halaman-sub">
-            Daftar pesanan obat dari web yang <strong>mengunggah bukti QRIS / terverifikasi</strong> &amp; siap disiapkan oleh apoteker/kasir.
-          </p>
         </div>
       </div>
 
