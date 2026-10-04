@@ -236,7 +236,6 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
         <div class="struk-center" style="font-size: ${subFontSize}; line-height: 1.35; margin-top: 4px;">
           <div style="font-weight: 700;">Terima Kasih Atas Kunjungan Anda</div>
           <div>Semoga Lekas Sembuh!</div>
-          <div style="font-size: ${is50 ? "8px" : "8.8px"}; margin-top: 2px;">Barang yg sudah dibeli tdk dapat ditukar/dikembalikan</div>
           <div style="font-weight: 700; margin-top: 2px;">CS Apotek: 0821-1966-1953</div>
           <div style="font-size: ${is50 ? "7.5px" : "8px"}; margin-top: 3px; letter-spacing: 0.2px;">[ POS System © Core Partners ]</div>
         </div>
@@ -304,7 +303,6 @@ function cetakViaRawBT(data) {
   L.push(garis);
   L.push(tengah("Terima Kasih Atas Kunjungan Anda"));
   L.push(tengah("Semoga Lekas Sembuh!"));
-  L.push(tengah("Barang yg sudah dibeli tdk dapat ditukar"));
   L.push(tengah("CS Apotek: 0821-1966-1953"));
   L.push("\n\n\n\n");
   L.push("\x1D\x56\x01"); // potong kertas (auto-cutter)
@@ -594,9 +592,6 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             >
               <div style={{ fontWeight: 700 }}>Terima Kasih Atas Kunjungan Anda</div>
               <div>Semoga Lekas Sembuh!</div>
-              <div style={{ fontSize: is58 ? 8.8 : 9.5, marginTop: 2 }}>
-                Barang yg sudah dibeli tdk dapat ditukar/dikembalikan
-              </div>
               <div style={{ marginTop: 2, fontWeight: 700 }}>CS Apotek: 0821-1966-1953</div>
               <div style={{ fontSize: is58 ? 8 : 8.5, color: "#64748B", marginTop: 3, letterSpacing: "0.2px" }}>
                 [ POS System © Core Partners ]
