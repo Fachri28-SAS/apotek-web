@@ -126,13 +126,14 @@ export function cetakDokumenA4({
         <style>
           @page {
             size: A4 ${orientation};
-            margin: 0mm !important;
+            margin: 0;
           }
           @media print {
             @page {
-              margin: 0mm !important;
+              size: A4 ${orientation};
+              margin: 0;
             }
-            body {
+            html, body {
               margin: 0 !important;
               padding: 8mm 10mm !important;
             }
@@ -209,12 +210,32 @@ export function cetakDokumenA4({
   if (iframe.contentDocument) {
     iframe.contentDocument.title = "";
   }
+
+  const restoreTitle = () => {
+    document.title = originalTitle;
+    window.removeEventListener("afterprint", restoreTitle);
+    try {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.removeEventListener("afterprint", restoreTitle);
+      }
+    } catch (_) {}
+  };
+
+  window.addEventListener("afterprint", restoreTitle);
+  try {
+    if (iframe.contentWindow) {
+      iframe.contentWindow.addEventListener("afterprint", restoreTitle);
+    }
+  } catch (_) {}
+
   setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 2000);
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.error(e);
+      restoreTitle();
+    }
   }, 250);
 }
 
