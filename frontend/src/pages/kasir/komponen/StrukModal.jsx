@@ -11,17 +11,16 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
   const is58 = ukuranKertas === "58mm";
   const is80 = ukuranKertas === "80mm";
 
-  // Lebar printable area aman agar tepi kanan tidak terpotong:
-  // Lebar printable area aman agar tepi kanan tidak terpotong:
-  // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 38mm.
-  // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 44mm.
-  // - 80mm: kertas roll 80mm, area head cetak efektif ~64-68mm. Safe width: 64mm agar angka kanan tidak kepotong.
-  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "72mm";
+  // Lebar printable area untuk printer thermal:
+  // - 50mm: Safe width: 38mm
+  // - 58mm: Safe width: 44mm
+  // - 80mm: Kertas roll 80mm, printable width aman: 76mm agar teks proporsional dan memenuhi kertas.
+  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "76mm";
   const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
-  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "14px";
-  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "18px";
-  const subFontSize = is50 ? "9px" : is58 ? "10px" : "12px";
-  const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "28mm";
+  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "15px";
+  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "19px";
+  const subFontSize = is50 ? "9px" : is58 ? "10px" : "13px";
+  const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "35mm";
 
   const tglObj = data.created_at || data.tanggal ? new Date(data.created_at || data.tanggal) : new Date();
   const tanggal = !isNaN(tglObj.getTime())
@@ -243,7 +242,9 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
         </div>
 
         <!-- FEED SPACE: Ruang kosong agar kertas melewati pisau cutter fisik printer -->
-        <div style="height: ${bottomFeed}; min-height: ${bottomFeed}; width: 100%; display: block; overflow: hidden; line-height: ${bottomFeed}; font-size: 1px;">&nbsp;</div>
+        <div style="height: ${bottomFeed}; min-height: ${bottomFeed}; padding-top: 15mm; line-height: 1.5; font-size: 10px; color: transparent; user-select: none;">
+          .<br />.<br />.<br />.<br />
+        </div>
       </body>
     </html>
   `;
@@ -271,7 +272,7 @@ function cetakStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
     iframe.style.border = "none";
     document.body.appendChild(iframe);
   }
-  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "75mm";
+  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "80mm";
 
   const doc = iframe.contentWindow.document;
   doc.open();
@@ -621,11 +622,11 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             top: 0 !important;
             margin: 0 !important;
             margin-left: ${offsetKiri}mm !important;
-            width: ${is50 ? "38mm" : is58 ? "44mm" : "72mm"} !important;
-            max-width: ${is50 ? "38mm" : is58 ? "44mm" : "72mm"} !important;
-            padding: 1mm 1mm ${is50 ? "15mm" : is58 ? "18mm" : "20mm"} 0.5mm !important;
+            width: ${is50 ? "38mm" : is58 ? "44mm" : "76mm"} !important;
+            max-width: ${is50 ? "38mm" : is58 ? "44mm" : "76mm"} !important;
+            padding: 1mm 1mm ${is50 ? "15mm" : is58 ? "18mm" : "30mm"} 0.5mm !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
-            font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "13px"} !important;
+            font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "15px"} !important;
             color: #000000 !important;
             background: #ffffff !important;
             border: none !important;
