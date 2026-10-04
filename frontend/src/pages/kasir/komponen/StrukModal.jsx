@@ -6,7 +6,7 @@ import { rupiah } from "../../../utils/format";
  * Dirancang khusus agar teks kanan (harga, subtotal, total) TIDAK TERPOTONG ke samping
  * dan ada feed space di bagian bawah agar saat merobek kertas di cutter fisik tidak merobek tulisan.
  */
-function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
+function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
   const is50 = ukuranKertas === "50mm";
   const is58 = ukuranKertas === "58mm";
   const is80 = ukuranKertas === "80mm";
@@ -253,7 +253,7 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
  * Mencetak struk kasir secara bersih menggunakan iframe terisolasi
  * Disesuaikan khusus untuk printer thermal (58mm EPPOS EP58M / Panda / MiniPOS dsb)
  */
-function cetakStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
+function cetakStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
   if (!data) return;
 
   const is50 = ukuranKertas === "50mm";
@@ -297,41 +297,24 @@ function cetakStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
 }
 
 export default function StrukModal({ data, onClose, autoPrint = false }) {
-  // Pilihan ukuran kertas (default 58mm untuk EPPOS)
-  const [ukuranKertas, setUkuranKertas] = useState(() => {
-    return localStorage.getItem("struk_ukuran_kertas") || "58mm";
-  });
+  // Ukuran kertas & posisi cetak dikunci permanen ke 80mm (Auto-Cutter)
+  const ukuranKertas = "80mm";
+  const offsetKiri = 0;
 
-  // Offset posisi horizontal kertas (default -4mm agar langsung pas di printer EPPOS dan tidak menjorok ke kanan)
-  const [offsetKiri, setOffsetKiri] = useState(() => {
-    const saved = localStorage.getItem("struk_offset_kiri");
-    return saved !== null ? Number(saved) : -4;
-  });
-
-  function gantiUkuran(val) {
-    setUkuranKertas(val);
-    localStorage.setItem("struk_ukuran_kertas", val);
-    if (val === "80mm" && offsetKiri < -2) {
-      gantiOffset(0);
-    } else if (val === "58mm" && offsetKiri === 0) {
-      gantiOffset(-4);
-    }
-  }
-
-  function gantiOffset(val) {
-    setOffsetKiri(val);
-    localStorage.setItem("struk_offset_kiri", val);
-  }
+  useEffect(() => {
+    localStorage.setItem("struk_ukuran_kertas", "80mm");
+    localStorage.setItem("struk_offset_kiri", "0");
+  }, []);
 
   useEffect(() => {
     // Hanya cetak otomatis jika autoPrint secara eksplisit bernilai true
     if (data && autoPrint) {
       const timer = setTimeout(() => {
-        cetakStruk(data, ukuranKertas, offsetKiri);
+        cetakStruk(data, "80mm", 0);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [data, autoPrint, ukuranKertas, offsetKiri]);
+  }, [data, autoPrint]);
 
   if (!data) return null;
 
@@ -351,8 +334,8 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
   const totalDiskonSemua = Number(data.diskon || 0);
   const diskonTransaksi = Math.max(totalDiskonSemua - totalDiskonItem, 0);
 
-  const is50 = ukuranKertas === "50mm";
-  const is58 = ukuranKertas === "58mm";
+  const is50 = false;
+  const is58 = false;
 
   return (
     <div
@@ -361,141 +344,19 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="struk-modal" style={{ maxWidth: 360 }}>
+      <div className="struk-modal" style={{ maxWidth: 380 }}>
         <div className="struk-modal-head">
-          <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Pratinjau Struk Kasir</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Pratinjau Struk Kasir</h3>
+            <span style={{ fontSize: 10.5, color: "#166534", background: "#DCFCE7", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
+              80 mm
+            </span>
+          </div>
           <button className="kasir-logout-btn" onClick={onClose} aria-label="Tutup">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
-        </div>
-
-        {/* Pemilih Ukuran Kertas Printer */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "8px 18px",
-            borderBottom: "1px solid var(--line)",
-            background: "#F8FAFC",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 800 }}>Ukuran Kertas</span>
-            <span style={{ fontSize: 9.5, color: "var(--ink-soft)" }}>
-              {is50 ? "50mm Mini Roll" : is58 ? "58mm (EPPOS Standar)" : "Thermal 80mm"}
-            </span>
-          </div>
-
-          <div style={{ display: "inline-flex", gap: 3, background: "#E2E8F0", padding: 3, borderRadius: 8 }}>
-            <button
-              type="button"
-              onClick={() => gantiUkuran("58mm")}
-              style={{
-                border: "none",
-                background: ukuranKertas === "58mm" ? "var(--magenta)" : "transparent",
-                color: ukuranKertas === "58mm" ? "#fff" : "var(--ink)",
-                fontWeight: 700,
-                fontSize: 10.5,
-                padding: "4px 8px",
-                borderRadius: 6,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              title="Standar Printer Thermal EPPOS EP58M / 58mm"
-            >
-              58 mm (EPPOS)
-            </button>
-            <button
-              type="button"
-              onClick={() => gantiUkuran("50mm")}
-              style={{
-                border: "none",
-                background: ukuranKertas === "50mm" ? "var(--magenta)" : "transparent",
-                color: ukuranKertas === "50mm" ? "#fff" : "var(--ink)",
-                fontWeight: 700,
-                fontSize: 10.5,
-                padding: "4px 8px",
-                borderRadius: 6,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              title="Kertas Thermal Roll 50mm"
-            >
-              50 mm
-            </button>
-            <button
-              type="button"
-              onClick={() => gantiUkuran("80mm")}
-              style={{
-                border: "none",
-                background: ukuranKertas === "80mm" ? "var(--magenta)" : "transparent",
-                color: ukuranKertas === "80mm" ? "#fff" : "var(--ink)",
-                fontWeight: 700,
-                fontSize: 10.5,
-                padding: "4px 8px",
-                borderRadius: 6,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              title="Printer Thermal Besar (80mm)"
-            >
-              80 mm
-            </button>
-          </div>
-        </div>
-
-        {/* Pemilih Posisi Cetak (Geser Kiri/Kanan) */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "8px 18px",
-            borderBottom: "1px solid var(--line)",
-            background: "#F1F5F9",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "var(--ink)" }}>Posisi Cetak</span>
-            <span style={{ fontSize: 9.5, color: "var(--ink-soft)" }}>
-              {offsetKiri < 0
-                ? `Geser ${Math.abs(offsetKiri)}mm ke Kiri (Pas di EPPOS)`
-                : offsetKiri === 0
-                ? "Tengah / Normal (0mm)"
-                : `Geser ${offsetKiri}mm ke Kanan`}
-            </span>
-          </div>
-
-          <div style={{ display: "inline-flex", gap: 2, background: "#E2E8F0", padding: 2, borderRadius: 6 }}>
-            {[
-              { val: -4, label: "-4mm" },
-              { val: -2, label: "-2mm" },
-              { val: 0, label: "0 (Tengah)" },
-              { val: 2, label: "+2mm" },
-            ].map((p) => (
-              <button
-                key={p.val}
-                type="button"
-                onClick={() => gantiOffset(p.val)}
-                style={{
-                  border: "none",
-                  background: offsetKiri === p.val ? "var(--magenta)" : "transparent",
-                  color: offsetKiri === p.val ? "#fff" : "var(--ink)",
-                  fontWeight: 700,
-                  fontSize: 10,
-                  padding: "4px 6px",
-                  borderRadius: 5,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Simulasi Tampilan Kertas Thermal Realistis */}
@@ -699,33 +560,16 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
           </div>
         </div>
 
-        {/* Banner Tips Chrome Margin EPPOS */}
-        <div
-          style={{
-            margin: "12px 18px 0",
-            padding: "9px 13px",
-            background: "#FEF3C7",
-            border: "1px solid #FDE68A",
-            borderRadius: 8,
-            fontSize: 11,
-            color: "#92400E",
-            lineHeight: 1.45,
-          }}
-        >
-           <strong>Tips Printer EPPOS agar teks tidak mepet kanan:</strong><br />
-          Saat jendela print Chrome muncul  Klik <strong>Setelan lainnya (More settings)</strong>  Ubah <strong>Margin (Margins)</strong> ke <strong>"Tidak ada" (None)</strong>.
-        </div>
-
         <div className="struk-actions" style={{ padding: "12px 18px", background: "#FFFFFF" }}>
           <button className="btn-outline" onClick={onClose}>
             Tutup
           </button>
           <button
             className="btn-primary"
-            onClick={() => cetakStruk(data, ukuranKertas, offsetKiri)}
+            onClick={() => cetakStruk(data, "80mm", 0)}
             style={{ fontWeight: 800 }}
           >
-             Cetak Struk ({ukuranKertas}{offsetKiri !== 0 ? ` ${offsetKiri}mm` : ""})
+            🖨️ Cetak Struk (80mm)
           </button>
         </div>
       </div>
@@ -741,7 +585,7 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
         @media print {
           @page {
             margin: 0 !important;
-            size: ${is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto"};
+            size: 80mm auto;
           }
           body * {
             visibility: hidden !important;
