@@ -16,12 +16,12 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
   // - 50mm: kertas roll 50mm, area head cetak ~40mm. Safe width: 38mm.
   // - 58mm: kertas roll 58mm (EPPOS EP58M), area head cetak ~48mm. Safe width: 44mm.
   // - 80mm: kertas roll 80mm, area head cetak efektif ~64-68mm. Safe width: 64mm agar angka kanan tidak kepotong.
-  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "64mm";
+  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "72mm";
   const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
-  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "13px";
-  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "17px";
-  const subFontSize = is50 ? "9px" : is58 ? "10px" : "11.5px";
-  const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "20mm";
+  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "14px";
+  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "18px";
+  const subFontSize = is50 ? "9px" : is58 ? "10px" : "12px";
+  const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "28mm";
 
   const tglObj = data.created_at || data.tanggal ? new Date(data.created_at || data.tanggal) : new Date();
   const tanggal = !isNaN(tglObj.getTime())
@@ -147,7 +147,6 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
       <body>
         <!-- Header Apotek -->
         <div class="struk-center">
-          <img src="${logoUrl}" class="struk-logo" alt="Logo" onerror="this.style.display='none'" />
           <div style="font-size: ${headerFontSize}; font-weight: 800; letter-spacing: 0.5px;">APOTEK BIMA FARMA</div>
           <div style="font-size: ${subFontSize}; line-height: 1.25; margin-top: 1px;">
             Jl. Tanimulya Raya No. 1, Ngamprah<br />
@@ -243,8 +242,8 @@ function buatHtmlStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
           <div style="font-size: ${is50 ? "7.5px" : "8px"}; margin-top: 3px; letter-spacing: 0.2px;">[ POS System © Core Partners ]</div>
         </div>
 
-        <!-- FEED SPACE: Ruang kosong 18mm agar kertas melewati pisau cutter fisik printer EPPOS -->
-        <div style="height: ${bottomFeed}; width: 100%;" aria-hidden="true"></div>
+        <!-- FEED SPACE: Ruang kosong agar kertas melewati pisau cutter fisik printer -->
+        <div style="height: ${bottomFeed}; min-height: ${bottomFeed}; width: 100%; display: block; overflow: hidden; line-height: ${bottomFeed}; font-size: 1px;">&nbsp;</div>
       </body>
     </html>
   `;
@@ -272,7 +271,7 @@ function cetakStruk(data, ukuranKertas = "58mm", offsetKiri = -4) {
     iframe.style.border = "none";
     document.body.appendChild(iframe);
   }
-  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "74mm";
+  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "75mm";
 
   const doc = iframe.contentWindow.document;
   doc.open();
