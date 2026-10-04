@@ -254,6 +254,66 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
  * Mencetak struk kasir secara bersih menggunakan iframe terisolasi
  * Disesuaikan khusus untuk printer thermal (58mm EPPOS EP58M / Panda / MiniPOS dsb)
  */
+// Struk teks 48 kolom (80mm Font A) dikirim langsung ke aplikasi RawBT di HP Android
+function cetakViaRawBT(data) {
+  const W = 48;
+  const rp = (n) => Number(n || 0).toLocaleString("id-ID");
+  const tengah = (s) => {
+    s = String(s).slice(0, W);
+    return " ".repeat(Math.floor((W - s.length) / 2)) + s;
+  };
+  const baris = (kiri, kanan) => {
+    kiri = String(kiri);
+    kanan = String(kanan);
+    const sisa = W - kanan.length;
+    if (kiri.length > sisa - 1) kiri = kiri.slice(0, sisa - 1);
+    return kiri + " ".repeat(W - kiri.length - kanan.length) + kanan;
+  };
+  const garis = "-".repeat(W);
+
+  const tgl = new Date(data.created_at || data.tanggal || Date.now());
+  const waktu = isNaN(tgl.getTime())
+    ? "-"
+    : tgl.toLocaleString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const items = data.items || [];
+  const totalQty = items.reduce((s, it) => s + Number(it.qty || 1), 0);
+  const tunai = data.metode_bayar === "tunai" || !data.metode_bayar;
+
+  const L = [];
+  L.push("\x1B\x40"); // reset printer
+  L.push("\x1B\x45\x01" + tengah("APOTEK BIMA FARMA") + "\x1B\x45\x00");
+  L.push(tengah("Jl. Tanimulya Raya No. 1, Ngamprah"));
+  L.push(tengah("Kab. Bandung Barat - WA: 0812-2360-4900"));
+  L.push(garis);
+  L.push(baris("No. Struk", data.no_struk || "-"));
+  L.push(baris("Waktu", waktu));
+  L.push(baris("Kasir", data.nama_kasir || "Kasir"));
+  L.push(baris("Pembeli", data.nama_pembeli || "Umum"));
+  L.push(baris("Bayar", tunai ? "TUNAI" : String(data.metode_bayar).toUpperCase()));
+  L.push(garis);
+  items.forEach((it) => {
+    const sub = Math.max(Number(it.qty) * Number(it.harga_jual) + Number(it.tuslah || 0) - Number(it.diskon || 0), 0);
+    L.push(`${it.nama_obat || "Obat"}${it.nama_satuan ? ` (${it.nama_satuan})` : ""}`.toUpperCase());
+    L.push(baris(`${it.qty} x ${rp(it.harga_jual)}`, rp(sub)));
+    if (Number(it.diskon) > 0) L.push(baris("*Diskon item", "-" + rp(it.diskon)));
+  });
+  L.push(garis);
+  L.push("\x1B\x45\x01" + baris(`TOTAL (${totalQty} ITEM)`, rp(data.total)) + "\x1B\x45\x00");
+  L.push(baris(tunai ? "Uang Diterima" : "Nominal Bayar", rp(tunai ? data.uang_diterima || data.total : data.total)));
+  L.push(tunai ? baris("Kembalian", rp(data.kembalian)) : baris("Status", "LUNAS"));
+  L.push(garis);
+  L.push(tengah("Terima Kasih Atas Kunjungan Anda"));
+  L.push(tengah("Semoga Lekas Sembuh!"));
+  L.push(tengah("Barang yg sudah dibeli tdk dapat ditukar"));
+  L.push(tengah("CS Apotek: 0821-1966-1953"));
+  L.push("\n\n\n\n");
+  L.push("\x1D\x56\x01"); // potong kertas (auto-cutter)
+
+  const teks = L.join("\n");
+  const base64 = btoa(unescape(encodeURIComponent(teks)));
+  window.location.href = `intent:base64,${base64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+}
+
 function cetakStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
   if (!data) return;
 
@@ -285,7 +345,7 @@ function cetakStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
         (window.innerWidth <= 768 && "ontouchstart" in window);
       if (isMobile) {
-        window.print();
+        cetakViaRawBT(data);
         return;
       }
       iframe.contentWindow.focus();
