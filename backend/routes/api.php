@@ -100,10 +100,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/suppliers', [SupplierController::class, 'store']);
+        Route::put('/suppliers/{supplier}', [SupplierController::class, 'update']);
         Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy']);
         Route::post('/penerimaan', [PenerimaanController::class, 'store']);
         Route::get('/penerimaan', [PenerimaanController::class, 'index']);
         Route::get('/penerimaan/{penerimaan}', [PenerimaanController::class, 'show']);
+        Route::put('/penerimaan/{penerimaan}', [PenerimaanController::class, 'update']);
+        Route::delete('/penerimaan/{penerimaan}', [PenerimaanController::class, 'destroy']);
         Route::put('/penerimaan/{penerimaan}/toggle-bayar', [PenerimaanController::class, 'toggleBayar']);
         Route::post('/obat/perbaiki-margin-semua', [ObatController::class, 'perbaikiMarginSemua']);
         Route::post('/obat', [ObatController::class, 'store']);

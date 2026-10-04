@@ -6,6 +6,7 @@ import { cetakBukuBarangMasuk } from "../../utils/cetakLaporanPenerimaan";
 import { exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import DetailFakturModal from "./komponen/DetailFakturModal";
+import EditPenerimaanModal from "./komponen/EditPenerimaanModal";
 import TombolExportGroup from "./komponen/TombolExportGroup";
 
 function getTglYmd(d) {
@@ -30,6 +31,9 @@ export default function RiwayatPenerimaan() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState(null);
+  const [penerimaanEdit, setPenerimaanEdit] = useState(null);
+  const [notifSukses, setNotifSukses] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState("");
   const [modalPpnItem, setModalPpnItem] = useState(null);
   const [modalPpnRingkasan, setModalPpnRingkasan] = useState(false);
@@ -87,7 +91,7 @@ export default function RiwayatPenerimaan() {
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [dariTanggal, sampaiTanggal, search, filterSupplier]);
+  }, [dariTanggal, sampaiTanggal, search, filterSupplier, refreshKey]);
 
   // Daftar nama supplier unik
   const supplierOptions = Array.from(
@@ -285,6 +289,27 @@ export default function RiwayatPenerimaan() {
       </div>
 
       {error && <div className="login-error">{error}</div>}
+      {notifSukses && (
+        <div
+          style={{
+            margin: "0 0 16px 0",
+            padding: "12px 18px",
+            background: "#ECFDF5",
+            border: "1.5px solid #6EE7B7",
+            borderRadius: 12,
+            color: "#065F46",
+            fontSize: 13.5,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            boxShadow: "0 2px 8px rgba(16, 185, 129, 0.08)",
+          }}
+        >
+          <span style={{ fontSize: 16 }}>✅</span>
+          <span>{notifSukses}</span>
+        </div>
+      )}
 
 
 
@@ -439,6 +464,7 @@ export default function RiwayatPenerimaan() {
                   <th style={{ width: 90, textAlign: "right" }}>Hrg Satuan</th>
                   <th style={{ width: 90, textAlign: "right" }}>Jumlah</th>
                   <th style={{ width: 110, textAlign: "right" }}>Jumlah + PPN</th>
+                  <th style={{ width: 52, textAlign: "center" }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -560,6 +586,41 @@ export default function RiwayatPenerimaan() {
                         <span style={{ fontSize: 12 }}>{rupiah(b.jumlahPpnRp)}</span>
                       </div>
                     </td>
+
+                    {/* 14. Aksi Edit / Koreksi */}
+                    <td style={{ textAlign: "center", padding: "4px" }} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => setPenerimaanEdit(b.faktur)}
+                        title="Edit / Koreksi Faktur (Nama PBF, Besar Uang, Qty, dsb)"
+                        style={{
+                          padding: "5px 7px",
+                          borderRadius: 7,
+                          border: "1.5px solid #D8B4FE",
+                          background: "#FAF5FF",
+                          color: "#6B21A8",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#7E22CE";
+                          e.currentTarget.style.color = "#fff";
+                          e.currentTarget.style.borderColor = "#7E22CE";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#FAF5FF";
+                          e.currentTarget.style.color = "#6B21A8";
+                          e.currentTarget.style.borderColor = "#D8B4FE";
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                          <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+                        </svg>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -574,6 +635,7 @@ export default function RiwayatPenerimaan() {
                   <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13.5, color: "#6B21A8", fontWeight: 800 }}>
                     {rupiah(totalJumlahPpnSemua)}
                   </td>
+                  <td style={{ width: 52 }}></td>
                 </tr>
               </tfoot>
             </table>
@@ -978,7 +1040,27 @@ export default function RiwayatPenerimaan() {
           data={detail}
           onClose={() => setDetail(null)}
           onLihatHutangSupplier={() => {}}
+          onEditFaktur={(f) => setPenerimaanEdit(f)}
           userMap={userMap}
+        />
+      )}
+
+      {/* Modal Edit / Koreksi Penerimaan Barang */}
+      {penerimaanEdit && (
+        <EditPenerimaanModal
+          penerimaan={penerimaanEdit}
+          supplierList={daftarSupplierList}
+          onClose={() => setPenerimaanEdit(null)}
+          onSukses={(updated) => {
+            setNotifSukses(`Faktur #${updated.no_faktur} (${updated.nama_supplier}) berhasil diperbarui!`);
+            setTimeout(() => setNotifSukses(""), 6000);
+            setRefreshKey((k) => k + 1);
+          }}
+          onHapus={() => {
+            setNotifSukses("Faktur penerimaan berhasil dihapus.");
+            setTimeout(() => setNotifSukses(""), 6000);
+            setRefreshKey((k) => k + 1);
+          }}
         />
       )}
     </KasirShell>

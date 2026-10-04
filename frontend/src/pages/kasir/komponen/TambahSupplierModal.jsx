@@ -16,6 +16,55 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
   const [error, setError] = useState("");
   const [pesan, setPesan] = useState("");
 
+  const [editSupplier, setEditSupplier] = useState(null);
+  const [editNama, setEditNama] = useState("");
+  const [editPkp, setEditPkp] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+
+  async function simpanEdit(e) {
+    e.preventDefault();
+    if (!editNama.trim()) {
+      setError("Nama supplier tidak boleh kosong.");
+      return;
+    }
+    setEditLoading(true);
+    setError("");
+    setPesan("");
+
+    try {
+      const res = await api(`/suppliers/${editSupplier.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          nama: editNama.trim(),
+          is_pkp: editPkp,
+          telepon: editSupplier.telepon || null,
+          kontak: editSupplier.kontak || null,
+          alamat: editSupplier.alamat || null,
+        }),
+      });
+
+      const namaAkun = user?.nama || user?.username || "Petugas";
+      tambahLogPerubahan({
+        nama_akun: namaAkun,
+        role_akun: user?.role || "kasir",
+        kategori: "Supplier",
+        aksi: "Edit",
+        judul: editNama.trim(),
+        sebelum: editSupplier.nama,
+        sesudah: editNama.trim(),
+        keterangan: `Ubah nama PBF dari "${editSupplier.nama}" menjadi "${editNama.trim()}" (${namaAkun})`,
+      });
+
+      setPesan(`Supplier "${editSupplier.nama}" berhasil diubah menjadi "${editNama.trim()}".`);
+      setEditSupplier(null);
+      if (onSukses) onSukses(res);
+    } catch (err) {
+      setError(err.message || "Gagal mengubah nama supplier.");
+    } finally {
+      setEditLoading(false);
+    }
+  }
+
   async function submit(e) {
     e.preventDefault();
     if (!nama.trim()) {
@@ -383,33 +432,145 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      disabled={hapusLoadingId === s.id}
-                      onClick={() => hapus(s)}
-                      title={`Hapus ${s.nama}`}
-                      style={{
-                        background: "#FEE2E2",
-                        border: "none",
-                        borderRadius: 8,
-                        padding: "6px 10px",
-                        color: "#DC2626",
-                        cursor: "pointer",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 14, height: 14 }}>
-                        <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
-                      </svg>
-                      {hapusLoadingId === s.id ? "…" : "Hapus"}
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditSupplier(s);
+                          setEditNama(s.nama);
+                          setEditPkp(Boolean(s.is_pkp));
+                          setError("");
+                        }}
+                        title={`Ubah Nama / Edit ${s.nama}`}
+                        style={{
+                          background: "#FAF5FF",
+                          border: "1.5px solid #D8B4FE",
+                          borderRadius: 8,
+                          padding: "6px 10px",
+                          color: "#6B21A8",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                          <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+                        </svg>
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={hapusLoadingId === s.id}
+                        onClick={() => hapus(s)}
+                        title={`Hapus ${s.nama}`}
+                        style={{
+                          background: "#FEE2E2",
+                          border: "none",
+                          borderRadius: 8,
+                          padding: "6px 10px",
+                          color: "#DC2626",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 14, height: 14 }}>
+                          <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+                        </svg>
+                        {hapusLoadingId === s.id ? "…" : "Hapus"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Modal Mini Inline Edit Supplier */}
+            {editSupplier && (
+              <form
+                onSubmit={simpanEdit}
+                style={{
+                  marginTop: 14,
+                  padding: "14px 16px",
+                  background: "#FAF5FF",
+                  border: "1.5px solid #C084FC",
+                  borderRadius: 12,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#581C87", marginBottom: 8 }}>
+                  ✏️ Ubah Nama PBF: <span style={{ color: "#7E22CE" }}>{editSupplier.nama}</span>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                  <input
+                    type="text"
+                    value={editNama}
+                    onChange={(e) => setEditNama(e.target.value)}
+                    placeholder="Nama baru supplier / PBF"
+                    style={{
+                      flex: 1,
+                      minWidth: 220,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      border: "1.5px solid #D8B4FE",
+                      fontSize: 13,
+                      fontWeight: 700,
+                    }}
+                    required
+                  />
+
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#6B21A8", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={editPkp}
+                      onChange={(e) => setEditPkp(e.target.checked)}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <span>PKP (Kena PPN)</span>
+                  </label>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setEditSupplier(null)}
+                    disabled={editLoading}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 7,
+                      border: "1px solid #CBD5E1",
+                      background: "#fff",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={editLoading}
+                    style={{
+                      padding: "6px 16px",
+                      borderRadius: 7,
+                      border: "none",
+                      background: "#7E22CE",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {editLoading ? "Menyimpan…" : "Simpan Perubahan PBF"}
+                  </button>
+                </div>
+              </form>
             )}
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>

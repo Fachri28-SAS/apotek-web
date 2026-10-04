@@ -3,7 +3,7 @@ import { rupiah } from "../../../utils/format";
 import { cetakSatuFakturA4, exportSatuFakturWord, exportSatuFakturExcel } from "../../../utils/exportDokumen";
 import TombolExportGroup from "./TombolExportGroup";
 
-export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier, userMap = {} }) {
+export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier, onEditFaktur, userMap = {} }) {
   if (!data) return null;
 
   const isLunas = data.status_bayar === "lunas";
@@ -92,7 +92,34 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {onEditFaktur && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEditFaktur(data);
+                }}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  border: "1.5px solid #D8B4FE",
+                  background: "#FAF5FF",
+                  color: "#6B21A8",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                  <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+                </svg>
+                Edit Faktur
+              </button>
+            )}
             <TombolExportGroup
               onCetakPdf={() => cetakSatuFakturA4(data)}
               onExportExcel={() => exportSatuFakturExcel(data)}

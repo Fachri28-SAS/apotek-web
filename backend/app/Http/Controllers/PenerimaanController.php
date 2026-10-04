@@ -268,4 +268,170 @@ class PenerimaanController extends Controller
             'penerimaan' => $penerimaan->fresh()->load('items'),
         ]);
     }
+
+    /** PUT /api/penerimaan/{penerimaan} — edit faktur penerimaan (nama PBF, no faktur, tanggal, harga beli, qty) */
+    public function update(Request $r, Penerimaan $penerimaan, StokService $stok)
+    {
+        $data = $r->validate([
+            'nama_supplier' => 'required|string|max:255',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'no_faktur' => 'required|string|max:60',
+            'tanggal_terima' => 'required|date',
+            'tanggal_jatuh_tempo' => 'nullable|date',
+            'tempo_label' => 'nullable|in:1_bulan,2_bulan,3_bulan,6_bulan,1_tahun,custom',
+            'is_pkp' => 'boolean',
+            'diskon_faktur_rp' => 'nullable|numeric|min:0',
+            'diskon_faktur_persen' => 'nullable|numeric|min:0|max:100',
+            'update_master_pbf' => 'nullable|boolean',
+            'items' => 'nullable|array',
+            'items.*.id' => 'nullable|integer',
+            'items.*.qty' => 'nullable|numeric|min:0.01',
+            'items.*.harga_beli' => 'nullable|numeric|min:0',
+            'items.*.diskon' => 'nullable|numeric|min:0',
+            'items.*.nomor_batch' => 'nullable|string|max:50',
+            'items.*.tanggal_exp' => 'nullable|date',
+        ]);
+
+        return DB::transaction(function () use ($data, $r, $penerimaan, $stok) {
+            $namaSupplierBaru = trim($data['nama_supplier']);
+            $namaSupplierLama = $penerimaan->nama_supplier;
+
+            // Jika ada permintaan update master supplier / PBF
+            if (!empty($data['update_master_pbf'])) {
+                if ($penerimaan->supplier_id) {
+                    \App\Models\Supplier::where('id', $penerimaan->supplier_id)
+                        ->update(['nama' => $namaSupplierBaru]);
+                } else {
+                    \App\Models\Supplier::where('nama', $namaSupplierLama)
+                        ->update(['nama' => $namaSupplierBaru]);
+                }
+                // Sinkronkan seluruh penerimaan dengan nama PBF lama
+                \App\Models\Penerimaan::where('nama_supplier', $namaSupplierLama)
+                    ->update(['nama_supplier' => $namaSupplierBaru]);
+            }
+
+            // Update item-item jika disertakan
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $itemData) {
+                    if (empty($itemData['id'])) continue;
+                    $item = \App\Models\PenerimaanItem::where('id', $itemData['id'])
+                        ->where('penerimaan_id', $penerimaan->id)
+                        ->first();
+                    if (!$item) continue;
+
+                    $qtyLama = (float) $item->qty;
+                    $qtyBaru = isset($itemData['qty']) ? (float) $itemData['qty'] : $qtyLama;
+                    $hargaBeliBaru = isset($itemData['harga_beli']) ? (float) $itemData['harga_beli'] : (float) $item->harga_beli;
+                    $diskonBaru = isset($itemData['diskon']) ? (float) $itemData['diskon'] : (float) $item->diskon;
+                    $subtotalBaru = max(($qtyBaru * $hargaBeliBaru) - $diskonBaru, 0);
+
+                    // Jika kuantitas berubah, sesuaikan stok masuk
+                    if ($qtyBaru != $qtyLama) {
+                        $isiKemasan = isset($item->kemasan) && $item->kemasan > 0
+                            ? (float) $item->kemasan
+                            : (float) ($item->faktor ?: 1);
+
+                        $selisihQty = (int) round(($qtyBaru - $qtyLama) * $isiKemasan);
+                        if ($selisihQty != 0) {
+                            $stok->ubah(
+                                $item->obat_id,
+                                $selisihQty,
+                                'penyesuaian',
+                                'penerimaan',
+                                $penerimaan->id,
+                                "Koreksi qty penerimaan faktur {$data['no_faktur']}"
+                            );
+                        }
+                    }
+
+                    // Update satuan harga beli jika harga berubah
+                    if ($hargaBeliBaru != $item->harga_beli && $item->obat_satuan_id) {
+                        $isiKemasan = isset($item->kemasan) && $item->kemasan > 0 ? (float) $item->kemasan : 1;
+                        $hargaPerUnit = $isiKemasan > 1 ? round($hargaBeliBaru / $isiKemasan, 2) : $hargaBeliBaru;
+                        \App\Models\ObatSatuan::where('id', $item->obat_satuan_id)
+                            ->update(['harga_beli' => $hargaPerUnit]);
+                    }
+
+                    // Update batch info jika berubah
+                    $updateBatch = [];
+                    if (isset($itemData['nomor_batch'])) $updateBatch['nomor_batch'] = $itemData['nomor_batch'];
+                    if (isset($itemData['tanggal_exp'])) $updateBatch['tanggal_exp'] = $itemData['tanggal_exp'];
+
+                    $item->update(array_merge([
+                        'qty' => $qtyBaru,
+                        'harga_beli' => $hargaBeliBaru,
+                        'diskon' => $diskonBaru,
+                        'subtotal' => $subtotalBaru,
+                    ], $updateBatch));
+
+                    if (!empty($itemData['nomor_batch'])) {
+                        \App\Models\ObatBatch::where('obat_id', $item->obat_id)
+                            ->where('nomor_batch', $item->nomor_batch)
+                            ->update([
+                                'nomor_batch' => $itemData['nomor_batch'],
+                                'tanggal_exp' => $itemData['tanggal_exp'] ?? $item->tanggal_exp,
+                            ]);
+                    }
+                }
+            }
+
+            // Hitung ulang akumulasi subtotal dari seluruh item penerimaan
+            $subtotalSemua = (float) $penerimaan->items()->sum('subtotal');
+            $diskonRp = isset($data['diskon_faktur_rp']) ? (float) $data['diskon_faktur_rp'] : (float) $penerimaan->diskon_faktur_rp;
+            $diskonPersen = isset($data['diskon_faktur_persen']) ? (float) $data['diskon_faktur_persen'] : (float) $penerimaan->diskon_faktur_persen;
+            $diskonTotal = $diskonRp + round($subtotalSemua * $diskonPersen / 100);
+            $subtotalSetelahDiskon = max($subtotalSemua - $diskonTotal, 0);
+
+            $isPkp = isset($data['is_pkp']) ? (bool) $data['is_pkp'] : (bool) $penerimaan->is_pkp;
+            $persenPpn = 11;
+            $ppn = $isPkp ? round($subtotalSetelahDiskon * $persenPpn / 100) : 0;
+            $total = $subtotalSetelahDiskon + $ppn;
+
+            $penerimaan->update([
+                'nama_supplier' => $namaSupplierBaru,
+                'supplier_id' => $data['supplier_id'] ?? $penerimaan->supplier_id,
+                'no_faktur' => $data['no_faktur'],
+                'tanggal_terima' => $data['tanggal_terima'],
+                'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'] ?? $penerimaan->tanggal_jatuh_tempo,
+                'tempo_label' => $data['tempo_label'] ?? $penerimaan->tempo_label,
+                'is_pkp' => $isPkp,
+                'persen_ppn' => $persenPpn,
+                'subtotal' => $subtotalSemua,
+                'diskon_faktur_rp' => $diskonRp,
+                'diskon_faktur_persen' => $diskonPersen,
+                'subtotal_setelah_diskon' => $subtotalSetelahDiskon,
+                'dpp' => $subtotalSetelahDiskon,
+                'ppn' => $ppn,
+                'total' => $total,
+            ]);
+
+            return response()->json($penerimaan->fresh()->load('items'));
+        });
+    }
+
+    /** DELETE /api/penerimaan/{penerimaan} — hapus faktur penerimaan yang salah input */
+    public function destroy(Penerimaan $penerimaan, StokService $stok)
+    {
+        return DB::transaction(function () use ($penerimaan, $stok) {
+            foreach ($penerimaan->items as $item) {
+                $isiKemasan = isset($item->kemasan) && $item->kemasan > 0 ? (float) $item->kemasan : (float) ($item->faktor ?: 1);
+                $stokDitarik = -(int) round($item->qty * $isiKemasan);
+                try {
+                    $stok->ubah(
+                        $item->obat_id,
+                        $stokDitarik,
+                        'retur',
+                        'penerimaan',
+                        $penerimaan->id,
+                        "Hapus / Pembatalan faktur penerimaan {$penerimaan->no_faktur}"
+                    );
+                } catch (\Exception $e) {
+                    \App\Models\Obat::where('id', $item->obat_id)->update(['stok' => 0]);
+                }
+                $item->delete();
+            }
+            $penerimaan->delete();
+            return response()->noContent();
+        });
+    }
 }
