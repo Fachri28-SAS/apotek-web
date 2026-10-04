@@ -196,8 +196,8 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
           <thead>
             <tr>
               <th style="width: 28px;">NO</th>
-              <th style="width: 80px;">Tgl Input / Petugas</th>
-              <th style="width: 100px;">Nama PBF</th>
+              <th style="width: 70px;">Tgl Input</th>
+              <th style="width: 130px;">Nama PBF</th>
               <th style="width: 80px;">No Faktur</th>
               <th style="width: 68px;">Tgl Faktur</th>
               <th>Nama Barang</th>

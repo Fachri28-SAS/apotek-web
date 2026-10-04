@@ -215,7 +215,7 @@ export default function RiwayatPenerimaan() {
   function siapkanDataExportPenerimaan() {
     const headers = [
       { label: "NO", align: "center", width: "35px" },
-      { label: "Tgl Input / Petugas", align: "center" },
+      { label: "Tgl Input", align: "center" },
       { label: "Nama PBF", align: "left" },
       { label: "No Faktur", align: "left" },
       { label: "Tgl Faktur", align: "center" },
@@ -452,8 +452,8 @@ export default function RiwayatPenerimaan() {
               <thead>
                 <tr>
                   <th style={{ width: 36, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 95, textAlign: "center" }}>Tgl Input / Petugas</th>
-                  <th style={{ width: 110 }}>Nama PBF</th>
+                  <th style={{ width: 75, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 150 }}>Nama PBF</th>
                   <th style={{ width: 90 }}>No Faktur</th>
                   <th style={{ width: 75, textAlign: "center" }}>Tgl Faktur</th>
                   <th>Nama Barang</th>
@@ -480,25 +480,29 @@ export default function RiwayatPenerimaan() {
                       {b.no}
                     </td>
 
-                    {/* 2. Tgl Input & Petugas (Disatukan dalam 1 kolom) */}
-                    <td style={{ textAlign: "center", whiteSpace: "nowrap", padding: "6px 4px" }}>
-                      <div style={{ fontWeight: 600, fontSize: 12 }}>{formatTgl(b.tglInput)}</div>
+                    {/* 2. Tgl Input & Petugas (Disatukan dalam 1 kolom ringkas) */}
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap", padding: "6px 2px" }}>
+                      <div style={{ fontWeight: 600, fontSize: 11.5 }}>{formatTgl(b.tglInput)}</div>
                       {b.petugas && (
                         <div
                           style={{
-                            marginTop: 3,
+                            marginTop: 2,
                             display: "inline-block",
                             padding: "1px 5px",
                             borderRadius: 4,
                             background: "#F5F3FF",
                             border: "1px solid #DDD6FE",
                             color: "#5B21B6",
-                            fontSize: 10.5,
+                            fontSize: 10,
                             fontWeight: 700,
+                            maxWidth: 72,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
                           }}
-                          title={`Petugas Input: ${b.petugas}`}
+                          title={b.petugas}
                         >
-                          👤 {b.petugas}
+                          {b.petugas}
                         </div>
                       )}
                     </td>
