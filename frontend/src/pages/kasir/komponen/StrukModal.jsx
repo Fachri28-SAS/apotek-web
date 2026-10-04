@@ -12,13 +12,15 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
   const is80 = ukuranKertas === "80mm";
 
   // Lebar printable area untuk printer thermal:
+  // Lebar printable area untuk printer thermal:
   // - 50mm: Safe width: 38mm
   // - 58mm: Safe width: 44mm
-  // - 80mm: Kertas roll 80mm, printable width aman: 70mm (head fisik POS-80C adalah 72.1mm, jadi 70mm menjamin kolom kanan tidak terpotong)
-  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "70mm";
-  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "13px";
-  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "16.5px";
-  const subFontSize = is50 ? "9px" : is58 ? "10px" : "11px";
+  // - 80mm: Kertas roll 80mm full width (padding kanan 8.5mm agar teks kanan presisi di tepi head tanpa terpotong)
+  const printWidth = is50 ? "38mm" : is58 ? "44mm" : "100%";
+  const pageSize = is50 ? "50mm auto" : is58 ? "58mm auto" : "80mm auto";
+  const baseFontSize = is50 ? "10.5px" : is58 ? "11.5px" : "13.5px";
+  const headerFontSize = is50 ? "13.5px" : is58 ? "15px" : "17px";
+  const subFontSize = is50 ? "9px" : is58 ? "10px" : "11.5px";
   const bottomFeed = is50 ? "15mm" : is58 ? "18mm" : "25mm";
 
   const tglObj = data.created_at || data.tanggal ? new Date(data.created_at || data.tanggal) : new Date();
@@ -52,7 +54,7 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
           </div>
           <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: ${baseFontSize}; margin-top: 1px;">
             <span style="white-space: nowrap;">${it.qty} × ${Number(it.harga_jual || 0).toLocaleString("id-ID")}</span>
-            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: 4px; padding-right: 2px;">
+            <span style="font-weight: 700; text-align: right; white-space: nowrap; flex-shrink: 0; margin-left: 4px;">
               ${itemSubtotalBersih.toLocaleString("id-ID")}
             </span>
           </div>
@@ -61,7 +63,7 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
               ? `
             <div style="display: flex; justify-content: space-between; font-size: ${subFontSize}; color: #000;">
               <span>*Diskon item</span>
-              <span style="font-weight: 700; padding-right: 2px;">-${itemDiskon.toLocaleString("id-ID")}</span>
+              <span style="font-weight: 700;">-${itemDiskon.toLocaleString("id-ID")}</span>
             </div>
           `
               : ""
@@ -80,6 +82,7 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
         <style>
           @page {
             margin: 0 !important;
+            size: ${pageSize};
           }
           * {
             box-sizing: border-box;
@@ -87,10 +90,10 @@ function buatHtmlStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
             padding: 0;
           }
           html, body {
-            width: ${printWidth} !important;
-            max-width: ${printWidth} !important;
+            width: 100% !important;
+            max-width: 100% !important;
             margin: 0 !important;
-            padding: 1mm 2mm 0 1.5mm !important;
+            padding: 1.5mm 8.5mm 0 1.5mm !important;
             box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace, sans-serif;
             font-size: ${baseFontSize} !important;
@@ -269,7 +272,7 @@ function cetakStruk(data, ukuranKertas = "80mm", offsetKiri = 0) {
     iframe.style.border = "none";
     document.body.appendChild(iframe);
   }
-  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "72mm";
+  iframe.style.width = is50 ? "39mm" : is58 ? "45mm" : "80mm";
 
   const doc = iframe.contentWindow.document;
   doc.open();
@@ -619,11 +622,12 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
             top: 0 !important;
             margin: 0 !important;
             margin-left: ${offsetKiri}mm !important;
-            width: ${is50 ? "38mm" : is58 ? "44mm" : "70mm"} !important;
-            max-width: ${is50 ? "38mm" : is58 ? "44mm" : "70mm"} !important;
-            padding: 1mm 2mm ${is50 ? "15mm" : is58 ? "18mm" : "25mm"} 1.5mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 1.5mm 8.5mm ${is50 ? "15mm" : is58 ? "18mm" : "25mm"} 1.5mm !important;
+            box-sizing: border-box !important;
             font-family: 'Consolas', 'Courier New', Courier, monospace !important;
-            font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "13px"} !important;
+            font-size: ${is50 ? "10.5px" : is58 ? "11.5px" : "13.5px"} !important;
             color: #000000 !important;
             background: #ffffff !important;
             border: none !important;
