@@ -734,7 +734,7 @@ export default function DataObat() {
       footers,
       orientation: "landscape",
       namaUser: user?.nama || "Petugas",
-      customKop: "",
+      customKop: KOP_CETAK_DATA_OBAT,
       sembunyikanJudulDokumen: true,
     });
   }

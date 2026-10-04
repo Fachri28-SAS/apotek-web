@@ -127,6 +127,28 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
             margin: 0;
             padding: 8mm 10mm;
           }
+          .header-center {
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
+          }
+          .judul-laporan {
+            font-size: 13.5px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+          }
+          .nama-apotek {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+          }
+          .alamat-apotek {
+            font-size: 10px;
+            color: #222;
+            margin-top: 2px;
+          }
           .meta-row {
             display: flex;
             justify-content: space-between;
@@ -159,6 +181,12 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
         </style>
       </head>
       <body>
+        <div class="header-center">
+          <div class="judul-laporan">DAFTAR PENERIMAAN BARANG</div>
+          <div class="nama-apotek">APOTEK BIMA FARMA</div>
+          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
+        </div>
+
         <div class="meta-row">
           <div>Periode: <strong>${periodeTeks}</strong> &middot; Total: <strong>${barisItem.length} Item Masuk</strong></div>
         </div>
@@ -204,6 +232,9 @@ export function cetakBukuBarangMasuk(barisItem = [], { dariTanggal, sampaiTangga
 
   const originalTitle = document.title;
   document.title = "";
+  if (iframe.contentDocument) {
+    iframe.contentDocument.title = "";
+  }
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
@@ -310,6 +341,29 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
             margin: 0;
             padding: 8mm 10mm;
           }
+          .header-center {
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
+          }
+          .nama-apotek {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+          }
+          .alamat-apotek {
+            font-size: 10px;
+            margin-top: 2px;
+            color: #222;
+          }
+          .judul-laporan {
+            font-size: 13px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+          }
           .meta-row {
             display: flex;
             justify-content: space-between;
@@ -342,6 +396,12 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
         </style>
       </head>
       <body>
+        <div class="header-center">
+          <div class="nama-apotek">APOTEK BIMA FARMA</div>
+          <div class="alamat-apotek">Jl. Tanimulya Raya No. 1, Kec. Ngamprah, Kab. Bandung Barat</div>
+          <div class="judul-laporan">TAGIHAN PBF</div>
+        </div>
+
         <div class="meta-row">
           <div>Periode: <strong>${periodeTeks}</strong></div>
           <div>Dicetak: ${tanggalCetak} &middot; Petugas: ${namaUser}</div>
@@ -386,6 +446,9 @@ export function cetakBukuBayarFaktur(grupList = [], { dariTanggal, sampaiTanggal
 
   const originalTitle = document.title;
   document.title = "";
+  if (iframe.contentDocument) {
+    iframe.contentDocument.title = "";
+  }
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();

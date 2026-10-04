@@ -206,6 +206,9 @@ export function cetakDokumenA4({
 
   const originalTitle = document.title;
   document.title = "";
+  if (iframe.contentDocument) {
+    iframe.contentDocument.title = "";
+  }
   setTimeout(() => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();

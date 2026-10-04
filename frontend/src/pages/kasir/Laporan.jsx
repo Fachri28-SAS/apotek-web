@@ -166,8 +166,6 @@ export default function Laporan() {
       footers: exp.footers,
       orientation: "landscape",
       namaUser: user?.nama || "Kasir",
-      customKop: "",
-      sembunyikanJudulDokumen: true,
     });
   }
 
