@@ -539,12 +539,12 @@ export default function RiwayatPenerimaan() {
                       )}
                     </td>
 
-                    {/* 3. Nama PBF (Ukuran pas & 1 baris) */}
+                    {/* 3. Nama PBF (Ukuran kecil & 1 baris) */}
                     <td
                       style={{
-                        fontWeight: 700,
+                        fontWeight: 600,
                         color: "var(--ink)",
-                        fontSize: 11,
+                        fontSize: 10.5,
                         whiteSpace: "nowrap",
                         padding: "6px 6px",
                       }}
