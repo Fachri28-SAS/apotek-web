@@ -52,10 +52,8 @@ class AuthController extends Controller
                 ->update(['last_seen_at' => now()]);
         } catch (\Throwable $e) {}
 
-        // Aturan 1 Akun Hanya 1 Perangkat:
-        // Cabut seluruh token sesi login sebelumnya agar perangkat lama otomatis logout
-        $user->tokens()->delete();
-
+        // Biarkan token sesi lain tetap aktif agar multi-tab dan pergantian perangkat tidak membatalkan sesi kasir yang sedang aktif input
+        // Token hanya dicabut saat pengguna melakukan Logout eksplisit atau Closing Kasir
         $token = $user->createToken('sistem-kasir')->plainTextToken;
 
         return response()->json([
