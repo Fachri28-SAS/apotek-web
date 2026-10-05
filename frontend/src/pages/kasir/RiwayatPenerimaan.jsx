@@ -479,24 +479,24 @@ export default function RiwayatPenerimaan() {
           </div>
         ) : (
           <div className="obat-table-wrap">
-            {/* Tabel Sesuai Buku Catatan Fisik: Ringkas & Pas Layar Penuh */}
-            <table className="obat-table" style={{ width: "100%", minWidth: 1680, fontSize: 13 }}>
+            {/* Tabel Sesuai Buku Catatan Fisik: Ringkas, Pas Layar Penuh 100% Tanpa Lebih ke Kanan */}
+            <table className="obat-table" style={{ width: "100%", fontSize: 12 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 40, minWidth: 40, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 80, minWidth: 80, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 580, minWidth: 520 }}>Nama PBF</th>
-                  <th style={{ width: 75, minWidth: 70 }}>No Faktur</th>
-                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>Tgl Faktur</th>
-                  <th style={{ minWidth: 260 }}>Nama Barang</th>
-                  <th style={{ width: 52, minWidth: 48, textAlign: "center" }}>Jumlah</th>
-                  <th style={{ width: 58, minWidth: 54, textAlign: "center" }}>Satuan</th>
-                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>EXP</th>
-                  <th style={{ width: 90, minWidth: 85, textAlign: "center" }}>No Batch</th>
-                  <th style={{ width: 75, minWidth: 72, textAlign: "right", padding: "7px 5px" }}>Hrg Satuan</th>
-                  <th style={{ width: 75, minWidth: 72, textAlign: "right", padding: "7px 5px" }}>Jumlah</th>
-                  <th style={{ width: 92, minWidth: 88, textAlign: "right", padding: "7px 5px" }}>Jumlah + PPN</th>
-                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>AKSI</th>
+                  <th style={{ width: 34, textAlign: "center", padding: "6px 2px" }}>NO</th>
+                  <th style={{ width: 72, textAlign: "center", padding: "6px 2px" }}>Tgl Input</th>
+                  <th style={{ width: "26%", minWidth: 130, padding: "6px 6px" }}>Nama PBF</th>
+                  <th style={{ width: 68, maxWidth: 68, textAlign: "center", padding: "6px 2px" }}>No Faktur</th>
+                  <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Tgl Faktur</th>
+                  <th style={{ width: "19%", minWidth: 110, padding: "6px 6px" }}>Nama Barang</th>
+                  <th style={{ width: 44, textAlign: "center", padding: "6px 2px" }}>Jumlah</th>
+                  <th style={{ width: 48, textAlign: "center", padding: "6px 2px" }}>Satuan</th>
+                  <th style={{ width: 64, textAlign: "center", padding: "6px 2px" }}>EXP</th>
+                  <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>No Batch</th>
+                  <th style={{ width: 72, textAlign: "right", padding: "6px 3px" }}>Hrg Satuan</th>
+                  <th style={{ width: 72, textAlign: "right", padding: "6px 3px" }}>Jumlah</th>
+                  <th style={{ width: 84, textAlign: "right", padding: "6px 3px" }}>Jumlah + PPN</th>
+                  <th style={{ width: 44, textAlign: "center", padding: "6px 2px" }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -508,7 +508,7 @@ export default function RiwayatPenerimaan() {
                     title="Klik baris untuk melihat rincian faktur lengkap"
                   >
                     {/* 1. NO */}
-                    <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)" }}>
+                    <td style={{ textAlign: "center", fontWeight: 700, color: "var(--ink-soft)", padding: "6px 2px" }}>
                       {b.no}
                     </td>
 
@@ -520,14 +520,14 @@ export default function RiwayatPenerimaan() {
                           style={{
                             marginTop: 2,
                             display: "inline-block",
-                            padding: "1px 5px",
+                            padding: "1px 4px",
                             borderRadius: 4,
                             background: "#F5F3FF",
                             border: "1px solid #DDD6FE",
                             color: "#5B21B6",
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: 700,
-                            maxWidth: 72,
+                            maxWidth: 68,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -540,58 +540,58 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 3. Nama PBF */}
-                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13.5, wordBreak: "break-word" }}>
+                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13, wordBreak: "break-word", padding: "6px 6px" }}>
                       {b.pbf}
                     </td>
 
                     {/* 4. No Faktur (Otomatis pecah turun ke bawah / multi-line agar kolom tetap ramping) */}
-                    <td className="obat-batch-cell" style={{ maxWidth: 75, padding: "6px 4px", verticalAlign: "middle" }}>
+                    <td className="obat-batch-cell" style={{ maxWidth: 68, padding: "6px 2px", verticalAlign: "middle", textAlign: "center" }}>
                       {formatNoFakturMultiLine(b.noFaktur)}
                     </td>
 
                     {/* 5. Tgl Faktur */}
-                    <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap" }}>
+                    <td style={{ textAlign: "center", fontWeight: 600, whiteSpace: "nowrap", padding: "6px 2px", fontSize: 11.5 }}>
                       {formatTgl(b.tanggal)}
                     </td>
 
                     {/* 6. Nama Barang */}
-                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)", wordBreak: "break-word" }}>
+                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)", wordBreak: "break-word", padding: "6px 6px" }}>
                       {b.namaBarang}
                     </td>
 
                     {/* 7. Jumlah */}
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>
+                    <td style={{ textAlign: "center", fontWeight: 700, padding: "6px 2px" }}>
                       {b.jumlah}
                     </td>
 
                     {/* 8. Satuan */}
-                    <td style={{ textAlign: "center", color: "var(--ink-soft)" }}>
+                    <td style={{ textAlign: "center", color: "var(--ink-soft)", padding: "6px 2px" }}>
                       {b.satuan}
                     </td>
 
                     {/* 9. EXP */}
-                    <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 11.5 }}>
+                    <td style={{ textAlign: "center", whiteSpace: "nowrap", fontSize: 11, padding: "6px 2px" }}>
                       {b.exp ? formatTgl(b.exp) : "—"}
                     </td>
 
                     {/* 10. No Batch */}
-                    <td style={{ textAlign: "center", fontSize: 11.5, fontFamily: "monospace", color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
+                    <td style={{ textAlign: "center", fontSize: 11, fontFamily: "monospace", color: "var(--ink-soft)", wordBreak: "break-all", padding: "6px 2px" }}>
                       {b.noBatch}
                     </td>
 
                     {/* 11. Hrg Satuan */}
-                    <td style={{ textAlign: "right", fontSize: 12, whiteSpace: "nowrap", padding: "6px 5px" }}>
+                    <td style={{ textAlign: "right", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}>
                       {rupiah(b.hargaSatuan)}
                     </td>
 
                     {/* 12. Jumlah (Rp) */}
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 12, whiteSpace: "nowrap", padding: "6px 5px" }}>
+                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}>
                       {rupiah(b.jumlahRp)}
                     </td>
 
                     {/* 13. Total + PPN */}
                     <td
-                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 12, whiteSpace: "nowrap", padding: "6px 5px" }}
+                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setModalPpnItem(b);
@@ -602,9 +602,9 @@ export default function RiwayatPenerimaan() {
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 3,
+                          gap: 2,
                           cursor: "pointer",
-                          padding: "2px 6px",
+                          padding: "2px 5px",
                           borderRadius: 6,
                           transition: "all 0.15s ease",
                           background: "#FAF5FF",
@@ -624,14 +624,14 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 14. Aksi Edit / Koreksi */}
-                    <td style={{ textAlign: "center", padding: "4px" }} onClick={(e) => e.stopPropagation()}>
+                    <td style={{ textAlign: "center", padding: "4px 2px" }} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         onClick={() => setPenerimaanEdit(b.faktur)}
                         title="Edit / Koreksi Faktur (Nama PBF, Besar Uang, Qty, dsb)"
                         style={{
-                          padding: "5px 7px",
-                          borderRadius: 7,
+                          padding: "4px 6px",
+                          borderRadius: 6,
                           border: "1.5px solid #D8B4FE",
                           background: "#FAF5FF",
                           color: "#6B21A8",
@@ -643,17 +643,18 @@ export default function RiwayatPenerimaan() {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#7E22CE";
-                          e.currentTarget.style.color = "#fff";
                           e.currentTarget.style.borderColor = "#7E22CE";
+                          e.currentTarget.style.color = "#FFFFFF";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "#FAF5FF";
-                          e.currentTarget.style.color = "#6B21A8";
                           e.currentTarget.style.borderColor = "#D8B4FE";
+                          e.currentTarget.style.color = "#6B21A8";
                         }}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
-                          <path d="M17 3l4 4L7 21H3v-4L17 3z" />
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
                       </button>
                     </td>
@@ -671,7 +672,7 @@ export default function RiwayatPenerimaan() {
                   <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13.5, color: "#6B21A8", fontWeight: 800 }}>
                     {rupiah(totalJumlahPpnSemua)}
                   </td>
-                  <td style={{ width: 52 }}></td>
+                  <td style={{ width: 44 }}></td>
                 </tr>
               </tfoot>
             </table>
