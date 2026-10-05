@@ -612,11 +612,11 @@ export default function PembayaranPenerimaan() {
         ) : (
           <div className="obat-table-wrap">
             {/* Tabel Tagihan PBF 10 Kolom */}
-            <table className="obat-table" style={{ minWidth: 1080, fontSize: 13 }}>
+            <table className="obat-table" style={{ minWidth: 1160, fontSize: 13 }}>
               <thead>
                 <tr>
                   <th style={{ width: 44, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 160 }}>Nama PBF</th>
+                  <th style={{ width: 220, minWidth: 200 }}>Nama PBF</th>
                   <th style={{ width: 95, textAlign: "center" }}>Tgl Faktur</th>
                   <th style={{ width: 130 }}>Nomor Faktur</th>
                   <th style={{ width: 120, textAlign: "right" }}>Besar Uang</th>

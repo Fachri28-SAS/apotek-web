@@ -448,23 +448,23 @@ export default function RiwayatPenerimaan() {
         ) : (
           <div className="obat-table-wrap">
             {/* Tabel Sesuai Buku Catatan Fisik: Ringkas & Pas Layar Penuh */}
-            <table className="obat-table" style={{ width: "100%", fontSize: 12.5 }}>
+            <table className="obat-table" style={{ width: "100%", minWidth: 1460, fontSize: 12.5 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 36, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 75, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 150 }}>Nama PBF</th>
-                  <th style={{ width: 90 }}>No Faktur</th>
-                  <th style={{ width: 75, textAlign: "center" }}>Tgl Faktur</th>
-                  <th>Nama Barang</th>
-                  <th style={{ width: 48, textAlign: "center" }}>Jumlah</th>
-                  <th style={{ width: 50, textAlign: "center" }}>Satuan</th>
-                  <th style={{ width: 72, textAlign: "center" }}>EXP</th>
-                  <th style={{ width: 75, textAlign: "center" }}>No Batch</th>
-                  <th style={{ width: 90, textAlign: "right" }}>Hrg Satuan</th>
-                  <th style={{ width: 90, textAlign: "right" }}>Jumlah</th>
-                  <th style={{ width: 110, textAlign: "right" }}>Jumlah + PPN</th>
-                  <th style={{ width: 52, textAlign: "center" }}>AKSI</th>
+                  <th style={{ width: 42, minWidth: 42, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 230, minWidth: 210 }}>Nama PBF</th>
+                  <th style={{ width: 120, minWidth: 110 }}>No Faktur</th>
+                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>Tgl Faktur</th>
+                  <th style={{ minWidth: 230 }}>Nama Barang</th>
+                  <th style={{ width: 62, minWidth: 58, textAlign: "center" }}>Jumlah</th>
+                  <th style={{ width: 65, minWidth: 60, textAlign: "center" }}>Satuan</th>
+                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>EXP</th>
+                  <th style={{ width: 95, minWidth: 90, textAlign: "center" }}>No Batch</th>
+                  <th style={{ width: 105, minWidth: 100, textAlign: "right" }}>Hrg Satuan</th>
+                  <th style={{ width: 110, minWidth: 105, textAlign: "right" }}>Jumlah</th>
+                  <th style={{ width: 130, minWidth: 120, textAlign: "right" }}>Jumlah + PPN</th>
+                  <th style={{ width: 68, minWidth: 65, textAlign: "center" }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -508,12 +508,12 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 3. Nama PBF */}
-                    <td style={{ fontWeight: 700, color: "var(--ink)", wordBreak: "break-word" }}>
+                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13, wordBreak: "break-word" }}>
                       {b.pbf}
                     </td>
 
                     {/* 4. No Faktur */}
-                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>
                       {b.noFaktur}
                     </td>
 
@@ -543,23 +543,23 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 10. No Batch */}
-                    <td style={{ textAlign: "center", fontSize: 11.5, fontFamily: "monospace", color: "var(--ink-soft)" }}>
+                    <td style={{ textAlign: "center", fontSize: 11.5, fontFamily: "monospace", color: "var(--ink-soft)", whiteSpace: "nowrap" }}>
                       {b.noBatch}
                     </td>
 
                     {/* 11. Hrg Satuan */}
-                    <td style={{ textAlign: "right", fontSize: 12 }}>
+                    <td style={{ textAlign: "right", fontSize: 12, whiteSpace: "nowrap" }}>
                       {rupiah(b.hargaSatuan)}
                     </td>
 
                     {/* 12. Jumlah (Rp) */}
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 12 }}>
+                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 12, whiteSpace: "nowrap" }}>
                       {rupiah(b.jumlahRp)}
                     </td>
 
                     {/* 13. Total + PPN */}
                     <td
-                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 12 }}
+                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 12, whiteSpace: "nowrap" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setModalPpnItem(b);
