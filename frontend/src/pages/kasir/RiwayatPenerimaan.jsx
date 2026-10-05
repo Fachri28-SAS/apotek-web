@@ -448,23 +448,23 @@ export default function RiwayatPenerimaan() {
         ) : (
           <div className="obat-table-wrap">
             {/* Tabel Sesuai Buku Catatan Fisik: Ringkas & Pas Layar Penuh */}
-            <table className="obat-table" style={{ width: "100%", minWidth: 1420, fontSize: 12.5 }}>
+            <table className="obat-table" style={{ width: "100%", minWidth: 1720, fontSize: 13 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 38, minWidth: 38, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 78, minWidth: 75, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 380, minWidth: 340 }}>Nama PBF</th>
-                  <th style={{ width: 75, minWidth: 70 }}>No Faktur</th>
-                  <th style={{ width: 75, minWidth: 70, textAlign: "center" }}>Tgl Faktur</th>
-                  <th style={{ minWidth: 220 }}>Nama Barang</th>
-                  <th style={{ width: 55, minWidth: 50, textAlign: "center" }}>Jumlah</th>
-                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>Satuan</th>
-                  <th style={{ width: 75, minWidth: 70, textAlign: "center" }}>EXP</th>
-                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>No Batch</th>
-                  <th style={{ width: 85, minWidth: 80, textAlign: "right" }}>Hrg Satuan</th>
-                  <th style={{ width: 88, minWidth: 82, textAlign: "right" }}>Jumlah</th>
-                  <th style={{ width: 100, minWidth: 95, textAlign: "right" }}>Jumlah + PPN</th>
-                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>AKSI</th>
+                  <th style={{ width: 42, minWidth: 42, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 85, minWidth: 85, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 460, minWidth: 420 }}>Nama PBF</th>
+                  <th style={{ width: 85, minWidth: 80 }}>No Faktur</th>
+                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>Tgl Faktur</th>
+                  <th style={{ minWidth: 280 }}>Nama Barang</th>
+                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>Jumlah</th>
+                  <th style={{ width: 65, minWidth: 60, textAlign: "center" }}>Satuan</th>
+                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>EXP</th>
+                  <th style={{ width: 95, minWidth: 90, textAlign: "center" }}>No Batch</th>
+                  <th style={{ width: 95, minWidth: 90, textAlign: "right" }}>Hrg Satuan</th>
+                  <th style={{ width: 100, minWidth: 95, textAlign: "right" }}>Jumlah</th>
+                  <th style={{ width: 115, minWidth: 110, textAlign: "right" }}>Jumlah + PPN</th>
+                  <th style={{ width: 65, minWidth: 60, textAlign: "center" }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
