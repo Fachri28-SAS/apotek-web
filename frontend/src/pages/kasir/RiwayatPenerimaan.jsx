@@ -212,6 +212,38 @@ export default function RiwayatPenerimaan() {
     });
   }
 
+  // Pecah nomor faktur panjang agar otomatis turun ke bawah (multi-line) dengan rapi
+  function formatNoFakturMultiLine(no) {
+    if (!no) return "—";
+    const s = String(no).trim();
+    if (s.includes("/") && s.length > 9) {
+      const parts = s.split("/");
+      const mid = Math.ceil(parts.length / 2);
+      const line1 = parts.slice(0, mid).join("/");
+      const line2 = parts.slice(mid).join("/");
+      return (
+        <div style={{ lineHeight: 1.25, fontSize: 11, fontFamily: "monospace", fontWeight: 600, color: "var(--ink)", wordBreak: "break-all" }}>
+          <div>{line1}/</div>
+          <div>{line2}</div>
+        </div>
+      );
+    }
+    if (s.length > 10) {
+      const mid = Math.ceil(s.length / 2);
+      return (
+        <div style={{ lineHeight: 1.25, fontSize: 11, fontFamily: "monospace", fontWeight: 600, color: "var(--ink)" }}>
+          <div>{s.slice(0, mid)}</div>
+          <div>{s.slice(mid)}</div>
+        </div>
+      );
+    }
+    return (
+      <div style={{ lineHeight: 1.25, fontSize: 11.5, fontFamily: "monospace", fontWeight: 600, color: "var(--ink)", wordBreak: "break-all" }}>
+        {s}
+      </div>
+    );
+  }
+
   function siapkanDataExportPenerimaan() {
     const headers = [
       { label: "NO", align: "center", width: "35px" },
@@ -453,8 +485,8 @@ export default function RiwayatPenerimaan() {
                 <tr>
                   <th style={{ width: 40, minWidth: 40, textAlign: "center" }}>NO</th>
                   <th style={{ width: 80, minWidth: 80, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 560, minWidth: 500 }}>Nama PBF</th>
-                  <th style={{ width: 80, minWidth: 75 }}>No Faktur</th>
+                  <th style={{ width: 580, minWidth: 520 }}>Nama PBF</th>
+                  <th style={{ width: 75, minWidth: 70 }}>No Faktur</th>
                   <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>Tgl Faktur</th>
                   <th style={{ minWidth: 260 }}>Nama Barang</th>
                   <th style={{ width: 52, minWidth: 48, textAlign: "center" }}>Jumlah</th>
@@ -512,9 +544,9 @@ export default function RiwayatPenerimaan() {
                       {b.pbf}
                     </td>
 
-                    {/* 4. No Faktur (Bisa ke bawah / multi-line agar kolom tetap ramping) */}
-                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)", wordBreak: "break-all", lineHeight: 1.25, fontSize: 11.5 }}>
-                      {b.noFaktur}
+                    {/* 4. No Faktur (Otomatis pecah turun ke bawah / multi-line agar kolom tetap ramping) */}
+                    <td className="obat-batch-cell" style={{ maxWidth: 75, padding: "6px 4px", verticalAlign: "middle" }}>
+                      {formatNoFakturMultiLine(b.noFaktur)}
                     </td>
 
                     {/* 5. Tgl Faktur */}
