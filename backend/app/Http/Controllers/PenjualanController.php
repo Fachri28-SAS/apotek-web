@@ -193,7 +193,7 @@ class PenjualanController extends Controller
             };
         }
 
-        return $q->withCount('items')->orderByDesc('id')->limit(500)->get();
+        return $q->withCount('items')->orderByDesc('id')->limit(2000)->get();
     }
 
     /** GET /api/penjualan/{id} — buka ulang struk dari Riwayat */

@@ -11,8 +11,27 @@ function getTglYmd(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getAwalBulanYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yyyy}-${mm}-01`;
+}
+
+function getSubDaysYmd(d, days) {
+  const target = new Date(d);
+  target.setDate(target.getDate() - days);
+  return getTglYmd(target);
+}
+
 function formatTglIndo(str) {
   if (!str) return "";
+  const strClean = String(str).slice(0, 10);
+  const parts = strClean.split("-");
+  if (parts.length === 3 && parts[0].length === 4) {
+    const [y, m, d] = parts;
+    const bulanIndo = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    return `${parseInt(d, 10)} ${bulanIndo[parseInt(m, 10) - 1]} ${y}`;
+  }
   const d = new Date(str);
   if (isNaN(d.getTime())) return str;
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
@@ -20,9 +39,10 @@ function formatTglIndo(str) {
 
 export default function Riwayat() {
   const tglSekarang = getTglYmd(new Date());
+  const tglAwalBulan = getAwalBulanYmd(new Date());
   const [daftar, setDaftar] = useState([]);
   const [kasirList, setKasirList] = useState([]);
-  const [dariTanggal, setDariTanggal] = useState(tglSekarang);
+  const [dariTanggal, setDariTanggal] = useState(tglAwalBulan);
   const [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
   const [kasirId, setKasirId] = useState("");
   const [sumber, setSumber] = useState("semua");
@@ -45,7 +65,7 @@ export default function Riwayat() {
     if (dariTanggal) params.set("dari_tanggal", dariTanggal);
     if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
     if (kasirId) params.set("kasir_id", kasirId);
-    if (sumber) params.set("sumber", sumber);
+    if (sumber && sumber !== "semua") params.set("sumber", sumber);
 
     api(`/penjualan?${params}`)
       .then((d) => {
@@ -82,16 +102,15 @@ export default function Riwayat() {
   const daftarList = Array.isArray(daftar) ? daftar : [];
   const daftarTersaring = daftarList.filter((t) => {
     if (!t) return false;
-    const tgl = (t.tanggal ? String(t.tanggal).slice(0, 10) : "") || (t.created_at ? String(t.created_at).slice(0, 10) : "");
-    if (dariTanggal && tgl && tgl < dariTanggal) return false;
-    if (sampaiTanggal && tgl && tgl > sampaiTanggal) return false;
     if (kasirId && String(t.user_id) !== String(kasirId)) return false;
     if (sumber && sumber !== "semua" && t.sumber !== sumber) return false;
     return true;
   });
 
   const totalOmzet = daftarTersaring.reduce((s, t) => s + Number(t.total), 0);
-  const labelRentang = dariTanggal === sampaiTanggal
+  const labelRentang = !dariTanggal && !sampaiTanggal
+    ? "Semua Periode"
+    : dariTanggal === sampaiTanggal
     ? formatTglIndo(dariTanggal)
     : `${formatTglIndo(dariTanggal)} s/d ${formatTglIndo(sampaiTanggal)}`;
 
@@ -110,7 +129,7 @@ export default function Riwayat() {
 
             <div className="mobile-only">
         {/* Kalender Filter Mobile */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12, padding: "0 2px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8, padding: "0 2px" }}>
           <div>
             <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "var(--ink-soft)", marginBottom: 4 }}>
                Dari:
@@ -149,6 +168,78 @@ export default function Riwayat() {
           </div>
         </div>
 
+        {/* Preset Cepat Mobile */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 12, overflowX: "auto", paddingBottom: 2 }}>
+          <button
+            type="button"
+            onClick={() => { setDariTanggal(tglAwalBulan); setSampaiTanggal(tglSekarang); }}
+            style={{
+              padding: "5px 10px",
+              borderRadius: 6,
+              border: "1.5px solid var(--line)",
+              background: dariTanggal === tglAwalBulan && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+              color: dariTanggal === tglAwalBulan && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+              fontWeight: 700,
+              fontSize: 11.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Bulan Ini
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDariTanggal(tglSekarang); setSampaiTanggal(tglSekarang); }}
+            style={{
+              padding: "5px 10px",
+              borderRadius: 6,
+              border: "1.5px solid var(--line)",
+              background: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+              color: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+              fontWeight: 700,
+              fontSize: 11.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Hari Ini
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDariTanggal(getSubDaysYmd(new Date(), 6)); setSampaiTanggal(tglSekarang); }}
+            style={{
+              padding: "5px 10px",
+              borderRadius: 6,
+              border: "1.5px solid var(--line)",
+              background: dariTanggal === getSubDaysYmd(new Date(), 6) && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+              color: dariTanggal === getSubDaysYmd(new Date(), 6) && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+              fontWeight: 700,
+              fontSize: 11.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            7 Hari
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDariTanggal(""); setSampaiTanggal(""); }}
+            style={{
+              padding: "5px 10px",
+              borderRadius: 6,
+              border: "1.5px solid var(--line)",
+              background: !dariTanggal && !sampaiTanggal ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+              color: !dariTanggal && !sampaiTanggal ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+              fontWeight: 700,
+              fontSize: 11.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Semua
+          </button>
+        </div>
+
         {loading ? (
           <div className="panel-kosong" style={{ padding: "20px", borderRadius: 14 }}>Memuat transaksi…</div>
         ) : daftarTersaring.length === 0 ? (
@@ -168,7 +259,7 @@ export default function Riwayat() {
               <div className="body">
                 <div className="t1">#{t.no_struk} · {t.nama_pembeli || "Umum"}</div>
                 <div className="t2">
-                  {t.nama_kasir} · {t.metode_bayar?.toUpperCase()} · {new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                  {t.nama_kasir} · {t.metode_bayar?.toUpperCase()} · {formatTglIndo(t.tanggal || t.created_at)} {t.created_at ? new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : ""}
                 </div>
               </div>
               <div className="t3">{rupiah(t.total)}</div>
@@ -217,23 +308,79 @@ export default function Riwayat() {
               />
             </div>
 
-            <button
-              type="button"
-              onClick={() => { setDariTanggal(tglSekarang); setSampaiTanggal(tglSekarang); }}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 8,
-                border: "1.5px solid var(--line)",
-                background: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
-                color: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
-                fontWeight: 700,
-                fontSize: 12,
-                cursor: "pointer",
-              }}
-              title="Klik untuk cepat kembali ke tanggal hari ini"
-            >
-              Hari Ini
-            </button>
+            <div style={{ display: "flex", gap: 5 }}>
+              <button
+                type="button"
+                onClick={() => { setDariTanggal(tglAwalBulan); setSampaiTanggal(tglSekarang); }}
+                style={{
+                  padding: "6px 11px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  background: dariTanggal === tglAwalBulan && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+                  color: dariTanggal === tglAwalBulan && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+                title="Tampilkan transaksi dari tanggal 1 bulan ini sampai hari ini"
+              >
+                Bulan Ini
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setDariTanggal(tglSekarang); setSampaiTanggal(tglSekarang); }}
+                style={{
+                  padding: "6px 11px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  background: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+                  color: dariTanggal === tglSekarang && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+                title="Tampilkan transaksi hari ini saja"
+              >
+                Hari Ini
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setDariTanggal(getSubDaysYmd(new Date(), 6)); setSampaiTanggal(tglSekarang); }}
+                style={{
+                  padding: "6px 11px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  background: dariTanggal === getSubDaysYmd(new Date(), 6) && sampaiTanggal === tglSekarang ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+                  color: dariTanggal === getSubDaysYmd(new Date(), 6) && sampaiTanggal === tglSekarang ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+                title="Tampilkan transaksi 7 hari terakhir"
+              >
+                7 Hari
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setDariTanggal(""); setSampaiTanggal(""); }}
+                style={{
+                  padding: "6px 11px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--line)",
+                  background: !dariTanggal && !sampaiTanggal ? "var(--magenta-soft, #FAF5FF)" : "#F8FAFC",
+                  color: !dariTanggal && !sampaiTanggal ? "var(--magenta-dark, #701A75)" : "var(--ink)",
+                  fontWeight: 700,
+                  fontSize: 12,
+                  cursor: "pointer",
+                }}
+                title="Tampilkan seluruh riwayat transaksi tanpa batasan tanggal"
+              >
+                Semua
+              </button>
+            </div>
           </div>
 
           <select className="filter-select" value={kasirId} onChange={(e) => setKasirId(e.target.value)}>
@@ -270,8 +417,8 @@ export default function Riwayat() {
                         {t.sumber === "online" ? "Toko Online" : "Kasir"}
                       </span>
                     </td>
-                    <td>{new Date(t.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                    <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
+                    <td>{formatTglIndo(t.tanggal || t.created_at)}</td>
+                    <td>{t.created_at ? new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
                     <td>{t.nama_kasir}</td>
                     <td>{t.nama_pembeli || "—"}</td>
                     <td>{t.items_count}</td>
