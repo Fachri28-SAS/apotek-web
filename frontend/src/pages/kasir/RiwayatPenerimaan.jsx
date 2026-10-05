@@ -493,9 +493,9 @@ export default function RiwayatPenerimaan() {
                   <th style={{ width: 48, textAlign: "center", padding: "6px 2px" }}>Satuan</th>
                   <th style={{ width: 64, textAlign: "center", padding: "6px 2px" }}>EXP</th>
                   <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>No Batch</th>
-                  <th style={{ width: 72, textAlign: "right", padding: "6px 3px" }}>Hrg Satuan</th>
-                  <th style={{ width: 72, textAlign: "right", padding: "6px 3px" }}>Jumlah</th>
-                  <th style={{ width: 84, textAlign: "right", padding: "6px 3px" }}>Jumlah + PPN</th>
+                  <th style={{ width: 72, textAlign: "left", padding: "6px 4px" }}>Hrg Satuan</th>
+                  <th style={{ width: 72, textAlign: "left", padding: "6px 4px" }}>Jumlah</th>
+                  <th style={{ width: 84, textAlign: "left", padding: "6px 4px" }}>Jumlah + PPN</th>
                   <th style={{ width: 44, textAlign: "center", padding: "6px 2px" }}>AKSI</th>
                 </tr>
               </thead>
@@ -580,18 +580,18 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 11. Hrg Satuan */}
-                    <td style={{ textAlign: "right", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}>
+                    <td style={{ textAlign: "left", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 4px" }}>
                       {rupiah(b.hargaSatuan)}
                     </td>
 
                     {/* 12. Jumlah (Rp) */}
-                    <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}>
+                    <td style={{ textAlign: "left", fontWeight: 700, color: "var(--ink)", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 4px" }}>
                       {rupiah(b.jumlahRp)}
                     </td>
 
                     {/* 13. Total + PPN */}
                     <td
-                      style={{ textAlign: "right", fontWeight: 800, color: "#6B21A8", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 3px" }}
+                      style={{ textAlign: "left", fontWeight: 800, color: "#6B21A8", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 4px" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setModalPpnItem(b);
@@ -666,10 +666,10 @@ export default function RiwayatPenerimaan() {
                   <td colSpan={11} style={{ textAlign: "right", padding: "10px 12px", fontSize: 12.5, color: "var(--ink-soft)" }}>
                     TOTAL ({barisItemTampil.length} Item) :
                   </td>
-                  <td style={{ textAlign: "right", padding: "10px 6px", fontSize: 12, color: "var(--ink)" }}>
+                  <td style={{ textAlign: "left", padding: "10px 4px", fontSize: 12, color: "var(--ink)" }}>
                     {rupiah(totalJumlahSemua)}
                   </td>
-                  <td style={{ textAlign: "right", padding: "10px 8px", fontSize: 13.5, color: "#6B21A8", fontWeight: 800 }}>
+                  <td style={{ textAlign: "left", padding: "10px 4px", fontSize: 13.5, color: "#6B21A8", fontWeight: 800 }}>
                     {rupiah(totalJumlahPpnSemua)}
                   </td>
                   <td style={{ width: 44 }}></td>
