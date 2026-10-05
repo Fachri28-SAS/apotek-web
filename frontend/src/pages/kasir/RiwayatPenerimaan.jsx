@@ -448,23 +448,23 @@ export default function RiwayatPenerimaan() {
         ) : (
           <div className="obat-table-wrap">
             {/* Tabel Sesuai Buku Catatan Fisik: Ringkas & Pas Layar Penuh */}
-            <table className="obat-table" style={{ width: "100%", minWidth: 1460, fontSize: 12.5 }}>
+            <table className="obat-table" style={{ width: "100%", minWidth: 1420, fontSize: 12.5 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 42, minWidth: 42, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 90, minWidth: 90, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 230, minWidth: 210 }}>Nama PBF</th>
-                  <th style={{ width: 120, minWidth: 110 }}>No Faktur</th>
-                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>Tgl Faktur</th>
-                  <th style={{ minWidth: 230 }}>Nama Barang</th>
-                  <th style={{ width: 62, minWidth: 58, textAlign: "center" }}>Jumlah</th>
-                  <th style={{ width: 65, minWidth: 60, textAlign: "center" }}>Satuan</th>
-                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>EXP</th>
-                  <th style={{ width: 95, minWidth: 90, textAlign: "center" }}>No Batch</th>
-                  <th style={{ width: 105, minWidth: 100, textAlign: "right" }}>Hrg Satuan</th>
-                  <th style={{ width: 110, minWidth: 105, textAlign: "right" }}>Jumlah</th>
-                  <th style={{ width: 130, minWidth: 120, textAlign: "right" }}>Jumlah + PPN</th>
-                  <th style={{ width: 68, minWidth: 65, textAlign: "center" }}>AKSI</th>
+                  <th style={{ width: 38, minWidth: 38, textAlign: "center" }}>NO</th>
+                  <th style={{ width: 80, minWidth: 80, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 320, minWidth: 280 }}>Nama PBF</th>
+                  <th style={{ width: 95, minWidth: 90 }}>No Faktur</th>
+                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>Tgl Faktur</th>
+                  <th style={{ minWidth: 220 }}>Nama Barang</th>
+                  <th style={{ width: 55, minWidth: 50, textAlign: "center" }}>Jumlah</th>
+                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>Satuan</th>
+                  <th style={{ width: 75, minWidth: 70, textAlign: "center" }}>EXP</th>
+                  <th style={{ width: 85, minWidth: 80, textAlign: "center" }}>No Batch</th>
+                  <th style={{ width: 85, minWidth: 80, textAlign: "right" }}>Hrg Satuan</th>
+                  <th style={{ width: 88, minWidth: 82, textAlign: "right" }}>Jumlah</th>
+                  <th style={{ width: 100, minWidth: 95, textAlign: "right" }}>Jumlah + PPN</th>
+                  <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
@@ -570,10 +570,10 @@ export default function RiwayatPenerimaan() {
                         style={{
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 5,
+                          gap: 3,
                           cursor: "pointer",
-                          padding: "4px 8px",
-                          borderRadius: 8,
+                          padding: "2px 6px",
+                          borderRadius: 6,
                           transition: "all 0.15s ease",
                           background: "#FAF5FF",
                           border: "1px solid #E9D5FF",
@@ -587,7 +587,7 @@ export default function RiwayatPenerimaan() {
                           e.currentTarget.style.borderColor = "#E9D5FF";
                         }}
                       >
-                        <span style={{ fontSize: 12 }}>{rupiah(b.jumlahPpnRp)}</span>
+                        <span style={{ fontSize: 11.5 }}>{rupiah(b.jumlahPpnRp)}</span>
                       </div>
                     </td>
 
