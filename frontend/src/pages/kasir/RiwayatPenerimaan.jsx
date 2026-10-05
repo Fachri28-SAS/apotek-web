@@ -452,10 +452,10 @@ export default function RiwayatPenerimaan() {
               <thead>
                 <tr>
                   <th style={{ width: 38, minWidth: 38, textAlign: "center" }}>NO</th>
-                  <th style={{ width: 80, minWidth: 80, textAlign: "center" }}>Tgl Input</th>
-                  <th style={{ width: 320, minWidth: 280 }}>Nama PBF</th>
-                  <th style={{ width: 95, minWidth: 90 }}>No Faktur</th>
-                  <th style={{ width: 80, minWidth: 75, textAlign: "center" }}>Tgl Faktur</th>
+                  <th style={{ width: 78, minWidth: 75, textAlign: "center" }}>Tgl Input</th>
+                  <th style={{ width: 380, minWidth: 340 }}>Nama PBF</th>
+                  <th style={{ width: 75, minWidth: 70 }}>No Faktur</th>
+                  <th style={{ width: 75, minWidth: 70, textAlign: "center" }}>Tgl Faktur</th>
                   <th style={{ minWidth: 220 }}>Nama Barang</th>
                   <th style={{ width: 55, minWidth: 50, textAlign: "center" }}>Jumlah</th>
                   <th style={{ width: 60, minWidth: 55, textAlign: "center" }}>Satuan</th>
@@ -508,12 +508,12 @@ export default function RiwayatPenerimaan() {
                     </td>
 
                     {/* 3. Nama PBF */}
-                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13, wordBreak: "break-word" }}>
+                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13.5, wordBreak: "break-word" }}>
                       {b.pbf}
                     </td>
 
-                    {/* 4. No Faktur */}
-                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>
+                    {/* 4. No Faktur (Bisa ke bawah / multi-line agar kolom tetap ramping) */}
+                    <td className="obat-batch-cell" style={{ fontWeight: 600, color: "var(--ink)", wordBreak: "break-all", lineHeight: 1.25, fontSize: 11.5 }}>
                       {b.noFaktur}
                     </td>
 
