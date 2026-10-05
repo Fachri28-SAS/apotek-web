@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "../../lib/api";
+import { api, login } from "../../lib/api";
 import { rupiah, hitungHargaJualOtomatis, hitungMarginPersen, getStatusMargin } from "../../utils/format";
 import { useAuth } from "../../context/useAuth";
 import { tambahLogPerubahan } from "../../lib/auditLog";
@@ -46,14 +46,24 @@ function parseAngka(val) {
 export default function Penerimaan() {
   const { user } = useAuth();
 
+  // Pulihkan draft jika ada
+  const draftAwal = (() => {
+    try {
+      const raw = localStorage.getItem("bima_draft_penerimaan");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   // ---------- Panel 1: Faktur ----------
   const [supplierList, setSupplierList] = useState([]);
-  const [supplierId, setSupplierId] = useState("");
-  const [namaSupplier, setNamaSupplier] = useState("");
-  const [noFaktur, setNoFaktur] = useState("");
-  const [tanggalTerima, setTanggalTerima] = useState(new Date().toISOString().slice(0, 10));
-  const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(tambahHari(new Date(), 30));
-  const [isPkp, setIsPkp] = useState(false);
+  const [supplierId, setSupplierId] = useState(() => draftAwal?.supplierId || "");
+  const [namaSupplier, setNamaSupplier] = useState(() => draftAwal?.namaSupplier || "");
+  const [noFaktur, setNoFaktur] = useState(() => draftAwal?.noFaktur || "");
+  const [tanggalTerima, setTanggalTerima] = useState(() => draftAwal?.tanggalTerima || new Date().toISOString().slice(0, 10));
+  const [tanggalJatuhTempo, setTanggalJatuhTempo] = useState(() => draftAwal?.tanggalJatuhTempo || tambahHari(new Date(), 30));
+  const [isPkp, setIsPkp] = useState(() => draftAwal?.isPkp ?? false);
   const [persenPpn, setPersenPpn] = useState(() => {
     const saved = localStorage.getItem("bima_default_persen_ppn");
     return saved !== null && !isNaN(Number(saved)) ? Number(saved) : 11;
@@ -68,11 +78,61 @@ export default function Penerimaan() {
   }
 
   // ---------- Panel 2: Daftar Item ----------
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => draftAwal?.items || []);
+  const [adaDraftTersimpan, setAdaDraftTersimpan] = useState(() => !!draftAwal && (draftAwal.items?.length > 0 || !!draftAwal.noFaktur));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sukses, setSukses] = useState("");
+
+  // Auto-save draft ke localStorage
+  useEffect(() => {
+    if (items.length > 0 || noFaktur.trim() || namaSupplier.trim()) {
+      try {
+        localStorage.setItem("bima_draft_penerimaan", JSON.stringify({
+          supplierId,
+          namaSupplier,
+          noFaktur,
+          tanggalTerima,
+          tanggalJatuhTempo,
+          isPkp,
+          items,
+        }));
+        setAdaDraftTersimpan(true);
+      } catch {
+        // ignore
+      }
+    }
+  }, [supplierId, namaSupplier, noFaktur, tanggalTerima, tanggalJatuhTempo, isPkp, items]);
+
+  function bersihkanDraft() {
+    if (window.confirm("Yakin ingin mengosongkan draft input faktur ini?")) {
+      try {
+        localStorage.removeItem("bima_draft_penerimaan");
+      } catch {}
+      setItems([]);
+      setNoFaktur("");
+      setSupplierId("");
+      setNamaSupplier("");
+      setIsPkp(false);
+      setAdaDraftTersimpan(false);
+      setError("");
+      setSukses("Draft faktur telah dibersihkan.");
+    }
+  }
+
+  // Relogin Modal saat sesi habis (Unauthenticated)
+  const [reloginModalOpen, setReloginModalOpen] = useState(false);
+  const [reloginUsername, setReloginUsername] = useState(() => user?.username || "yunita");
+  const [reloginPassword, setReloginPassword] = useState("");
+  const [reloginLoading, setReloginLoading] = useState(false);
+  const [reloginError, setReloginError] = useState("");
+
+  useEffect(() => {
+    if (user?.username) {
+      setReloginUsername(user.username);
+    }
+  }, [user]);
 
   useEffect(() => {
     api("/suppliers").then(setSupplierList).catch(() => {});
@@ -215,14 +275,46 @@ export default function Penerimaan() {
       });
 
       setSukses(`Faktur ${noFaktur} berhasil disimpan oleh ${namaAkun}. Stok & harga obat sudah diperbarui.`);
+      try {
+        localStorage.removeItem("bima_draft_penerimaan");
+      } catch {}
+      setAdaDraftTersimpan(false);
       setItems([]);
       setNoFaktur("");
-      setDiskonFakturRp(0);
-      setDiskonFakturPersen(0);
     } catch (e) {
-      setError(e.message || "Gagal menyimpan penerimaan.");
+      const msg = e.message || "Gagal menyimpan penerimaan.";
+      if (e.status === 401 || msg.toLowerCase().includes("unauthenticated")) {
+        setReloginModalOpen(true);
+        setError("Sesi login Anda terputus (kemungkinan akun login di HP / perangkat lain). Draft ketikan faktur Anda aman tersimpan! Silakan masukkan sandi kasir di bawah ini untuk menyambungkan kembali tanpa reload.");
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleReloginSubmit(e) {
+    if (e) e.preventDefault();
+    if (!reloginPassword.trim()) {
+      setReloginError("Silakan masukkan kata sandi kasir.");
+      return;
+    }
+    setReloginLoading(true);
+    setReloginError("");
+    try {
+      await login(reloginUsername, reloginPassword);
+      setReloginModalOpen(false);
+      setReloginPassword("");
+      setError("");
+      setSukses("Sesi kasir berhasil disambungkan kembali! Menyimpan faktur sekarang...");
+      setTimeout(() => {
+        simpan();
+      }, 300);
+    } catch (err) {
+      setReloginError(err.message || "Gagal login. Periksa username dan kata sandi Anda.");
+    } finally {
+      setReloginLoading(false);
     }
   }
 
@@ -267,8 +359,66 @@ export default function Penerimaan() {
         </div>
       </div>
 
-      {error && <div className="login-error">{error}</div>}
+      {error && (
+        <div className="login-error" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <span>{error}</span>
+          {(error.toLowerCase().includes("sesi") || error.toLowerCase().includes("unauthenticated")) && (
+            <button
+              type="button"
+              onClick={() => setReloginModalOpen(true)}
+              style={{
+                background: "#DC2626",
+                color: "#FFF",
+                border: "none",
+                borderRadius: 6,
+                padding: "5px 12px",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+                whiteSpace: "nowrap"
+              }}
+            >
+              🔐 Sambungkan Akun
+            </button>
+          )}
+        </div>
+      )}
       {sukses && <div className="pesan-sukses">{sukses}</div>}
+
+      {adaDraftTersimpan && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          background: "#FEF3C7",
+          border: "1px solid #F59E0B",
+          padding: "8px 14px",
+          borderRadius: 8,
+          marginBottom: 12,
+          fontSize: 12.5,
+          color: "#92400E"
+        }}>
+          <div>
+            💾 <strong>Draft Faktur Tersimpan:</strong> Ketikan faktur Anda aman tersimpan di memori browser ini.
+          </div>
+          <button
+            type="button"
+            onClick={bersihkanDraft}
+            style={{
+              background: "#FFF",
+              border: "1px solid #D97706",
+              borderRadius: 6,
+              color: "#B45309",
+              padding: "3px 10px",
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Hapus Draft
+          </button>
+        </div>
+      )}
 
             <div className="panel" style={{ padding: "12px 16px", marginBottom: 12 }}>
         <div
@@ -688,6 +838,91 @@ export default function Penerimaan() {
           onSukses={supplierBaruDitambahkan}
           onHapusSupplier={supplierDihapus}
         />
+      )}
+
+      {reloginModalOpen && (
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+          <div className="modal-card" style={{ maxWidth: 430 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 26 }}>🔐</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 16 }}>Sesi Login Terputus</h3>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--ink-soft)" }}>
+                  Akun aktif di perangkat lain. Sambungkan kembali tanpa refresh:
+                </p>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12.5, color: "var(--ink)", background: "#F3F4F6", padding: "10px 14px", borderRadius: 8, margin: "0 0 14px 0", lineHeight: 1.5 }}>
+              Tenang, <strong>{items.length} item</strong> faktur yang sudah Anda ketik <strong>tidak hilang</strong>! Cukup masukkan kata sandi kasir untuk langsung menyambungkan dan menyimpannya.
+            </div>
+
+            {reloginError && (
+              <div className="login-error" style={{ marginBottom: 12, fontSize: 12 }}>
+                {reloginError}
+              </div>
+            )}
+
+            <form onSubmit={handleReloginSubmit}>
+              <div className="payment-field" style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Username Kasir</label>
+                <input
+                  type="text"
+                  value={reloginUsername}
+                  onChange={(e) => setReloginUsername(e.target.value)}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--line)" }}
+                  required
+                />
+              </div>
+
+              <div className="payment-field" style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 12, fontWeight: 700 }}>Kata Sandi Kasir</label>
+                <input
+                  type="password"
+                  placeholder="Masukkan kata sandi kasir"
+                  value={reloginPassword}
+                  onChange={(e) => setReloginPassword(e.target.value)}
+                  style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: "1px solid var(--line)" }}
+                  autoFocus
+                  required
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setReloginModalOpen(false)}
+                  style={{
+                    background: "#F3F4F6",
+                    border: "1px solid var(--line)",
+                    padding: "7px 14px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    cursor: "pointer"
+                  }}
+                >
+                  Tutup
+                </button>
+                <button
+                  type="submit"
+                  disabled={reloginLoading}
+                  style={{
+                    background: "var(--magenta)",
+                    color: "#FFF",
+                    border: "none",
+                    padding: "7px 16px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  {reloginLoading ? "Menyambungkan..." : "Sambungkan & Simpan Faktur"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </KasirShell>
   );

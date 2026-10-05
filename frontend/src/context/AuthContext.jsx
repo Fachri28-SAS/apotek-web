@@ -4,7 +4,7 @@ import { login as apiLogin, logout as apiLogout, getMe, isLoggedIn, setToken, ap
 
 function getCachedUser() {
   if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem("bimafarma_user");
+  const raw = sessionStorage.getItem("bimafarma_user") || localStorage.getItem("bimafarma_user");
   try {
     return raw ? JSON.parse(raw) : null;
   } catch {
@@ -17,12 +17,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(() => isLoggedIn() && !getCachedUser());
 
   useEffect(() => {
-    try {
-      localStorage.removeItem("bimafarma_user");
-      localStorage.removeItem("bimafarma_token");
-    } catch {
-      // ignore
-    }
 
     if (!isLoggedIn()) {
       setLoading(false);
@@ -35,6 +29,7 @@ export function AuthProvider({ children }) {
         setUser(u);
         try {
           sessionStorage.setItem("bimafarma_user", JSON.stringify(u));
+          localStorage.setItem("bimafarma_user", JSON.stringify(u));
         } catch {
           // ignore
         }
@@ -45,6 +40,7 @@ export function AuthProvider({ children }) {
           setToken(null);
           try {
             sessionStorage.removeItem("bimafarma_user");
+            localStorage.removeItem("bimafarma_user");
           } catch {
             // ignore
           }

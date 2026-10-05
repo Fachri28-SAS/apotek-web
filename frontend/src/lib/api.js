@@ -9,22 +9,26 @@ const BASE_URL = (() => {
 
 function getToken() {
   if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("bimafarma_token");
+  return sessionStorage.getItem("bimafarma_token") || localStorage.getItem("bimafarma_token");
 }
 
 function setToken(token) {
-  try {
-    localStorage.removeItem("bimafarma_token");
-  } catch {
-    // ignore
-  }
-
   if (!token) {
-    sessionStorage.removeItem("bimafarma_token");
+    try {
+      sessionStorage.removeItem("bimafarma_token");
+      localStorage.removeItem("bimafarma_token");
+    } catch {
+      // ignore
+    }
     return;
   }
 
-  sessionStorage.setItem("bimafarma_token", token);
+  try {
+    sessionStorage.setItem("bimafarma_token", token);
+    localStorage.setItem("bimafarma_token", token);
+  } catch {
+    // ignore
+  }
 }
 
 async function api(path, options = {}) {
