@@ -539,8 +539,17 @@ export default function RiwayatPenerimaan() {
                       )}
                     </td>
 
-                    {/* 3. Nama PBF */}
-                    <td style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13, wordBreak: "break-word", padding: "6px 6px" }}>
+                    {/* 3. Nama PBF (Ukuran pas & 1 baris) */}
+                    <td
+                      style={{
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                        fontSize: 11,
+                        whiteSpace: "nowrap",
+                        padding: "6px 6px",
+                      }}
+                      title={b.pbf}
+                    >
                       {b.pbf}
                     </td>
 
