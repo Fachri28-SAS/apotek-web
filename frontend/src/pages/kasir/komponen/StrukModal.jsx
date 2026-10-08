@@ -623,9 +623,12 @@ export default function StrukModal({ data, onClose, autoPrint = false }) {
           <button
             className="btn-primary"
             onClick={() => cetakStruk(data, "80mm", 0)}
-            style={{ fontWeight: 800 }}
+            style={{ fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6 }}
           >
-            🖨️ Cetak Struk (80mm)
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+              <path d="M6 9V3h12v6M6 18H4v-6h16v6h-2" /><rect x="8" y="14" width="8" height="7" rx="1" />
+            </svg>
+            Cetak Struk (80mm)
           </button>
         </div>
       </div>

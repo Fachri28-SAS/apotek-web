@@ -750,10 +750,12 @@ export default function PembayaranPenerimaan() {
                                   fontSize: 10.5,
                                 }}
                               >
-                                🖨️
-                              </button>
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                                    <path d="M6 9V3h12v6M6 18H4v-6h16v6h-2" /><rect x="8" y="14" width="8" height="7" rx="1" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
-                          </div>
                         </td>
 
                         {/* 5. Besar Uang */}
@@ -844,7 +846,7 @@ export default function PembayaranPenerimaan() {
                               transition: "all 0.15s ease",
                             }}
                           >
-                            {isLunas ? "✓ Lunas" : "Lunaskan"}
+                            {isLunas ? "Lunas" : "Lunaskan"}
                           </button>
                         </td>
 

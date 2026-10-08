@@ -660,7 +660,7 @@ function ModalCaraBayar({ onClose }) {
             <span>Butuh bantuan pemesanan atau kendala bayar?</span>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
               <a href="https://wa.me/6282119661953" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
-                💬 CS WhatsApp: 0821-1966-1953
+                CS WhatsApp: 0821-1966-1953
               </a>
               <a href="https://wa.me/6281223604900" target="_blank" rel="noopener noreferrer" style={{ color: "var(--magenta-dark)", fontWeight: 700, fontSize: 12.5, textDecoration: "none" }}>
                  Telp Apotek: 0812-2360-4900

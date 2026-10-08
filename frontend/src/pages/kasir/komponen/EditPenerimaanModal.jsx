@@ -214,7 +214,10 @@ export default function EditPenerimaanModal({
         >
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 18 }}>✏️</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#7E22CE" strokeWidth="2" style={{ width: 18, height: 18 }}>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
               <h3 style={{ fontSize: 16, fontWeight: 800, color: "#581C87", margin: 0 }}>
                 Edit / Koreksi Penerimaan Barang
               </h3>
@@ -253,7 +256,7 @@ export default function EditPenerimaanModal({
               fontWeight: 800,
             }}
           >
-            ✕
+            &times;
           </button>
         </div>
 
@@ -272,7 +275,7 @@ export default function EditPenerimaanModal({
                 marginBottom: 16,
               }}
             >
-              ⚠️ {error}
+              {error}
             </div>
           )}
 
@@ -287,7 +290,7 @@ export default function EditPenerimaanModal({
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 800, color: "#6B21A8", marginBottom: 8 }}>
-              🏢 INFORMASI PBF / SUPPLIER
+              INFORMASI PBF / SUPPLIER
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "start" }}>
               <div>
@@ -365,7 +368,7 @@ export default function EditPenerimaanModal({
             }}
           >
             <div style={{ fontSize: 13, fontWeight: 800, color: "#1E293B", marginBottom: 10 }}>
-              📄 INFORMASI FAKTUR & TANGGAL
+              INFORMASI FAKTUR & TANGGAL
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 10 }}>
               <div>
@@ -489,7 +492,7 @@ export default function EditPenerimaanModal({
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 800, color: "#1E293B" }}>
-                📦 RINCIAN BARANG & BESAR UANG ({items.length} Item)
+                RINCIAN BARANG & BESAR UANG ({items.length} Item)
               </div>
               <span style={{ fontSize: 11.5, color: "#64748B" }}>
                 Koreksi Harga Beli / Qty otomatis menghitung ulang Total
@@ -693,7 +696,7 @@ export default function EditPenerimaanModal({
                 cursor: "pointer",
               }}
             >
-              {hapusLoading ? "Menghapus..." : "🗑️ Hapus Faktur Ini"}
+              {hapusLoading ? "Menghapus..." : "Hapus Faktur Ini"}
             </button>
 
             <div style={{ display: "flex", gap: 10 }}>
@@ -730,7 +733,7 @@ export default function EditPenerimaanModal({
                   boxShadow: "0 4px 12px rgba(147, 51, 234, 0.25)",
                 }}
               >
-                {loading ? "Menyimpan Perubahan..." : "💾 Simpan Perubahan Faktur"}
+                {loading ? "Menyimpan Perubahan..." : "Simpan Perubahan Faktur"}
               </button>
             </div>
           </div>

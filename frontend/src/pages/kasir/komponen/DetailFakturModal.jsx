@@ -191,8 +191,8 @@ export default function DetailFakturModal({ data, onClose, onLihatHutangSupplier
             </div>
             <div>
               <span style={{ color: "#64748B", display: "block" }}>Diinput Oleh</span>
-              <strong style={{ color: "#4A044E", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                👤 {namaPetugas}
+              <strong style={{ color: "#4A044E" }}>
+                {namaPetugas}
               </strong>
             </div>
           </div>

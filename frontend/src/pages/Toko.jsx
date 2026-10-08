@@ -1182,7 +1182,7 @@ export default function Toko() {
                       textDecoration: "none",
                     }}
                   >
-                    💬 Butuh bantuan pembayaran? Chat CS (0821-1966-1953)
+                    Butuh bantuan pembayaran? Chat CS (0821-1966-1953)
                   </a>
                 </div>
               )}

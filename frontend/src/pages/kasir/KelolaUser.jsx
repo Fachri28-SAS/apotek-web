@@ -479,7 +479,7 @@ export default function KelolaUser() {
 
         {error && (
           <div style={{ background: "#FEE2E2", color: "#DC2626", border: "1px solid #FECACA", padding: "12px 18px", borderRadius: 10, fontWeight: 700, fontSize: 13, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span>⚠️ {error}</span>
+            <span>{error}</span>
             <button type="button" onClick={() => muatUsers()} style={{ background: "#DC2626", color: "#fff", border: "none", borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontWeight: 700 }}>
               Muat Ulang
             </button>
@@ -852,9 +852,9 @@ export default function KelolaUser() {
                 type="button"
                 onClick={() => setModalOperasionalOpen(false)}
                 disabled={savingOperasional}
-                style={{ background: "transparent", border: "none", fontSize: 18, cursor: "pointer", color: "var(--ink-soft)" }}
+                style={{ background: "transparent", border: "none", fontSize: 20, cursor: "pointer", color: "var(--ink-soft)", lineHeight: 1 }}
               >
-                ✕
+                &times;
               </button>
             </div>
 

@@ -422,7 +422,7 @@ export default function Kasir() {
                     marginBottom: 8,
                   }}
                 >
-                  ⚠️ Masih ada {tabAktif.items.length} item obat di keranjang transaksi saat ini. Pastikan semua transaksi sudah selesai atau dibatalkan sebelum closing.
+                  Masih ada {tabAktif.items.length} item obat di keranjang transaksi saat ini. Pastikan semua transaksi sudah selesai atau dibatalkan sebelum closing.
                 </div>
               )}
             </div>

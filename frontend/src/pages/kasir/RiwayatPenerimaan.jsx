@@ -338,7 +338,9 @@ export default function RiwayatPenerimaan() {
             boxShadow: "0 2px 8px rgba(16, 185, 129, 0.08)",
           }}
         >
-          <span style={{ fontSize: 16 }}>✅</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2.5" style={{ width: 18, height: 18, flexShrink: 0 }}>
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
           <span>{notifSukses}</span>
         </div>
       )}

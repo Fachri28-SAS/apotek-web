@@ -505,7 +505,7 @@ export default function TambahSupplierModal({ supplierList = [], onClose, onSuks
                 }}
               >
                 <div style={{ fontSize: 13, fontWeight: 800, color: "#581C87", marginBottom: 8 }}>
-                  ✏️ Ubah Nama PBF: <span style={{ color: "#7E22CE" }}>{editSupplier.nama}</span>
+                  Ubah Nama PBF: <span style={{ color: "#7E22CE" }}>{editSupplier.nama}</span>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
                   <input

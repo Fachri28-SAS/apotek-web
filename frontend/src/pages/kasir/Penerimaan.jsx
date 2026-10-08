@@ -339,7 +339,7 @@ export default function Penerimaan() {
             boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
           }}
         >
-          <span style={{ color: "#7C3AED", fontWeight: 600 }}>👤 Petugas Input:</span>
+          <span style={{ color: "#7C3AED", fontWeight: 600 }}>Petugas Input:</span>
           <strong style={{ color: "#4C1D95", fontSize: 13 }}>
             {user?.nama || user?.username || "Petugas"}
           </strong>
@@ -378,7 +378,7 @@ export default function Penerimaan() {
                 whiteSpace: "nowrap"
               }}
             >
-              🔐 Sambungkan Akun
+              Sambungkan Akun
             </button>
           )}
         </div>
@@ -399,7 +399,7 @@ export default function Penerimaan() {
           color: "#92400E"
         }}>
           <div>
-            💾 <strong>Draft Faktur Tersimpan:</strong> Ketikan faktur Anda aman tersimpan di memori browser ini.
+            <strong>Draft Faktur Tersimpan:</strong> Ketikan faktur Anda aman tersimpan di memori browser ini.
           </div>
           <button
             type="button"
@@ -844,7 +844,10 @@ export default function Penerimaan() {
         <div className="modal-backdrop" style={{ zIndex: 9999 }}>
           <div className="modal-card" style={{ maxWidth: 430 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <span style={{ fontSize: 26 }}>🔐</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" style={{ width: 24, height: 24, flexShrink: 0 }}>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16 }}>Sesi Login Terputus</h3>
                 <p style={{ margin: 0, fontSize: 12, color: "var(--ink-soft)" }}>
