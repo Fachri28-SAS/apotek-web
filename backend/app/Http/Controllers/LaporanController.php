@@ -34,30 +34,73 @@ class LaporanController extends Controller
 
         $queryPeriode = Penjualan::whereIn('status', ['lunas', 'selesai'])->whereBetween('tanggal', [$mulai, $selesai]);
 
-        $totalPenjualan = (float) (clone $queryPeriode)->sum('total');
-        $jumlahTransaksi = (clone $queryPeriode)->count();
-        $rataRata = $jumlahTransaksi > 0 ? $totalPenjualan / $jumlahTransaksi : 0;
+        $transaksi = (clone $queryPeriode)
+            ->with(['items.obatSatuan'])
+            ->orderByDesc('id')
+            ->limit(2000)
+            ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'subtotal',
+                    'diskon', 'total', 'metode_bayar', 'sumber', 'created_at'])
+            ->map(function ($t) {
+                $trxModal = 0;
+                $selisihSubtotal = 0;
 
-        $penjualanIds = (clone $queryPeriode)->pluck('id');
-        $totalModal = (float) (DB::table('penjualan_item')
-            ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
-            ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
-            ->selectRaw('SUM(COALESCE(penjualan_item.harga_beli, obat_satuan.harga_beli, 0) * penjualan_item.qty) as modal')
-            ->value('modal') ?? 0);
+                foreach ($t->items as $item) {
+                    $satuan = $item->obatSatuan;
+                    $hargaBeliItem = ($satuan && $satuan->harga_beli > 0)
+                        ? (float) $satuan->harga_beli
+                        : (float) ($item->harga_beli ?? 0);
 
+                    $hargaJualItem = ($satuan && $satuan->harga_jual > 0)
+                        ? (float) $satuan->harga_jual
+                        : (float) ($item->harga_jual ?? 0);
+
+                    $subtotalLama = (float) $item->subtotal;
+                    $subtotalBaru = max(($item->qty * $hargaJualItem + ($item->tuslah ?? 0)) - ($item->diskon ?? 0), 0);
+                    $selisihSubtotal += ($subtotalBaru - $subtotalLama);
+
+                    $trxModal += ($hargaBeliItem * $item->qty);
+                }
+
+                $trxTotalJual = max((float) $t->total + $selisihSubtotal, 0);
+                $labaTrx = (float) ($trxTotalJual - $trxModal);
+                $marginTrx = $trxModal > 0 ? round(($labaTrx / $trxModal) * 100, 1) : 0;
+
+                return [
+                    'id' => $t->id,
+                    'no_struk' => $t->no_struk,
+                    'nama_kasir' => $t->nama_kasir,
+                    'nama_pembeli' => $t->nama_pembeli,
+                    'items_count' => $t->items->count(),
+                    'subtotal' => max((float) $t->subtotal + $selisihSubtotal, 0),
+                    'diskon' => (float) $t->diskon,
+                    'total' => $trxTotalJual,
+                    'total_modal' => $trxModal,
+                    'total_pendapatan' => $labaTrx,
+                    'margin_persen' => $marginTrx,
+                    'metode_bayar' => $t->metode_bayar,
+                    'sumber' => $t->sumber,
+                    'created_at' => $t->created_at,
+                ];
+            });
+
+        $totalPenjualan = (float) $transaksi->sum('total');
+        $totalModal = (float) $transaksi->sum('total_modal');
         $totalPendapatan = (float) ($totalPenjualan - $totalModal);
         $marginPersen = $totalModal > 0 ? round(($totalPendapatan / $totalModal) * 100, 1) : 0;
+        $jumlahTransaksi = $transaksi->count();
+        $rataRata = $jumlahTransaksi > 0 ? round($totalPenjualan / $jumlahTransaksi) : 0;
 
-        $metodeBreakdown = (clone $queryPeriode)
-            ->select('metode_bayar', DB::raw('COUNT(*) as jumlah'), DB::raw('SUM(total) as total'))
+        $metodeBreakdown = $transaksi
             ->groupBy('metode_bayar')
-            ->get()
-            ->map(fn ($m) => [
-                'metode' => $m->metode_bayar,
-                'jumlah' => (int) $m->jumlah,
-                'total' => (float) $m->total,
-                'persen' => $jumlahTransaksi > 0 ? round($m->jumlah / $jumlahTransaksi * 100) : 0,
-            ]);
+            ->map(function ($items, $metode) use ($jumlahTransaksi) {
+                return [
+                    'metode' => $metode,
+                    'jumlah' => $items->count(),
+                    'total' => (float) $items->sum('total'),
+                    'persen' => $jumlahTransaksi > 0 ? round($items->count() / $jumlahTransaksi * 100) : 0,
+                ];
+            })
+            ->values();
 
         // Tren 7 hari terakhir
         $grafik = DB::table('penjualan')
@@ -85,39 +128,6 @@ class LaporanController extends Controller
             ->whereBetween('tanggal_exp', [$hariIni, $batasExp])
             ->orderBy('tanggal_exp')
             ->get(['id', 'nama', 'satuan_dasar', 'stok', 'nomor_batch', 'tanggal_exp']);
-
-        $transaksi = (clone $queryPeriode)
-            ->with(['items' => function ($q) {
-                $q->select('id', 'penjualan_id', 'obat_satuan_id', 'qty', 'harga_beli', 'subtotal');
-            }])
-            ->orderByDesc('id')
-            ->limit(2000)
-            ->get(['id', 'no_struk', 'nama_kasir', 'nama_pembeli', 'subtotal',
-                    'diskon', 'total', 'metode_bayar', 'sumber', 'created_at'])
-            ->map(function ($t) {
-                $modalTrx = (float) $t->items->sum(function ($item) {
-                    return ($item->harga_beli ?? 0) * $item->qty;
-                });
-                $labaTrx = (float) ($t->total - $modalTrx);
-                $marginTrx = $modalTrx > 0 ? round(($labaTrx / $modalTrx) * 100, 1) : 0;
-
-                return [
-                    'id' => $t->id,
-                    'no_struk' => $t->no_struk,
-                    'nama_kasir' => $t->nama_kasir,
-                    'nama_pembeli' => $t->nama_pembeli,
-                    'items_count' => $t->items->count(),
-                    'subtotal' => (float) $t->subtotal,
-                    'diskon' => (float) $t->diskon,
-                    'total' => (float) $t->total,
-                    'total_modal' => $modalTrx,
-                    'total_pendapatan' => $labaTrx,
-                    'margin_persen' => $marginTrx,
-                    'metode_bayar' => $t->metode_bayar,
-                    'sumber' => $t->sumber,
-                    'created_at' => $t->created_at,
-                ];
-            });
 
         return [
             'periode' => $periode,

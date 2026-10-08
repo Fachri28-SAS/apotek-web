@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Obat;
 use App\Models\ObatSatuan;
+use App\Models\Penjualan;
 use App\Services\StokService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -223,7 +224,47 @@ class ObatController extends Controller
                 $updateData['urutan'] = 100 + $i;
             }
 
-            $obat->satuan()->updateOrCreate(['nama_satuan' => $s['nama_satuan']], $updateData);
+            $satuanTersimpan = $obat->satuan()->updateOrCreate(['nama_satuan' => $s['nama_satuan']], $updateData);
+
+            if ($satuanLama && (!empty($updateData['harga_beli']) || !empty($updateData['harga_jual']))) {
+                $pItemUpdates = [];
+                if (!empty($updateData['harga_beli']) && $updateData['harga_beli'] > 0) {
+                    $pItemUpdates['harga_beli'] = $updateData['harga_beli'];
+                }
+                if (!empty($updateData['harga_jual']) && $updateData['harga_jual'] > 0) {
+                    $pItemUpdates['harga_jual'] = $updateData['harga_jual'];
+                }
+                if (!empty($pItemUpdates)) {
+                    DB::table('penjualan_item')
+                        ->where('obat_satuan_id', $satuanTersimpan->id)
+                        ->update($pItemUpdates);
+
+                    if (isset($pItemUpdates['harga_jual'])) {
+                        $hj = (float) $pItemUpdates['harga_jual'];
+                        DB::statement("
+                            UPDATE penjualan_item
+                            SET subtotal = GREATEST((qty * {$hj} + COALESCE(tuslah, 0)) - COALESCE(diskon, 0), 0)
+                            WHERE obat_satuan_id = {$satuanTersimpan->id}
+                        ");
+
+                        $pIds = DB::table('penjualan_item')
+                            ->where('obat_satuan_id', $satuanTersimpan->id)
+                            ->pluck('penjualan_id')
+                            ->unique();
+
+                        foreach ($pIds as $pid) {
+                            $newSubtotal = (float) DB::table('penjualan_item')->where('penjualan_id', $pid)->sum('subtotal');
+                            $penjualan = Penjualan::find($pid);
+                            if ($penjualan) {
+                                $penjualan->update([
+                                    'subtotal' => $newSubtotal,
+                                    'total' => max($newSubtotal - ($penjualan->diskon ?? 0), 0),
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return $obat->load('satuan');

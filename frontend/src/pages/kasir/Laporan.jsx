@@ -5,6 +5,7 @@ import { rupiah } from "../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
 import KasirShell from "./KasirShell";
 import TombolExportGroup from "./komponen/TombolExportGroup";
+import StrukModal from "./komponen/StrukModal";
 
 function getTglYmd(d) {
   var yyyy = d.getFullYear();
@@ -37,7 +38,7 @@ function hitungMarginPersenTrx(t) {
 }
 
 function exportCSV(transaksi) {
-  var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total Penjualan,Total Modal (HPP),Total Pendapatan (Laba),Margin,Metode Bayar\n";
+  var header = "No. Struk,Sumber,Waktu,Kasir,Pembeli,Jumlah Item,Subtotal,Diskon,Total Penjualan,MODAL,LABA,Margin,Metode Bayar\n";
   var rows = transaksi.map(function(t) {
     return [
       t.no_struk,
@@ -73,6 +74,21 @@ export default function Laporan() {
   var [data, setData] = useState(null);
   var [loading, setLoading] = useState(true);
   var [error, setError] = useState("");
+  var [struk, setStruk] = useState(null);
+  var [memuatStrukId, setMemuatStrukId] = useState(null);
+
+  async function bukaStruk(id) {
+    if (memuatStrukId) return;
+    setMemuatStrukId(id);
+    try {
+      var d = await api("/penjualan/" + id);
+      setStruk(d);
+    } catch (e) {
+      setError(e.message || "Gagal memuat detail struk.");
+    } finally {
+      setMemuatStrukId(null);
+    }
+  }
 
   useEffect(function() {
     setLoading(true);
@@ -102,8 +118,8 @@ export default function Laporan() {
       { label: "Pembeli", align: "left" },
       { label: "Item", align: "center" },
       { label: "Total Jual", align: "right" },
-      { label: "Modal (HPP)", align: "right" },
-      { label: "Pendapatan (Laba)", align: "right" },
+      { label: "MODAL", align: "right" },
+      { label: "LABA", align: "right" },
       { label: "Margin", align: "center" },
       { label: "Metode", align: "center" },
     ];
@@ -299,7 +315,7 @@ export default function Laporan() {
                 })()
               )}
             </div>
-            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>Total Pendapatan (Laba)</div>
+            <div className="kpi-label" style={{ color: "var(--green-dark)" }}>LABA</div>
             <div className="kpi-sub">Selisih jual - beli</div>
           </div>
         </div>
@@ -327,7 +343,7 @@ export default function Laporan() {
           </div>
           <div>
             <div className="kpi-angka">{loading ? "…" : rupiah(data.kpi.total_modal)}</div>
-            <div className="kpi-label">Total Modal (HPP)</div>
+            <div className="kpi-label">MODAL</div>
             <div className="kpi-sub">Harga beli obat terjual</div>
           </div>
         </div>
@@ -409,16 +425,17 @@ export default function Laporan() {
                   <th>Pembeli</th>
                   <th>Item</th>
                   <th>Total Jual</th>
-                  <th>Modal (HPP)</th>
-                  <th>Pendapatan (Laba)</th>
+                  <th>MODAL</th>
+                  <th>LABA</th>
                   <th>Margin</th>
                   <th>Bayar</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {data.transaksi.map(function(t) {
                   return (
-                    <tr key={t.id}>
+                    <tr key={t.id} className="baris-klik" onClick={function() { bukaStruk(t.id); }}>
                       <td className="obat-batch-cell">{t.no_struk}</td>
                       <td><span className={"sumber-badge " + t.sumber}>{t.sumber === "online" ? "Toko Online" : "Kasir"}</span></td>
                       <td>{new Date(t.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</td>
@@ -442,6 +459,19 @@ export default function Laporan() {
                         })()}
                       </td>
                       <td><span className="metode-badge">{t.metode_bayar}</span></td>
+                      <td>
+                        <div className="obat-aksi-icons">
+                          <button
+                            type="button"
+                            onClick={function(e) { e.stopPropagation(); bukaStruk(t.id); }}
+                            title="Lihat & cetak struk"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                              <path d="M6 9V3h12v6M6 18H4v-6h16v6h-2" /><rect x="8" y="14" width="8" height="7" rx="1" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
@@ -452,6 +482,8 @@ export default function Laporan() {
           <div className="panel-kosong">{loading ? "Memuat…" : "Belum ada transaksi pada periode ini."}</div>
         )}
       </div>
+
+      <StrukModal data={struk} onClose={function() { setStruk(null); }} autoPrint={false} />
     </KasirShell>
   );
 }

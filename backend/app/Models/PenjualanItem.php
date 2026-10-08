@@ -34,4 +34,9 @@ class PenjualanItem extends Model
     {
         return $this->belongsTo(Obat::class);
     }
+
+    public function obatSatuan()
+    {
+        return $this->belongsTo(ObatSatuan::class, 'obat_satuan_id');
+    }
 }

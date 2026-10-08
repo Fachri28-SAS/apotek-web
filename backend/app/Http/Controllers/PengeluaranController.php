@@ -33,7 +33,7 @@ class PengeluaranController extends Controller
         $totalModal = (float) (DB::table('penjualan_item')
             ->leftJoin('obat_satuan', 'penjualan_item.obat_satuan_id', '=', 'obat_satuan.id')
             ->whereIn('penjualan_item.penjualan_id', $penjualanIds)
-            ->selectRaw('SUM(COALESCE(penjualan_item.harga_beli, obat_satuan.harga_beli, 0) * penjualan_item.qty) as modal')
+            ->selectRaw('SUM(COALESCE(NULLIF(obat_satuan.harga_beli, 0), penjualan_item.harga_beli, 0) * penjualan_item.qty) as modal')
             ->value('modal') ?? 0);
         $totalLabaPenjualan = (float) ($totalPenjualan - $totalModal);
 
