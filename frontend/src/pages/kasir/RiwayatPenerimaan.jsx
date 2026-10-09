@@ -565,8 +565,8 @@ export default function RiwayatPenerimaan() {
                       {formatTgl(b.tanggal)}
                     </td>
 
-                    {/* 6. Nama Barang */}
-                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)", wordBreak: "break-word", padding: "6px 6px" }}>
+                    {/* 6. Nama Barang (Ukuran sama dengan Nama PBF: 10.5) */}
+                    <td style={{ fontWeight: 700, color: "var(--magenta-dark)", wordBreak: "break-word", padding: "6px 6px", fontSize: 10.5 }}>
                       {b.namaBarang}
                     </td>
 
