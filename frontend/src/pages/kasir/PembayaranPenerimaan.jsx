@@ -611,20 +611,20 @@ export default function PembayaranPenerimaan() {
           </div>
         ) : (
           <div className="obat-table-wrap">
-            {/* Tabel Tagihan PBF 10 Kolom */}
-            <table className="obat-table" style={{ minWidth: 1160, fontSize: 12 }}>
+            {/* Tabel Tagihan PBF 10 Kolom: Pas Layar Penuh 100% Tanpa Lebih ke Kanan */}
+            <table className="obat-table" style={{ width: "100%", fontSize: 12 }}>
               <thead>
                 <tr>
-                  <th style={{ width: 44, textAlign: "center", padding: "6px 2px" }}>NO</th>
-                  <th style={{ width: 220, minWidth: 200, padding: "6px 6px" }}>Nama PBF</th>
-                  <th style={{ width: 95, textAlign: "center", padding: "6px 2px" }}>Tgl Faktur</th>
-                  <th style={{ width: 130, padding: "6px 4px" }}>Nomor Faktur</th>
-                  <th style={{ width: 120, textAlign: "right", padding: "6px 4px" }}>Besar Uang</th>
-                  <th style={{ width: 125, textAlign: "right", padding: "6px 4px" }}>Jumlah</th>
-                  <th style={{ width: 105, textAlign: "center", padding: "6px 2px" }}>Tgl Jth Tempo</th>
-                  <th style={{ width: 135, textAlign: "center", padding: "6px 2px" }}>Tgl Bayar</th>
-                  <th style={{ width: 95, textAlign: "center", padding: "6px 2px" }}>Lunas</th>
-                  <th style={{ width: 125, textAlign: "center", padding: "6px 2px" }}>Petugas</th>
+                  <th style={{ width: 34, textAlign: "center", padding: "6px 2px" }}>NO</th>
+                  <th style={{ width: "24%", minWidth: 120, padding: "6px 6px" }}>Nama PBF</th>
+                  <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Tgl Faktur</th>
+                  <th style={{ width: 90, padding: "6px 3px" }}>Nomor Faktur</th>
+                  <th style={{ width: 85, textAlign: "right", padding: "6px 4px" }}>Besar Uang</th>
+                  <th style={{ width: 85, textAlign: "right", padding: "6px 4px" }}>Jumlah</th>
+                  <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Tgl Jth Tempo</th>
+                  <th style={{ width: 100, textAlign: "center", padding: "6px 2px" }}>Tgl Bayar</th>
+                  <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Lunas</th>
+                  <th style={{ width: 90, textAlign: "center", padding: "6px 2px" }}>Petugas</th>
                 </tr>
               </thead>
               <tbody>
@@ -676,8 +676,8 @@ export default function PembayaranPenerimaan() {
                               padding: "6px 6px",
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 10.5, fontWeight: 600 }}>{grup.namaSupplier}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 10.5, fontWeight: 600, wordBreak: "break-word" }}>{grup.namaSupplier}</span>
                               {grup.namaSupplier && (
                                 <button
                                   type="button"
@@ -689,10 +689,10 @@ export default function PembayaranPenerimaan() {
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    gap: 3,
-                                    padding: "1px 5px",
+                                    gap: 2,
+                                    padding: "1px 4px",
                                     borderRadius: 4,
-                                    fontSize: 9.5,
+                                    fontSize: 9,
                                     fontWeight: 700,
                                     background: "#FEF2F2",
                                     color: "#DC2626",
@@ -732,12 +732,12 @@ export default function PembayaranPenerimaan() {
                         )}
 
                         {/* 4. Nomor Faktur */}
-                        <td className="obat-batch-cell" style={{ fontWeight: 600, padding: "6px 4px" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                        <td className="obat-batch-cell" style={{ fontWeight: 600, padding: "6px 3px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 3 }}>
                             <div>
-                              <span style={{ fontSize: 11.5, fontWeight: 700 }}>{faktur.no_faktur}</span>
+                              <span style={{ fontSize: 11, fontWeight: 700, wordBreak: "break-all", lineHeight: 1.25 }}>{faktur.no_faktur}</span>
                             </div>
-                            <div style={{ display: "inline-flex", gap: 3 }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: "inline-flex", gap: 2, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -746,16 +746,18 @@ export default function PembayaranPenerimaan() {
                                 }}
                                 title="Cetak faktur ini"
                                 style={{
-                                  padding: "2px 5px",
+                                  padding: "2px 4px",
                                   borderRadius: 4,
                                   border: "1px solid var(--line)",
                                   background: "#FAF5FF",
                                   color: "var(--magenta-dark)",
                                   cursor: "pointer",
                                   fontSize: 10.5,
+                                  display: "inline-flex",
+                                  alignItems: "center",
                                 }}
                               >
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 12, height: 12 }}>
                                     <path d="M6 9V3h12v6M6 18H4v-6h16v6h-2" /><rect x="8" y="14" width="8" height="7" rx="1" />
                                   </svg>
                                 </button>
@@ -764,7 +766,7 @@ export default function PembayaranPenerimaan() {
                         </td>
 
                         {/* 5. Besar Uang */}
-                        <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 11.5, padding: "6px 4px" }}>
+                        <td style={{ textAlign: "right", fontWeight: 700, color: "var(--ink)", fontSize: 11.5, whiteSpace: "nowrap", padding: "6px 4px" }}>
                           {rupiah(faktur.total)}
                         </td>
 
@@ -777,6 +779,7 @@ export default function PembayaranPenerimaan() {
                               fontWeight: 800,
                               color: "var(--magenta-dark)",
                               fontSize: 11.5,
+                              whiteSpace: "nowrap",
                               verticalAlign: "middle",
                               borderLeft: "1px solid var(--line)",
                               borderRight: "1px solid var(--line)",
@@ -812,8 +815,8 @@ export default function PembayaranPenerimaan() {
                               });
                             }}
                             style={{
-                              padding: "3px 5px",
-                              fontSize: 11.5,
+                              padding: "2px 2px",
+                              fontSize: 11,
                               borderRadius: 6,
                               border: "1px solid var(--line)",
                               outline: "none",
@@ -821,8 +824,10 @@ export default function PembayaranPenerimaan() {
                               background: faktur.tanggal_bayar ? "#F0FDF4" : "#fff",
                               color: faktur.tanggal_bayar ? "#166534" : "var(--ink)",
                               fontWeight: faktur.tanggal_bayar ? 600 : 400,
-                              width: 120,
+                              width: "100%",
+                              maxWidth: 100,
                               textAlign: "center",
+                              boxSizing: "border-box",
                             }}
                             title="Tanggal pembayaran faktur (diisi manual)"
                           />
@@ -840,16 +845,17 @@ export default function PembayaranPenerimaan() {
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
-                              gap: 4,
-                              padding: "3px 8px",
-                              borderRadius: 14,
-                              fontSize: 11,
+                              justifyContent: "center",
+                              padding: "2px 6px",
+                              borderRadius: 12,
+                              fontSize: 10.5,
                               fontWeight: 700,
                               cursor: "pointer",
                               border: isLunas ? "1px solid #86EFAC" : "1px solid #FCA5A5",
                               background: isLunas ? "#DCFCE7" : "#FEF2F2",
                               color: isLunas ? "#15803D" : "#DC2626",
                               transition: "all 0.15s ease",
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {isLunas ? "Lunas" : "Lunaskan"}
@@ -876,8 +882,8 @@ export default function PembayaranPenerimaan() {
                               });
                             }}
                             style={{
-                              padding: "3px 6px",
-                              fontSize: 11.5,
+                              padding: "2px 4px",
+                              fontSize: 11,
                               borderRadius: 6,
                               border: "1px solid var(--line)",
                               outline: "none",
@@ -885,8 +891,10 @@ export default function PembayaranPenerimaan() {
                               background: faktur.petugas_bayar ? "#F5F3FF" : "#fff",
                               color: faktur.petugas_bayar ? "#5B21B6" : "var(--ink)",
                               fontWeight: faktur.petugas_bayar ? 600 : 400,
-                              width: 115,
+                              width: "100%",
+                              maxWidth: 90,
                               textAlign: "left",
+                              boxSizing: "border-box",
                             }}
                             title="Nama petugas bayar (diisi manual)"
                           />
@@ -898,16 +906,16 @@ export default function PembayaranPenerimaan() {
               </tbody>
               <tfoot>
                 <tr style={{ background: "#FAF5FF", fontWeight: 800, borderTop: "2px solid #E9D5FF" }}>
-                  <td colSpan={4} style={{ textAlign: "right", padding: "8px 10px", color: "var(--ink)", fontSize: 12 }}>
+                  <td colSpan={4} style={{ textAlign: "right", padding: "8px 8px", color: "var(--ink)", fontSize: 11.5 }}>
                     TOTAL BESAR UANG ({daftarTampil.length} Faktur) :
                   </td>
-                  <td style={{ textAlign: "right", padding: "8px 10px", color: "var(--ink)", fontSize: 12 }}>
+                  <td style={{ textAlign: "right", padding: "8px 6px", color: "var(--ink)", fontSize: 11.5, whiteSpace: "nowrap" }}>
                     {rupiah(totalTagihan)}
                   </td>
-                  <td style={{ textAlign: "right", padding: "8px 10px", color: "var(--magenta-dark)", fontSize: 12 }}>
+                  <td style={{ textAlign: "right", padding: "8px 6px", color: "var(--magenta-dark)", fontSize: 11.5, whiteSpace: "nowrap" }}>
                     {rupiah(totalTagihan)}
                   </td>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "8px 10px", color: "#15803D", fontSize: 11.5 }}>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "8px 6px", color: "#15803D", fontSize: 11 }}>
                     Lunas: {rupiah(totalLunas)} | Belum: {rupiah(totalBelumLunas)}
                   </td>
                 </tr>
