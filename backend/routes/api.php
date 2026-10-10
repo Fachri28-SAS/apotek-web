@@ -56,13 +56,18 @@ Route::get('/debug-last-seen', function (\Illuminate\Http\Request $r) {
         abort(403, 'Akses ditolak.');
     }
     \App\Http\Controllers\UserController::ensureLastSeenColumn();
+    \App\Http\Controllers\PenerimaanController::ensureDatabaseColumns();
     $cols = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM users LIKE 'last_seen_at'");
+    $colsItem = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM penerimaan_item LIKE 'kemasan'");
+    $colsPetugas = \Illuminate\Support\Facades\DB::select("SHOW COLUMNS FROM penerimaan LIKE 'petugas_bayar'");
     $users = \Illuminate\Support\Facades\DB::table('users')
         ->select('id', 'nama', 'username', 'role', 'aktif', 'last_seen_at')
         ->get();
     return response()->json([
         'server_time' => now()->toIso8601String(),
         'has_last_seen_column' => !empty($cols),
+        'has_kemasan_column' => !empty($colsItem),
+        'has_petugas_bayar_column' => !empty($colsPetugas),
         'users' => $users,
     ]);
 });
