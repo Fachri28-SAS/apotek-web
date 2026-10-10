@@ -67,6 +67,7 @@ class DaftarStokObatController extends Controller
             $masukPerObat[$pi->obat_id][] = [
                 'penerimaan_id' => $pen->id,
                 'tanggal_terima' => $pen->tanggal_terima ? \Carbon\Carbon::parse($pen->tanggal_terima)->format('Y-m-d') : '-',
+                'tgl_faktur' => $pen->tanggal_terima ? \Carbon\Carbon::parse($pen->tanggal_terima)->format('Y-m-d') : '-',
                 'nama_pbf' => $pen->nama_supplier ?: '-',
                 'no_faktur' => $pen->no_faktur ?: '-',
                 'qty' => (float) $pi->qty,

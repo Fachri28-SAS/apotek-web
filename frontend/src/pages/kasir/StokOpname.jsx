@@ -86,6 +86,7 @@ export default function StokOpname() {
               tanggal_terima: pen.tanggal_terima,
               nama_pbf: pen.nama_supplier || "-",
               no_faktur: pen.no_faktur || "-",
+              tgl_faktur: pen.tanggal_terima || "-",
               qty: Number(pi.qty || 0),
               qty_dasar: qtyDasar,
               nama_satuan: pi.nama_satuan || "Unit",
