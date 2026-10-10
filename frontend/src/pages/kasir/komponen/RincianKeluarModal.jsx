@@ -1,5 +1,4 @@
 import React from "react";
-import { rupiah } from "../../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../../utils/exportDokumen";
 import TombolExportGroup from "./TombolExportGroup";
 
@@ -8,7 +7,6 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
 
   const rincian = obat.rincian_keluar || [];
   const totalQty = rincian.reduce((sum, item) => sum + Number(item.qty || 0), 0);
-  const totalSubtotal = rincian.reduce((sum, item) => sum + Number(item.subtotal || 0), 0);
 
   function formatTgl(str) {
     if (!str || str === "-") return "-";
@@ -25,13 +23,11 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
       headers: [
         { label: "No.", align: "center", width: "35px" },
         { label: "Tgl Keluar", align: "center", width: "85px" },
-        { label: "No Struk", align: "left", width: "110px" },
+        { label: "No Struk", align: "left", width: "130px" },
         { label: "Tipe", align: "center", width: "70px" },
-        { label: "Kasir", align: "left", width: "90px" },
-        { label: "Qty", align: "center", width: "50px" },
-        { label: "Satuan", align: "left", width: "70px" },
-        { label: "Harga Jual", align: "right", width: "95px" },
-        { label: "Subtotal", align: "right", width: "105px" },
+        { label: "Kasir", align: "left", width: "100px" },
+        { label: "Qty", align: "center", width: "55px" },
+        { label: "Satuan", align: "left", width: "80px" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -41,15 +37,12 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
         item.nama_kasir || "Kasir",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_jual),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT KELUAR", colSpan: 5, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 2, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 1, align: "center" },
         ],
       ],
     });
@@ -68,8 +61,6 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
         { label: "Kasir", align: "left" },
         { label: "Qty", align: "center" },
         { label: "Satuan", align: "left" },
-        { label: "Harga Jual", align: "right" },
-        { label: "Subtotal", align: "right" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -79,15 +70,12 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
         item.nama_kasir || "Kasir",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_jual),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT KELUAR", colSpan: 5, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 2, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 1, align: "center" },
         ],
       ],
     });
@@ -106,8 +94,6 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
         { label: "Kasir", align: "left" },
         { label: "Qty", align: "center" },
         { label: "Satuan", align: "left" },
-        { label: "Harga Jual", align: "right" },
-        { label: "Subtotal", align: "right" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -117,15 +103,12 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
         item.nama_kasir || "Kasir",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_jual),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT KELUAR", colSpan: 5, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 2, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 1, align: "center" },
         ],
       ],
     });
@@ -155,7 +138,7 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
           background: "#fff",
           borderRadius: 16,
           width: "100%",
-          maxWidth: 900,
+          maxWidth: 800,
           maxHeight: "92vh",
           display: "flex",
           flexDirection: "column",
@@ -263,8 +246,6 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
                   <th style={{ padding: "8px 10px", textAlign: "left" }}>Kasir</th>
                   <th style={{ padding: "8px 10px", textAlign: "center", width: 65 }}>Qty</th>
                   <th style={{ padding: "8px 10px", textAlign: "left", width: 80 }}>Satuan</th>
-                  <th style={{ padding: "8px 10px", textAlign: "right", width: 100 }}>Harga Jual</th>
-                  <th style={{ padding: "8px 10px", textAlign: "right", width: 110 }}>Subtotal</th>
                 </tr>
               </thead>
               <tbody>
@@ -308,12 +289,6 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
                     <td style={{ padding: "8px 10px", color: "#475569" }}>
                       {item.nama_satuan || "Unit"}
                     </td>
-                    <td style={{ padding: "8px 10px", textAlign: "right" }}>
-                      {rupiah(item.harga_jual)}
-                    </td>
-                    <td style={{ padding: "8px 10px", textAlign: "right", fontWeight: 700 }}>
-                      {rupiah(item.subtotal)}
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -325,12 +300,7 @@ export default function RincianKeluarModal({ obat, dariTanggal, sampaiTanggal, o
                   <td style={{ padding: "10px", textAlign: "center", color: "#DC2626" }}>
                     {totalQty}
                   </td>
-                  <td colSpan={2} style={{ padding: "10px", textAlign: "right" }}>
-                    TOTAL PENJUALAN:
-                  </td>
-                  <td style={{ padding: "10px", textAlign: "right", color: "#0F172A" }}>
-                    {rupiah(totalSubtotal)}
-                  </td>
+                  <td style={{ padding: "10px" }}></td>
                 </tr>
               </tfoot>
             </table>
