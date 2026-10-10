@@ -1,5 +1,4 @@
 import React from "react";
-import { rupiah } from "../../../utils/format";
 import { cetakDokumenA4, exportExcel, exportWord } from "../../../utils/exportDokumen";
 import TombolExportGroup from "./TombolExportGroup";
 
@@ -8,7 +7,6 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
 
   const rincian = obat.rincian_masuk || [];
   const totalQty = rincian.reduce((sum, item) => sum + Number(item.qty || 0), 0);
-  const totalSubtotal = rincian.reduce((sum, item) => sum + Number(item.subtotal || 0), 0);
 
   function formatTgl(str) {
     if (!str || str === "-") return "-";
@@ -21,19 +19,16 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
     cetakDokumenA4({
       judul: `RINCIAN OBAT MASUK - ${obat.nama.toUpperCase()}`,
       periode: `${formatTgl(dariTanggal)} s/d ${formatTgl(sampaiTanggal)}`,
-      orientation: "landscape",
+      orientation: "portrait",
       headers: [
         { label: "No.", align: "center", width: "35px" },
-        { label: "Tgl Masuk", align: "center", width: "85px" },
+        { label: "Tgl Masuk", align: "center", width: "95px" },
         { label: "Nama PBF (Supplier)", align: "left" },
-        { label: "No Faktur", align: "left", width: "100px" },
-        { label: "Qty", align: "center", width: "50px" },
-        { label: "Kemasan", align: "left", width: "70px" },
-        { label: "Harga Beli", align: "right", width: "90px" },
-        { label: "Diskon", align: "right", width: "70px" },
-        { label: "Batch", align: "center", width: "80px" },
-        { label: "Expired", align: "center", width: "80px" },
-        { label: "Subtotal", align: "right", width: "100px" },
+        { label: "No Faktur", align: "left", width: "110px" },
+        { label: "Qty", align: "center", width: "55px" },
+        { label: "Kemasan", align: "left", width: "80px" },
+        { label: "Batch", align: "center", width: "90px" },
+        { label: "Expired", align: "center", width: "90px" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -42,18 +37,14 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
         item.no_faktur || "-",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_beli),
-        item.diskon ? rupiah(item.diskon) : "0",
         item.nomor_batch || "-",
         formatTgl(item.tanggal_exp),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT MASUK", colSpan: 4, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 5, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 3, align: "center" },
         ],
       ],
     });
@@ -71,11 +62,8 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
         { label: "No Faktur", align: "left" },
         { label: "Qty", align: "center" },
         { label: "Kemasan", align: "left" },
-        { label: "Harga Beli", align: "right" },
-        { label: "Diskon", align: "right" },
         { label: "Batch", align: "center" },
         { label: "Expired", align: "center" },
-        { label: "Subtotal", align: "right" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -84,18 +72,14 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
         item.no_faktur || "-",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_beli),
-        item.diskon ? rupiah(item.diskon) : "0",
         item.nomor_batch || "-",
         formatTgl(item.tanggal_exp),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT MASUK", colSpan: 4, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 5, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 3, align: "center" },
         ],
       ],
     });
@@ -113,11 +97,8 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
         { label: "No Faktur", align: "left" },
         { label: "Qty", align: "center" },
         { label: "Kemasan", align: "left" },
-        { label: "Harga Beli", align: "right" },
-        { label: "Diskon", align: "right" },
         { label: "Batch", align: "center" },
         { label: "Expired", align: "center" },
-        { label: "Subtotal", align: "right" },
       ],
       rows: rincian.map((item, idx) => [
         idx + 1,
@@ -126,18 +107,14 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
         item.no_faktur || "-",
         item.qty,
         item.nama_satuan || "Unit",
-        rupiah(item.harga_beli),
-        item.diskon ? rupiah(item.diskon) : "0",
         item.nomor_batch || "-",
         formatTgl(item.tanggal_exp),
-        rupiah(item.subtotal),
       ]),
       footers: [
         [
           { text: "TOTAL OBAT MASUK", colSpan: 4, align: "left" },
           { text: String(totalQty), align: "center" },
-          { text: "", colSpan: 5, align: "center" },
-          { text: rupiah(totalSubtotal), align: "right" },
+          { text: "", colSpan: 3, align: "center" },
         ],
       ],
     });
@@ -167,7 +144,7 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
           background: "#fff",
           borderRadius: 16,
           width: "100%",
-          maxWidth: 960,
+          maxWidth: 820,
           maxHeight: "92vh",
           display: "flex",
           flexDirection: "column",
@@ -269,16 +246,13 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
               <thead>
                 <tr style={{ background: "#F8FAFC", borderBottom: "2px solid #CBD5E1" }}>
                   <th style={{ padding: "8px 10px", textAlign: "center", width: 35 }}>No</th>
-                  <th style={{ padding: "8px 10px", textAlign: "center", width: 95 }}>Tgl Masuk</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 100 }}>Tgl Masuk</th>
                   <th style={{ padding: "8px 10px", textAlign: "left" }}>Nama PBF (Supplier)</th>
-                  <th style={{ padding: "8px 10px", textAlign: "left", width: 110 }}>No Faktur</th>
-                  <th style={{ padding: "8px 10px", textAlign: "center", width: 60 }}>Qty</th>
-                  <th style={{ padding: "8px 10px", textAlign: "left", width: 85 }}>Kemasan</th>
-                  <th style={{ padding: "8px 10px", textAlign: "right", width: 95 }}>Harga Beli</th>
-                  <th style={{ padding: "8px 10px", textAlign: "right", width: 80 }}>Diskon</th>
-                  <th style={{ padding: "8px 10px", textAlign: "center", width: 90 }}>Batch</th>
-                  <th style={{ padding: "8px 10px", textAlign: "center", width: 90 }}>Expired</th>
-                  <th style={{ padding: "8px 10px", textAlign: "right", width: 110 }}>Subtotal</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left", width: 120 }}>No Faktur</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 65 }}>Qty</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left", width: 90 }}>Kemasan</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 95 }}>Batch</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 95 }}>Expired</th>
                 </tr>
               </thead>
               <tbody>
@@ -308,20 +282,11 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
                     <td style={{ padding: "8px 10px", color: "#475569" }}>
                       {item.nama_satuan || "Unit"}
                     </td>
-                    <td style={{ padding: "8px 10px", textAlign: "right" }}>
-                      {rupiah(item.harga_beli)}
-                    </td>
-                    <td style={{ padding: "8px 10px", textAlign: "right", color: item.diskon ? "#B91C1C" : "#64748B" }}>
-                      {item.diskon ? rupiah(item.diskon) : "-"}
-                    </td>
                     <td style={{ padding: "8px 10px", textAlign: "center", fontSize: 11 }}>
                       {item.nomor_batch || "-"}
                     </td>
                     <td style={{ padding: "8px 10px", textAlign: "center", fontSize: 11 }}>
                       {formatTgl(item.tanggal_exp)}
-                    </td>
-                    <td style={{ padding: "8px 10px", textAlign: "right", fontWeight: 700 }}>
-                      {rupiah(item.subtotal)}
                     </td>
                   </tr>
                 ))}
@@ -334,12 +299,7 @@ export default function RincianMasukModal({ obat, dariTanggal, sampaiTanggal, on
                   <td style={{ padding: "10px", textAlign: "center", color: "#047857" }}>
                     {totalQty}
                   </td>
-                  <td colSpan={5} style={{ padding: "10px", textAlign: "right" }}>
-                    TOTAL PEMBELIAN:
-                  </td>
-                  <td style={{ padding: "10px", textAlign: "right", color: "#0F172A" }}>
-                    {rupiah(totalSubtotal)}
-                  </td>
+                  <td colSpan={3} style={{ padding: "10px" }}></td>
                 </tr>
               </tfoot>
             </table>
