@@ -22,7 +22,7 @@ const MENU = [
     icon: <><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 10h20M6 14h4" /></> },
   { label: "Data Obat", path: "/kasir/obat",
     icon: <><rect x="3" y="9" width="18" height="6" rx="3" /><path d="M8 9v6M16 9v6" /></> },
-  { label: "Stok Opname", path: "/kasir/opname",
+  { label: "Daftar Stok Obat", path: "/kasir/opname",
     icon: <><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" /><rect x="9" y="3" width="6" height="4" rx="1" /><path d="M9 14l2 2 4-4" /></> },
   { label: "Laporan Penjualan", path: "/kasir/laporan", hanyaAdmin: true,
     icon: <><path d="M5 19V9M12 19V5M19 19v-6" /></> },

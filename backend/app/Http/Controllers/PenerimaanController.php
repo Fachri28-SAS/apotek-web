@@ -33,8 +33,58 @@ class PenerimaanController extends Controller
      *   ]
      * }
      */
+    public static function ensureDatabaseColumns(): void
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan_item', 'kemasan')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan_item', function ($table) {
+                    $table->unsignedInteger('kemasan')->nullable()->after('qty');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan_item', 'harga_beli_sebelumnya')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan_item', function ($table) {
+                    $table->decimal('harga_beli_sebelumnya', 15, 2)->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan_item', 'harga_jual_saat_itu')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan_item', function ($table) {
+                    $table->decimal('harga_jual_saat_itu', 15, 2)->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan_item', 'margin_persen')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan_item', function ($table) {
+                    $table->decimal('margin_persen', 6, 2)->nullable();
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan', 'petugas_bayar')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan', function ($table) {
+                    $table->string('petugas_bayar', 100)->nullable()->after('status_bayar');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('penerimaan', 'tanggal_bayar')) {
+                \Illuminate\Support\Facades\Schema::table('penerimaan', function ($table) {
+                    $table->date('tanggal_bayar')->nullable()->after('status_bayar');
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('obat_batch', 'qty_masuk')) {
+                \Illuminate\Support\Facades\Schema::table('obat_batch', function ($table) {
+                    $table->integer('qty_masuk')->default(0);
+                });
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('obat_batch', 'tanggal_masuk')) {
+                \Illuminate\Support\Facades\Schema::table('obat_batch', function ($table) {
+                    $table->date('tanggal_masuk')->nullable();
+                });
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ensureDatabaseColumns warning: ' . $e->getMessage());
+        }
+    }
+
     public function store(Request $r, StokService $stok)
     {
+        self::ensureDatabaseColumns();
+
         $data = $r->validate([
             'supplier_id' => 'nullable|exists:suppliers,id',
             'nama_supplier' => 'required|string|max:255',
@@ -56,128 +106,143 @@ class PenerimaanController extends Controller
             'items.*.tanggal_exp' => 'nullable|date',
         ]);
 
-        return DB::transaction(function () use ($data, $r, $stok) {
-            $subtotal = 0;
-            $itemsSiap = [];
+        try {
+            return DB::transaction(function () use ($data, $r, $stok) {
+                $subtotal = 0;
+                $itemsSiap = [];
 
-            foreach ($data['items'] as $it) {
-                $satuan = ObatSatuan::with('obat')->findOrFail($it['obat_satuan_id']);
-                $obat = $satuan->obat;
-                $diskonItem = $it['diskon'] ?? 0;
-                $subtotalItem = $it['qty'] * $it['harga_beli'] - $diskonItem;
-                $subtotal += $subtotalItem;
+                foreach ($data['items'] as $it) {
+                    $satuan = ObatSatuan::with('obat')->findOrFail($it['obat_satuan_id']);
+                    $obat = $satuan->obat;
+                    $diskonItem = $it['diskon'] ?? 0;
+                    $subtotalItem = $it['qty'] * $it['harga_beli'] - $diskonItem;
+                    $subtotal += $subtotalItem;
 
-                $hargaBeliSebelumnya = $satuan->harga_beli;
-                $hargaJualBaru = isset($it['harga_jual_baru']) && $it['harga_jual_baru'] > 0
-                    ? (float) $it['harga_jual_baru']
-                    : (float) $satuan->harga_jual;
-                $marginPersen = $hargaJualBaru > 0
-                    ? round((($hargaJualBaru - $it['harga_beli']) / $hargaJualBaru) * 100, 2)
-                    : null;
+                    $hargaBeliSebelumnya = $satuan->harga_beli;
+                    $hargaJualBaru = isset($it['harga_jual_baru']) && $it['harga_jual_baru'] > 0
+                        ? (float) $it['harga_jual_baru']
+                        : (float) $satuan->harga_jual;
+                    $marginPersen = $hargaJualBaru > 0
+                        ? round((($hargaJualBaru - $it['harga_beli']) / $hargaJualBaru) * 100, 2)
+                        : null;
 
-                $kemasan = isset($it['kemasan']) && $it['kemasan'] > 0
-                    ? (float) $it['kemasan']
-                    : (float) ($satuan->faktor ?: 1);
+                    $kemasan = isset($it['kemasan']) && $it['kemasan'] > 0
+                        ? (float) $it['kemasan']
+                        : (float) ($satuan->faktor ?: 1);
 
-                $itemsSiap[] = [
-                    'obat_id' => $obat->id,
-                    'obat_satuan_id' => $satuan->id,
-                    'nama_obat' => $obat->nama,
-                    'nama_satuan' => $satuan->nama_satuan,
-                    'faktor' => $satuan->faktor,
-                    'qty' => $it['qty'],
-                    'kemasan' => $kemasan,
-                    'harga_beli' => $it['harga_beli'],
-                    'diskon' => $diskonItem,
-                    'subtotal' => $subtotalItem,
-                    'nomor_batch' => $it['nomor_batch'] ?? null,
-                    'tanggal_exp' => $it['tanggal_exp'] ?? null,
-                    'harga_beli_sebelumnya' => $hargaBeliSebelumnya,
-                    'harga_jual_saat_itu' => $hargaJualBaru,
-                    'margin_persen' => $marginPersen,
-                ];
-            }
-
-            $diskonRp = $data['diskon_faktur_rp'] ?? 0;
-            $diskonPersen = $data['diskon_faktur_persen'] ?? 0;
-            $diskonTotal = $diskonRp + round($subtotal * $diskonPersen / 100);
-            $subtotalSetelahDiskon = max($subtotal - $diskonTotal, 0);
-
-            $isPkp = $data['is_pkp'] ?? false;
-            $persenPpn = 11;
-            $ppn = $isPkp ? round($subtotalSetelahDiskon * $persenPpn / 100) : 0;
-            $total = $subtotalSetelahDiskon + $ppn;
-
-            $penerimaan = \App\Models\Penerimaan::create([
-                'supplier_id' => $data['supplier_id'] ?? null,
-                'nama_supplier' => $data['nama_supplier'],
-                'no_faktur' => $data['no_faktur'],
-                'tanggal_terima' => $data['tanggal_terima'],
-                'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'] ?? null,
-                'tempo_label' => $data['tempo_label'] ?? 'custom',
-                'is_pkp' => $isPkp,
-                'persen_ppn' => $persenPpn,
-                'subtotal' => $subtotal,
-                'diskon_faktur_rp' => $diskonRp,
-                'diskon_faktur_persen' => $diskonPersen,
-                'subtotal_setelah_diskon' => $subtotalSetelahDiskon,
-                'dpp' => $subtotalSetelahDiskon,
-                'ppn' => $ppn,
-                'total' => $total,
-                'status_bayar' => 'belum',
-                'user_id' => $r->user()->id,
-            ]);
-
-            foreach ($itemsSiap as $item) {
-                $penerimaan->items()->create($item);
-
-                $isiKemasan = isset($item['kemasan']) && $item['kemasan'] > 0
-                    ? (float) $item['kemasan']
-                    : (float) ($item['faktor'] ?: 1);
-
-                $stokMasuk = (int) round($item['qty'] * $isiKemasan);
-
-                $stok->ubah(
-                    $item['obat_id'],
-                    $stokMasuk,
-                    'masuk',
-                    'penerimaan',
-                    $penerimaan->id
-                );
-
-                $hargaBeliPerUnitMasuk = ($isiKemasan > 0)
-                    ? round($item['harga_beli'] / $isiKemasan)
-                    : $item['harga_beli'];
-
-                $updateSatuan = [
-                    'harga_beli' => $hargaBeliPerUnitMasuk,
-                    'harga_beli_sebelumnya' => $item['harga_beli_sebelumnya'],
-                ];
-                if (!empty($item['harga_jual_saat_itu']) && $item['harga_jual_saat_itu'] > 0) {
-                    $updateSatuan['harga_jual'] = $item['harga_jual_saat_itu'];
+                    $itemsSiap[] = [
+                        'obat_id' => $obat->id,
+                        'obat_satuan_id' => $satuan->id,
+                        'nama_obat' => $obat->nama,
+                        'nama_satuan' => $satuan->nama_satuan,
+                        'faktor' => $satuan->faktor,
+                        'qty' => $it['qty'],
+                        'kemasan' => $kemasan,
+                        'harga_beli' => $it['harga_beli'],
+                        'diskon' => $diskonItem,
+                        'subtotal' => $subtotalItem,
+                        'nomor_batch' => $it['nomor_batch'] ?? null,
+                        'tanggal_exp' => $it['tanggal_exp'] ?? null,
+                        'harga_beli_sebelumnya' => $hargaBeliSebelumnya,
+                        'harga_jual_saat_itu' => $hargaJualBaru,
+                        'margin_persen' => $marginPersen,
+                    ];
                 }
 
-                ObatSatuan::where('id', $item['obat_satuan_id'])->update($updateSatuan);
+                $diskonRp = $data['diskon_faktur_rp'] ?? 0;
+                $diskonPersen = $data['diskon_faktur_persen'] ?? 0;
+                $diskonTotal = $diskonRp + round($subtotal * $diskonPersen / 100);
+                $subtotalSetelahDiskon = max($subtotal - $diskonTotal, 0);
 
-                if ($item['nomor_batch']) {
-                    \App\Models\Obat::where('id', $item['obat_id'])->update([
-                        'nomor_batch' => $item['nomor_batch'],
-                        'tanggal_exp' => $item['tanggal_exp'],
-                    ]);
+                $isPkp = $data['is_pkp'] ?? false;
+                $persenPpn = 11;
+                $ppn = $isPkp ? round($subtotalSetelahDiskon * $persenPpn / 100) : 0;
+                $total = $subtotalSetelahDiskon + $ppn;
 
-                    ObatBatch::updateOrCreate(
-                        ['obat_id' => $item['obat_id'], 'nomor_batch' => $item['nomor_batch']],
-                        [
-                            'tanggal_exp' => $item['tanggal_exp'],
-                            'qty_masuk' => $stokMasuk,
-                            'tanggal_masuk' => $data['tanggal_terima'],
-                        ]
+                $userId = $r->user()?->id ?? auth('sanctum')->id() ?? auth()->id();
+                if (!$userId) {
+                    $firstUser = \App\Models\User::first();
+                    $userId = $firstUser ? $firstUser->id : 1;
+                }
+
+                $penerimaan = \App\Models\Penerimaan::create([
+                    'supplier_id' => $data['supplier_id'] ?? null,
+                    'nama_supplier' => $data['nama_supplier'],
+                    'no_faktur' => $data['no_faktur'],
+                    'tanggal_terima' => $data['tanggal_terima'],
+                    'tanggal_jatuh_tempo' => $data['tanggal_jatuh_tempo'] ?? null,
+                    'tempo_label' => $data['tempo_label'] ?? 'custom',
+                    'is_pkp' => $isPkp,
+                    'persen_ppn' => $persenPpn,
+                    'subtotal' => $subtotal,
+                    'diskon_faktur_rp' => $diskonRp,
+                    'diskon_faktur_persen' => $diskonPersen,
+                    'subtotal_setelah_diskon' => $subtotalSetelahDiskon,
+                    'dpp' => $subtotalSetelahDiskon,
+                    'ppn' => $ppn,
+                    'total' => $total,
+                    'status_bayar' => 'belum',
+                    'user_id' => $userId,
+                ]);
+
+                foreach ($itemsSiap as $item) {
+                    $penerimaan->items()->create($item);
+
+                    $isiKemasan = isset($item['kemasan']) && $item['kemasan'] > 0
+                        ? (float) $item['kemasan']
+                        : (float) ($item['faktor'] ?: 1);
+
+                    $stokMasuk = (int) round($item['qty'] * $isiKemasan);
+
+                    $stok->ubah(
+                        $item['obat_id'],
+                        $stokMasuk,
+                        'masuk',
+                        'penerimaan',
+                        $penerimaan->id
                     );
-                }
-            }
 
-            return response()->json($penerimaan->load('items'), 201);
-        });
+                    $hargaBeliPerUnitMasuk = ($isiKemasan > 0)
+                        ? round($item['harga_beli'] / $isiKemasan)
+                        : $item['harga_beli'];
+
+                    $updateSatuan = [
+                        'harga_beli' => $hargaBeliPerUnitMasuk,
+                        'harga_beli_sebelumnya' => $item['harga_beli_sebelumnya'],
+                    ];
+                    if (!empty($item['harga_jual_saat_itu']) && $item['harga_jual_saat_itu'] > 0) {
+                        $updateSatuan['harga_jual'] = $item['harga_jual_saat_itu'];
+                    }
+
+                    ObatSatuan::where('id', $item['obat_satuan_id'])->update($updateSatuan);
+
+                    if ($item['nomor_batch']) {
+                        \App\Models\Obat::where('id', $item['obat_id'])->update([
+                            'nomor_batch' => $item['nomor_batch'],
+                            'tanggal_exp' => $item['tanggal_exp'],
+                        ]);
+
+                        ObatBatch::updateOrCreate(
+                            ['obat_id' => $item['obat_id'], 'nomor_batch' => $item['nomor_batch']],
+                            [
+                                'tanggal_exp' => $item['tanggal_exp'],
+                                'qty_masuk' => $stokMasuk,
+                                'tanggal_masuk' => $data['tanggal_terima'],
+                            ]
+                        );
+                    }
+                }
+
+                return response()->json($penerimaan->load('items'), 201);
+            });
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Penerimaan store error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return response()->json([
+                'message' => 'Gagal menyimpan penerimaan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /** GET /api/penerimaan — untuk halaman Riwayat Penerimaan */
@@ -238,6 +303,8 @@ class PenerimaanController extends Controller
     /** PUT /api/penerimaan/{penerimaan}/toggle-bayar — update status bayar, tgl bayar manual, dan nama petugas bayar manual */
     public function toggleBayar(Request $r, Penerimaan $penerimaan)
     {
+        self::ensureDatabaseColumns();
+
         $statusBaru = $r->input('status_bayar');
         if (!$statusBaru) {
             $statusBaru = $penerimaan->status_bayar === 'lunas' ? 'belum' : 'lunas';
@@ -272,6 +339,8 @@ class PenerimaanController extends Controller
     /** PUT /api/penerimaan/{penerimaan} — edit faktur penerimaan (nama PBF, no faktur, tanggal, harga beli, qty) */
     public function update(Request $r, Penerimaan $penerimaan, StokService $stok)
     {
+        self::ensureDatabaseColumns();
+
         $data = $r->validate([
             'nama_supplier' => 'required|string|max:255',
             'supplier_id' => 'nullable|exists:suppliers,id',

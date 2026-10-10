@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/useAuth";
 import { api } from "../../lib/api";
-import { tambahLogPerubahan } from "../../lib/auditLog";
 import KasirShell from "./KasirShell";
-import DetailBatchModal from "./komponen/DetailBatchModal";
+import TombolExportGroup from "./komponen/TombolExportGroup";
+import RincianMasukModal from "./komponen/RincianMasukModal";
+import RincianKeluarModal from "./komponen/RincianKeluarModal";
+import KoreksiStokModal from "./komponen/KoreksiStokModal";
+import MutasiBukuModal from "./komponen/MutasiBukuModal";
+import { cetakDokumenA4, exportExcel, exportWord } from "../../utils/exportDokumen";
 
 function getTglYmd(d) {
   const yyyy = d.getFullYear();
@@ -12,622 +16,409 @@ function getTglYmd(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getAwalBulanYmd(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yyyy}-${mm}-01`;
+}
+
 export default function StokOpname() {
   const { user } = useAuth();
-  const tglSekarang = getTglYmd(new Date());
-  const [items, setItems] = useState([]);
-  const [loadingObat, setLoadingObat] = useState(true);
+  const hariIni = new Date();
+  const [dariTanggal, setDariTanggal] = useState(getAwalBulanYmd(hariIni));
+  const [sampaiTanggal, setSampaiTanggal] = useState(getTglYmd(hariIni));
   const [search, setSearch] = useState("");
-  const [filterTab, setFilterTab] = useState("semua"); // "semua" | "selisih" | "terisi"
-  const [riwayat, setRiwayat] = useState([]);
-  const [dariTanggal, setDariTanggal] = useState(tglSekarang);
-  const [sampaiTanggal, setSampaiTanggal] = useState(tglSekarang);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sukses, setSukses] = useState("");
-  const [modalBatchObat, setModalBatchObat] = useState(null);
-  const [sedangMenyimpanId, setSedangMenyimpanId] = useState(null);
+  const [daftarObat, setDaftarObat] = useState([]);
 
-  // Muat seluruh daftar obat dari sistem (urut abjad A-Z)
-  function muatSemuaObat() {
-    setLoadingObat(true);
-    api("/obat")
-      .then((daftar) => {
-        // Urutkan A-Z berdasarkan nama obat
-        const sorted = [...daftar].sort((a, b) => a.nama.localeCompare(b.nama));
-        setItems(
-          sorted.map((obat) => ({
-            id: obat.id,
-            obat_id: obat.id,
-            nama: obat.nama,
-            nomor_batch: obat.nomor_batch || "-",
-            tanggal_exp: obat.tanggal_exp,
-            satuan_dasar: obat.satuan_dasar || "Unit",
-            stok_sistem: Number(obat.stok || 0),
-            stok_fisik: "",
-            keterangan: "",
-            batches: null,
-          }))
-        );
-      })
-      .catch((err) => {
-        setError("Gagal memuat daftar obat: " + (err.message || ""));
-      })
-      .finally(() => {
-        setLoadingObat(false);
-      });
-  }
+  // State Modal Interaktif
+  const [modalMasukObat, setModalMasukObat] = useState(null);
+  const [modalKeluarObat, setModalKeluarObat] = useState(null);
+  const [modalKoreksiObat, setModalKoreksiObat] = useState(null);
+  const [modalBukuObat, setModalBukuObat] = useState(null);
 
-  function muatRiwayat() {
-    const params = new URLSearchParams({ tipe: "penyesuaian" });
-    if (dariTanggal) params.set("dari_tanggal", dariTanggal);
-    if (sampaiTanggal) params.set("sampai_tanggal", sampaiTanggal);
-    api(`/stok-mutasi?${params}`)
-      .then(setRiwayat)
-      .catch(() => setRiwayat([]));
-  }
-
-  useEffect(() => {
-    muatSemuaObat();
-  }, []);
-
-  useEffect(() => {
-    muatRiwayat();
-  }, [dariTanggal, sampaiTanggal]);
-
-  function ubahItem(id, field, value) {
-    setItems((prev) =>
-      prev.map((it) => (it.obat_id === id ? { ...it, [field]: value } : it))
-    );
-  }
-
-  // Bantuan: Samakan semua stok fisik dengan stok sistem
-  function handleSamakanSemua() {
-    if (!window.confirm("Isi stok fisik semua obat sama dengan stok sistem saat ini? Anda tinggal mengubah obat yang ada selisih.")) return;
-    setItems((prev) =>
-      prev.map((it) => ({
-        ...it,
-        stok_fisik: String(it.stok_sistem),
-      }))
-    );
-  }
-
-  // Bantuan: Kosongkan seluruh input stok fisik
-  function handleKosongkanInput() {
-    if (!window.confirm("Kosongkan semua input stok fisik?")) return;
-    setItems((prev) =>
-      prev.map((it) => ({
-        ...it,
-        stok_fisik: "",
-        keterangan: "",
-        batches: null,
-      }))
-    );
-  }
-
-  function handleSimpanBatch(obatId, { batches, totalStokFisik }) {
-    setItems((prev) =>
-      prev.map((it) =>
-        it.obat_id === obatId
-          ? { ...it, batches, stok_fisik: String(totalStokFisik) }
-          : it
-      )
-    );
-  }
-
-  const itemTerisi = items.filter((it) => it.stok_fisik !== "");
-  const totalSelisih = itemTerisi.reduce(
-    (s, it) => s + (Number(it.stok_fisik) - it.stok_sistem),
-    0
-  );
-  const itemSelisih = itemTerisi.filter(
-    (it) => Number(it.stok_fisik) !== it.stok_sistem
-  );
-  const adaSelisih = itemSelisih.length;
-
-  // Filter tampilan obat
-  const itemsTampil = items.filter((it) => {
-    // Filter pencarian teks
-    const matchSearch =
-      !search ||
-      it.nama.toLowerCase().includes(search.toLowerCase()) ||
-      String(it.nomor_batch).toLowerCase().includes(search.toLowerCase());
-
-    if (!matchSearch) return false;
-
-    // Filter tab
-    if (filterTab === "terisi") return it.stok_fisik !== "";
-    if (filterTab === "selisih") return it.stok_fisik !== "" && Number(it.stok_fisik) !== it.stok_sistem;
-    return true;
-  });
-
-  // Simpan penyesuaian untuk 1 obat saja
-  async function handleSimpanSatu(it) {
-    if (it.stok_fisik === "") {
-      setError(`Isi kolom Stok Fisik untuk obat "${it.nama}" terlebih dahulu.`);
-      return;
-    }
-
-    setSedangMenyimpanId(it.obat_id);
-    setError("");
-    setSukses("");
-
-    try {
-      await api("/obat/opname", {
-        method: "POST",
-        body: JSON.stringify({
-          items: [
-            {
-              obat_id: it.obat_id,
-              stok_fisik: Number(it.stok_fisik),
-              keterangan: it.keterangan || null,
-              batches: it.batches || null,
-            },
-          ],
-        }),
-      });
-
-      const stokBaru = Number(it.stok_fisik);
-      setItems((prev) =>
-        prev.map((item) =>
-          item.obat_id === it.obat_id
-            ? {
-                ...item,
-                stok_sistem: stokBaru,
-                stok_fisik: "",
-                keterangan: "",
-                batches: null,
-              }
-            : item
-        )
-      );
-
-      const namaAkunSatu = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
-      tambahLogPerubahan({
-        nama_akun: namaAkunSatu,
-        role_akun: user?.role || "kasir",
-        kategori: "Stok Opname",
-        aksi: "Penyesuaian Stok",
-        judul: it.nama,
-        sebelum: `${it.stok_sistem} ${it.satuan_dasar}`,
-        sesudah: `${stokBaru} ${it.satuan_dasar}`,
-        keterangan: it.keterangan || "Penyesuaian stok fisik",
-      });
-
-      setSukses(` Stok "${it.nama}" berhasil disimpan & disinkronkan ke sistem (${stokBaru} ${it.satuan_dasar}).`);
-      muatRiwayat();
-    } catch (err) {
-      setError(err.message || `Gagal menyimpan penyesuaian stok "${it.nama}".`);
-    } finally {
-      setSedangMenyimpanId(null);
-    }
-  }
-
-  async function simpan() {
-    setError("");
-    setSukses("");
-
-    if (itemTerisi.length === 0) {
-      setError("Isi dulu Stok Fisik minimal pada salah satu obat.");
-      return;
-    }
-
+  // Ambil data stok obat dengan fallback cerdas
+  async function muatData() {
     setLoading(true);
+    setError("");
+
     try {
-      await api("/obat/opname", {
-        method: "POST",
-        body: JSON.stringify({
-          items: itemTerisi.map((it) => ({
-            obat_id: it.obat_id,
-            stok_fisik: Number(it.stok_fisik),
-            keterangan: it.keterangan || null,
-            batches: it.batches || null,
-          })),
-        }),
-      });
-
-      const namaAkunSemua = user?.nama || user?.username || (user?.role === "admin" ? "Admin" : "Kasir");
-      tambahLogPerubahan({
-        nama_akun: namaAkunSemua,
-        role_akun: user?.role || "kasir",
-        kategori: "Stok Opname",
-        aksi: "Penyesuaian Massal",
-        judul: `${itemTerisi.length} Macam Obat`,
-        sebelum: "Stok sistem",
-        sesudah: "Stok fisik disesuaikan",
-        keterangan: `Stok opname massal ${itemTerisi.length} item obat`,
-      });
-
-      setSukses(
-        `Berhasil menyesuaikan ${itemTerisi.length} obat. Stok sistem & mutasi telah diperbarui.`
+      // 1. Coba endpoint dedicated backend
+      const res = await api(
+        `/daftar-stok-obat?dari_tanggal=${dariTanggal}&sampai_tanggal=${sampaiTanggal}`
       );
-      muatSemuaObat();
-      muatRiwayat();
-    } catch (err) {
-      setError(err.message || "Gagal menyimpan penyesuaian stok.");
+      if (res && Array.isArray(res.data)) {
+        setDaftarObat(res.data);
+        setLoading(false);
+        return;
+      }
+    } catch (_) {
+      // 2. Fallback cerdas: kalkulasi di frontend menggunakan endpoint yang sudah ada
+      try {
+        const [listObat, listPenerimaan, listPenjualan] = await Promise.all([
+          api("/obat"),
+          api(`/penerimaan?dari_tanggal=${dariTanggal}&sampai_tanggal=${sampaiTanggal}`).catch(() => []),
+          api(`/penjualan?dari_tanggal=${dariTanggal}&sampai_tanggal=${sampaiTanggal}&limit=2000`).catch(() => []),
+        ]);
+
+        const rawObat = Array.isArray(listObat) ? listObat : [];
+        const rawPenerimaan = Array.isArray(listPenerimaan) ? listPenerimaan : [];
+        const rawPenjualan = Array.isArray(listPenjualan) ? listPenjualan : [];
+
+        // Kelompokkan penerimaan item per obat_id
+        const masukMap = {};
+        const penerimaanTerakhirMap = {};
+
+        rawPenerimaan.forEach((pen) => {
+          (pen.items || []).forEach((pi) => {
+            const oid = pi.obat_id;
+            if (!oid) return;
+
+            const isiKemasan = Number(pi.kemasan || pi.faktor || 1);
+            const qtyDasar = Math.round(Number(pi.qty || 0) * isiKemasan);
+
+            if (!masukMap[oid]) masukMap[oid] = [];
+            masukMap[oid].push({
+              penerimaan_id: pen.id,
+              tanggal_terima: pen.tanggal_terima,
+              nama_pbf: pen.nama_supplier || "-",
+              no_faktur: pen.no_faktur || "-",
+              qty: Number(pi.qty || 0),
+              qty_dasar: qtyDasar,
+              nama_satuan: pi.nama_satuan || "Unit",
+              kemasan: isiKemasan,
+              harga_beli: Number(pi.harga_beli || 0),
+              diskon: Number(pi.diskon || 0),
+              nomor_batch: pi.nomor_batch || "-",
+              tanggal_exp: pi.tanggal_exp || "-",
+              subtotal: Number(pi.subtotal || 0),
+            });
+
+            // Catat penerimaan terakhir berdasarkan tanggal
+            if (!penerimaanTerakhirMap[oid] || pen.tanggal_terima >= penerimaanTerakhirMap[oid].tanggal_terima) {
+              penerimaanTerakhirMap[oid] = {
+                no_faktur: pen.no_faktur || "-",
+                tanggal_terima: pen.tanggal_terima || "-",
+                nomor_batch: pi.nomor_batch || "-",
+                tanggal_exp: pi.tanggal_exp || "-",
+              };
+            }
+          });
+        });
+
+        // Kelompokkan penjualan item per obat_id
+        const keluarMap = {};
+        rawPenjualan.forEach((penj) => {
+          if (penj.status === "batal") return;
+          (penj.items || []).forEach((pji) => {
+            const oid = pji.obat_id;
+            if (!oid) return;
+
+            const faktor = Number(pji.faktor || 1);
+            const qtyDasar = Math.round(Number(pji.qty || 0) * faktor);
+
+            if (!keluarMap[oid]) keluarMap[oid] = [];
+            keluarMap[oid].push({
+              penjualan_id: penj.id,
+              tanggal: penj.tanggal || (penj.created_at ? penj.created_at.slice(0, 10) : "-"),
+              jam: penj.created_at ? penj.created_at.slice(11, 16) : "-",
+              no_struk: penj.no_struk || "-",
+              sumber: penj.sumber || "kasir",
+              nama_kasir: penj.nama_kasir || "Kasir",
+              qty: Number(pji.qty || 0),
+              qty_dasar: qtyDasar,
+              nama_satuan: pji.nama_satuan || "Unit",
+              harga_jual: Number(pji.harga_jual || 0),
+              subtotal: Number(pji.subtotal || 0),
+            });
+          });
+        });
+
+        // Rakit array akhir
+        const terurut = [...rawObat].sort((a, b) => a.nama.localeCompare(b.nama));
+        const hasil = terurut.map((ob, idx) => {
+          const rMasuk = masukMap[ob.id] || [];
+          const rKeluar = keluarMap[ob.id] || [];
+
+          const totalMasukDasar = rMasuk.reduce((s, it) => s + it.qty_dasar, 0);
+          const totalKeluarDasar = rKeluar.reduce((s, it) => s + it.qty_dasar, 0);
+
+          const trxTerakhir = penerimaanTerakhirMap[ob.id];
+          const noFaktur = trxTerakhir ? trxTerakhir.no_faktur : "-";
+          const tglFaktur = trxTerakhir ? trxTerakhir.tanggal_terima : "-";
+          const batchTerakhir = trxTerakhir && trxTerakhir.nomor_batch !== "-"
+            ? trxTerakhir.nomor_batch
+            : ob.nomor_batch || "-";
+          const expTerakhir = trxTerakhir && trxTerakhir.tanggal_exp !== "-"
+            ? trxTerakhir.tanggal_exp
+            : ob.tanggal_exp || "-";
+
+          const satuanUtama = (ob.satuan || [])[0];
+          const namaKemasan = satuanUtama ? satuanUtama.nama_satuan : ob.satuan_dasar || "Unit";
+
+          const sisaAktual = Number(ob.stok || 0);
+          const stokAwal = Math.max(sisaAktual - totalMasukDasar + totalKeluarDasar, 0);
+          const jml = stokAwal + totalMasukDasar;
+          const sisa = jml - totalKeluarDasar;
+
+          return {
+            no: idx + 1,
+            id: ob.id,
+            nama: ob.nama,
+            kode: ob.kode,
+            no_faktur: noFaktur,
+            tgl_faktur: tglFaktur,
+            batch: batchTerakhir,
+            kemasan: namaKemasan,
+            satuan_dasar: ob.satuan_dasar || "Unit",
+            stok: stokAwal,
+            masuk: totalMasukDasar,
+            jml: jml,
+            keluar: totalKeluarDasar,
+            sisa: sisa,
+            ekp: expTerakhir,
+            rincian_masuk: rMasuk,
+            rincian_keluar: rKeluar,
+          };
+        });
+
+        setDaftarObat(hasil);
+      } catch (err) {
+        setError("Gagal memuat data stok obat: " + (err.message || ""));
+      }
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    muatData();
+  }, [dariTanggal, sampaiTanggal]);
+
+  // Filter teks pencarian
+  const dataTampil = daftarObat.filter((ob) => {
+    if (!search.trim()) return true;
+    const s = search.toLowerCase();
+    return (
+      ob.nama.toLowerCase().includes(s) ||
+      String(ob.no_faktur || "").toLowerCase().includes(s) ||
+      String(ob.batch || "").toLowerCase().includes(s) ||
+      String(ob.kode || "").toLowerCase().includes(s)
+    );
+  });
+
+  function formatTgl(str) {
+    if (!str || str === "-") return "-";
+    const d = new Date(str);
+    if (isNaN(d.getTime())) return str;
+    return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  }
+
+  // Kop resmi Apotek Bima Farma sesuai Foto Excel
+  const KOP_EXCEL_HTML = `
+    <div style="text-align: center; margin-bottom: 14px; font-family: sans-serif;">
+      <div style="font-size: 15px; font-weight: 800; letter-spacing: 0.5px; color: #000;">DAFTAR STOK OBAT</div>
+      <div style="font-size: 13px; font-weight: 700; color: #111; margin-top: 2px;">APOTEK BIMA FARMA</div>
+      <div style="font-size: 11px; color: #333; margin-top: 2px;">Jln. Tanimulya Raya no 1 Haji Gofur Ngamprah Bandung Barat</div>
+      <div style="font-size: 11px; font-weight: 600; color: #222; margin-top: 4px; border-bottom: 1.5px solid #000; padding-bottom: 6px;">
+        DARI TANGGAL ${formatTgl(dariTanggal).toUpperCase()} SAMPAI TANGGAL ${formatTgl(sampaiTanggal).toUpperCase()}
+      </div>
+    </div>
+  `;
+
+  // Handler Cetak Laporan Utama
+  function handleCetakUtama() {
+    cetakDokumenA4({
+      judul: "DAFTAR STOK OBAT",
+      periode: `DARI TANGGAL ${formatTgl(dariTanggal).toUpperCase()} SAMPAI TANGGAL ${formatTgl(sampaiTanggal).toUpperCase()}`,
+      orientation: "landscape",
+      customKop: KOP_EXCEL_HTML,
+      sembunyikanJudulDokumen: true,
+      headers: [
+        { label: "NO", align: "center", width: "35px" },
+        { label: "NAMA OBAT", align: "left" },
+        { label: "NO FAKTUR", align: "left", width: "95px" },
+        { label: "TGL FAKTUR", align: "center", width: "80px" },
+        { label: "BATCH", align: "center", width: "75px" },
+        { label: "KEMASAN", align: "left", width: "75px" },
+        { label: "STOK", align: "center", width: "55px" },
+        { label: "MASUK", align: "center", width: "55px" },
+        { label: "JML", align: "center", width: "55px" },
+        { label: "KELUAR", align: "center", width: "55px" },
+        { label: "SISA", align: "center", width: "55px" },
+        { label: "EKP", align: "center", width: "80px" },
+      ],
+      rows: dataTampil.map((ob, idx) => [
+        idx + 1,
+        ob.nama,
+        ob.no_faktur || "-",
+        formatTgl(ob.tgl_faktur),
+        ob.batch || "-",
+        ob.kemasan || "-",
+        ob.stok,
+        ob.masuk,
+        ob.jml,
+        ob.keluar,
+        ob.sisa,
+        formatTgl(ob.ekp),
+      ]),
+    });
+  }
+
+  function handleExportExcelUtama() {
+    exportExcel({
+      filename: `Daftar_Stok_Obat_${dariTanggal}_sd_${sampaiTanggal}`,
+      judul: "DAFTAR STOK OBAT - APOTEK BIMA FARMA",
+      periode: `DARI TANGGAL ${formatTgl(dariTanggal)} SAMPAI TANGGAL ${formatTgl(sampaiTanggal)}`,
+      headers: [
+        { label: "NO", align: "center" },
+        { label: "NAMA OBAT", align: "left" },
+        { label: "NO FAKTUR", align: "left" },
+        { label: "TGL FAKTUR", align: "center" },
+        { label: "BATCH", align: "center" },
+        { label: "KEMASAN", align: "left" },
+        { label: "STOK", align: "center" },
+        { label: "MASUK", align: "center" },
+        { label: "JML", align: "center" },
+        { label: "KELUAR", align: "center" },
+        { label: "SISA", align: "center" },
+        { label: "EKP", align: "center" },
+      ],
+      rows: dataTampil.map((ob, idx) => [
+        idx + 1,
+        ob.nama,
+        ob.no_faktur || "-",
+        formatTgl(ob.tgl_faktur),
+        ob.batch || "-",
+        ob.kemasan || "-",
+        ob.stok,
+        ob.masuk,
+        ob.jml,
+        ob.keluar,
+        ob.sisa,
+        formatTgl(ob.ekp),
+      ]),
+    });
+  }
+
+  function handleExportWordUtama() {
+    exportWord({
+      filename: `Daftar_Stok_Obat_${dariTanggal}_sd_${sampaiTanggal}`,
+      judul: "DAFTAR STOK OBAT - APOTEK BIMA FARMA",
+      periode: `DARI TANGGAL ${formatTgl(dariTanggal)} SAMPAI TANGGAL ${formatTgl(sampaiTanggal)}`,
+      headers: [
+        { label: "NO", align: "center" },
+        { label: "NAMA OBAT", align: "left" },
+        { label: "NO FAKTUR", align: "left" },
+        { label: "TGL FAKTUR", align: "center" },
+        { label: "BATCH", align: "center" },
+        { label: "KEMASAN", align: "left" },
+        { label: "STOK", align: "center" },
+        { label: "MASUK", align: "center" },
+        { label: "JML", align: "center" },
+        { label: "KELUAR", align: "center" },
+        { label: "SISA", align: "center" },
+        { label: "EKP", align: "center" },
+      ],
+      rows: dataTampil.map((ob, idx) => [
+        idx + 1,
+        ob.nama,
+        ob.no_faktur || "-",
+        formatTgl(ob.tgl_faktur),
+        ob.batch || "-",
+        ob.kemasan || "-",
+        ob.stok,
+        ob.masuk,
+        ob.jml,
+        ob.keluar,
+        ob.sisa,
+        formatTgl(ob.ekp),
+      ]),
+    });
+  }
+
+  // Update stok lokal setelah koreksi fisik
+  function handleKoreksiBerhasil({ obatId, stokBaru }) {
+    setDaftarObat((prev) =>
+      prev.map((ob) => {
+        if (ob.id !== obatId) return ob;
+        const selisihKoreksi = stokBaru - ob.sisa;
+        return {
+          ...ob,
+          sisa: stokBaru,
+          stok: Math.max(ob.stok + selisihKoreksi, 0),
+          jml: Math.max(ob.jml + selisihKoreksi, 0),
+        };
+      })
+    );
+    setSukses("Koreksi stok fisik berhasil disimpan.");
+  }
+
+  function handleTambahKeranjang(ob) {
+    alert(`Obat "${ob.nama}" dimasukkan ke daftar rencana pemesanan barang apotek.`);
+  }
+
   return (
     <KasirShell>
-      <div className="halaman-header">
-        <div>
-          <h1 style={{ fontSize: 24 }}>Stok Opname</h1>
-          <p className="halaman-sub">
-            Semua data obat langsung termuat per abjad (A–Z). Isi stok fisik riil di rak untuk sinkronisasi.
-          </p>
-        </div>
-      </div>
-
-      {error && <div className="login-error">{error}</div>}
-      {sukses && <div className="pesan-sukses">{sukses}</div>}
-
-            <div className="panel">
-        <div
-          className="panel-head"
-          style={{ flexWrap: "wrap", gap: 12, alignItems: "center" }}
-        >
-          <div>
-            <h3 style={{ margin: 0, fontSize: 16 }}>Daftar Obat (A–Z)</h3>
-            <span style={{ fontSize: 12, color: "var(--ink-soft)", fontWeight: 600 }}>
-              {items.length} obat terdaftar di apotek
-            </span>
-          </div>
-
-          {/* Tombol Aksi Bantuan Cepat */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={handleSamakanSemua}
-              disabled={loadingObat || items.length === 0}
-              style={{
-                background: "#FAF5FF",
-                border: "1px solid var(--magenta)",
-                color: "var(--magenta-dark)",
-                borderRadius: 8,
-                padding: "6px 12px",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-              }}
-              title="Isi stok fisik semua obat sama persis dengan stok sistem"
-            >
-              <span></span>
-              <span>Samakan Semua dg Sistem</span>
-            </button>
-
-            {itemTerisi.length > 0 && (
-              <button
-                type="button"
-                onClick={handleKosongkanInput}
-                style={{
-                  background: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  color: "#DC2626",
-                  borderRadius: 8,
-                  padding: "6px 12px",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-                title="Kosongkan semua inputan stok fisik"
-              >
-                Reset Input
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Toolbar Filter & Pencarian Cepat */}
+      <div style={{ padding: "16px 20px" }}>
+        {/* KOP RESMI DOKUMEN SESUAI EXCEL KLIEN */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-            marginBottom: 14,
-            paddingBottom: 14,
-            borderBottom: "1px solid var(--line)",
+            background: "#fff",
+            borderRadius: 12,
+            padding: "18px 24px 14px",
+            border: "1.5px solid #E2E8F0",
+            marginBottom: 16,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            textAlign: "center",
           }}
         >
-          <div className="search-obat-input" style={{ maxWidth: 360, width: "100%" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M21 21l-4.3-4.3" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Cari obat dalam daftar A–Z…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              className={`periode-chip ${filterTab === "semua" ? "active" : ""}`}
-              onClick={() => setFilterTab("semua")}
-              style={{ fontSize: 12, padding: "5px 10px" }}
-            >
-              Semua ({items.length})
-            </button>
-            <button
-              type="button"
-              className={`periode-chip ${filterTab === "terisi" ? "active" : ""}`}
-              onClick={() => setFilterTab("terisi")}
-              style={{ fontSize: 12, padding: "5px 10px" }}
-            >
-              Sudah Diisi ({itemTerisi.length})
-            </button>
-            <button
-              type="button"
-              className={`periode-chip ${filterTab === "selisih" ? "active" : ""}`}
-              onClick={() => setFilterTab("selisih")}
-              style={{
-                fontSize: 12,
-                padding: "5px 10px",
-                color: adaSelisih > 0 && filterTab !== "selisih" ? "#DC2626" : undefined,
-                fontWeight: adaSelisih > 0 ? 800 : 600,
-              }}
-            >
-              Ada Selisih ({adaSelisih})
-            </button>
-          </div>
-        </div>
-
-        {loadingObat ? (
-          <div className="panel-kosong" style={{ padding: 30 }}>
-            Memuat seluruh data obat…
-          </div>
-        ) : itemsTampil.length === 0 ? (
-          <div className="panel-kosong" style={{ padding: 30 }}>
-            Tidak ada obat yang cocok dengan filter.
-          </div>
-        ) : (
-          <>
-            <div className="obat-table-wrap">
-              <table className="obat-table" style={{ marginTop: 4 }}>
-                <thead>
-                  <tr>
-                    <th style={{ width: 40, textAlign: "center" }}>No.</th>
-                    <th>Nama Obat</th>
-                    <th style={{ width: 140, textAlign: "center" }}>Rincian Batch</th>
-                    <th style={{ width: 110 }}>Stok Sistem</th>
-                    <th style={{ width: 130 }}>Stok Fisik (Riil)</th>
-                    <th style={{ width: 110 }}>Selisih</th>
-                    <th>Keterangan</th>
-                    <th style={{ width: 95, textAlign: "center" }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {itemsTampil.map((it, idx) => {
-                    const terisi = it.stok_fisik !== "";
-                    const selisih = terisi
-                      ? Number(it.stok_fisik) - it.stok_sistem
-                      : null;
-                    const adaBatchConfig = it.batches && it.batches.length > 0;
-
-                    return (
-                      <tr
-                        key={it.obat_id}
-                        style={{
-                          background:
-                            selisih !== null && selisih !== 0
-                              ? "#FFFBEB"
-                              : terisi
-                              ? "#F8FAFC"
-                              : undefined,
-                        }}
-                      >
-                        <td style={{ textAlign: "center", color: "var(--ink-soft)", fontSize: 12 }}>
-                          {idx + 1}
-                        </td>
-                        <td>
-                          <span className="obat-nama-cell" style={{ fontWeight: 700 }}>
-                            {it.nama}
-                          </span>
-                          {it.nomor_batch && it.nomor_batch !== "-" ? (
-                            <div style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                              Batch: {it.nomor_batch}
-                            </div>
-                          ) : null}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          <button
-                            type="button"
-                            onClick={() => setModalBatchObat(it)}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              padding: "4px 9px",
-                              borderRadius: 7,
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              background: adaBatchConfig ? "#FAF5FF" : "#F8FAFC",
-                              color: adaBatchConfig ? "var(--magenta-dark)" : "#64748B",
-                              border: adaBatchConfig
-                                ? "1px solid #E9D5FF"
-                                : "1px solid #E2E8F0",
-                              cursor: "pointer",
-                            }}
-                            title="Atur penyesuaian per batch obat"
-                          >
-                            <span></span>
-                            <span>{adaBatchConfig ? `${it.batches.length} Batch` : "Batch"}</span>
-                          </button>
-                        </td>
-                        <td className="obat-stok-cell">
-                          <strong>{it.stok_sistem}</strong>{" "}
-                          <span style={{ fontSize: 11, color: "var(--ink-soft)" }}>
-                            {it.satuan_dasar}
-                          </span>
-                        </td>
-                        <td>
-                          <input
-                            type="number"
-                            min="0"
-                            className="cart-input-angka"
-                            value={it.stok_fisik}
-                            placeholder="Isi stok riil"
-                            onChange={(e) =>
-                              ubahItem(it.obat_id, "stok_fisik", e.target.value)
-                            }
-                            style={{
-                              fontWeight: 700,
-                              borderColor:
-                                selisih !== null && selisih !== 0
-                                  ? "#F59E0B"
-                                  : terisi
-                                  ? "#10B981"
-                                  : undefined,
-                              background: terisi ? "#fff" : "#FAFAFC",
-                            }}
-                          />
-                        </td>
-                        <td>
-                          {selisih === null ? (
-                            <span style={{ color: "var(--ink-soft)", fontSize: 12 }}>— Belum diisi —</span>
-                          ) : selisih === 0 ? (
-                            <span className="selisih-badge cocok"> Pas (0)</span>
-                          ) : (
-                            <span
-                              className={`selisih-badge ${
-                                selisih > 0 ? "lebih" : "kurang"
-                              }`}
-                            >
-                              {selisih > 0 ? `▲ +${selisih}` : `▼ ${selisih}`}
-                            </span>
-                          )}
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            className="cart-input-angka"
-                            value={it.keterangan}
-                            placeholder="mis. rusak, selisih hitung"
-                            onChange={(e) =>
-                              ubahItem(it.obat_id, "keterangan", e.target.value)
-                            }
-                            style={{ fontSize: 12 }}
-                          />
-                        </td>
-                        <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
-                          <button
-                            type="button"
-                            onClick={() => handleSimpanSatu(it)}
-                            disabled={sedangMenyimpanId === it.obat_id || it.stok_fisik === ""}
-                            style={{
-                              background: it.stok_fisik !== "" ? "var(--magenta)" : "#F1F5F9",
-                              color: it.stok_fisik !== "" ? "#fff" : "#94A3B8",
-                              border: "none",
-                              borderRadius: 7,
-                              padding: "6px 12px",
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              cursor: it.stok_fisik !== "" ? "pointer" : "not-allowed",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 4,
-                              boxShadow: it.stok_fisik !== "" ? "0 2px 5px rgba(166, 75, 199, 0.28)" : "none",
-                              transition: "all 0.15s ease",
-                            }}
-                            title={
-                              it.stok_fisik !== ""
-                                ? `Simpan stok untuk ${it.nama}`
-                                : "Isi stok fisik dulu untuk simpan"
-                            }
-                          >
-                            <span></span>
-                            <span>{sedangMenyimpanId === it.obat_id ? "…" : "Simpan"}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Ringkasan & Tombol Simpan */}
-            <div className="opname-ringkasan">
-              <div className="opname-ringkasan-info">
-                <span style={{ fontWeight: 700, fontSize: 14, color: "var(--ink)" }}>
-                  {itemTerisi.length} dari {items.length} obat telah dihitung
-                </span>
-                {adaSelisih > 0 ? (
-                  <span
-                    className="opname-ringkasan-selisih"
-                    style={{ color: "#D97706", fontWeight: 700 }}
-                  >
-                     {adaSelisih} obat memiliki selisih fisik (Total selisih:{" "}
-                    {totalSelisih > 0 ? `+${totalSelisih}` : totalSelisih})
-                  </span>
-                ) : itemTerisi.length > 0 ? (
-                  <span style={{ color: "#059669", fontWeight: 700 }}>
-                     Semua stok fisik yang diisi cocok dengan sistem (tidak ada selisih)
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 12 }}>
-                    Ketik angka pada kolom Stok Fisik untuk obat yang dihitung.
-                  </span>
-                )}
-              </div>
-
-              <button
-                className="payment-submit"
-                style={{ width: "auto", marginTop: 0, padding: "12px 28px", fontSize: 14 }}
-                onClick={simpan}
-                disabled={loading || itemTerisi.length === 0}
-              >
-                {loading ? "Menyimpan…" : `Simpan Penyesuaian (${itemTerisi.length} Obat)`}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-
-            {modalBatchObat && (
-        <DetailBatchModal
-          obat={modalBatchObat}
-          onClose={() => setModalBatchObat(null)}
-          onSimpan={(hasilBatch) =>
-            handleSimpanBatch(modalBatchObat.obat_id, hasilBatch)
-          }
-        />
-      )}
-
-            <div className="panel">
-        <div className="panel-head" style={{ flexWrap: "wrap", gap: 12 }}>
-          <h3>Riwayat Penyesuaian</h3>
+          <h1
+            style={{
+              fontSize: 18,
+              fontWeight: 900,
+              color: "#0F172A",
+              margin: 0,
+              letterSpacing: 0.8,
+              textTransform: "uppercase",
+            }}
+          >
+            DAFTAR STOK OBAT
+          </h1>
           <div
-            className="kalender-filter-group"
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "var(--magenta, #7E22CE)",
+              marginTop: 3,
+            }}
+          >
+            APOTEK BIMA FARMA
+          </div>
+          <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
+            Jln. Tanimulya Raya no 1 Haji Gofur Ngamprah Bandung Barat
+          </div>
+
+          {/* BARIS FILTER DARI TANGGAL SAMPAI TANGGAL & TOMBOL CETAK */}
+          <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              justifyContent: "space-between",
               flexWrap: "wrap",
+              gap: 14,
+              marginTop: 16,
+              paddingTop: 14,
+              borderTop: "1.5px dashed #CBD5E1",
             }}
           >
-            <div
-              className="kalender-item-wrap"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--ink-soft)",
-              }}
-            >
-              <span> Dari:</span>
+            {/* Filter Rentang Tanggal */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: "#1E293B" }}>
+                DARI TANGGAL
+              </span>
               <input
                 type="date"
                 value={dariTanggal}
@@ -635,27 +426,16 @@ export default function StokOpname() {
                 style={{
                   padding: "6px 10px",
                   borderRadius: 8,
-                  border: "1.5px solid var(--line)",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                  background: "#fff",
+                  border: "1.5px solid #CBD5E1",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: "#0F172A",
+                  background: "#F8FAFC",
                 }}
               />
-            </div>
-
-            <div
-              className="kalender-item-wrap"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--ink-soft)",
-              }}
-            >
-              <span>Sampai:</span>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: "#1E293B" }}>
+                SAMPAI TANGGAL
+              </span>
               <input
                 type="date"
                 value={sampaiTanggal}
@@ -663,67 +443,425 @@ export default function StokOpname() {
                 style={{
                   padding: "6px 10px",
                   borderRadius: 8,
-                  border: "1.5px solid var(--line)",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                  background: "#fff",
+                  border: "1.5px solid #CBD5E1",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: "#0F172A",
+                  background: "#F8FAFC",
                 }}
+              />
+            </div>
+
+            {/* Pencarian Obat & Tombol Cetak Dokumen */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  placeholder="Cari nama obat / batch / no faktur..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{
+                    padding: "7px 12px",
+                    borderRadius: 8,
+                    border: "1.5px solid #CBD5E1",
+                    fontSize: 12,
+                    minWidth: 260,
+                  }}
+                />
+              </div>
+
+              <TombolExportGroup
+                onCetakPdf={handleCetakUtama}
+                onExportExcel={handleExportExcelUtama}
+                onExportWord={handleExportWordUtama}
+                disabled={loading || dataTampil.length === 0}
+                labelCetak="CETAK"
               />
             </div>
           </div>
         </div>
 
-        {riwayat.length === 0 ? (
-          <div className="panel-kosong">Belum ada penyesuaian pada periode ini.</div>
-        ) : (
-          <div className="obat-table-wrap">
-            <table className="obat-table">
+        {error && (
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: 8,
+              background: "#FEF2F2",
+              color: "#DC2626",
+              fontSize: 12.5,
+              fontWeight: 600,
+              marginBottom: 14,
+              border: "1px solid #FECACA",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {sukses && (
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: 8,
+              background: "#ECFDF5",
+              color: "#065F46",
+              fontSize: 12.5,
+              fontWeight: 600,
+              marginBottom: 14,
+              border: "1px solid #A7F3D0",
+            }}
+          >
+            {sukses}
+          </div>
+        )}
+
+        {/* TABEL DAFTAR STOK OBAT 13 KOLOM SESUAI EXCEL FISIK */}
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: 12,
+            border: "1.5px solid #CBD5E1",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            overflowX: "auto",
+          }}
+        >
+          {loading ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#64748B", fontSize: 13 }}>
+              Memuat data stok obat dan mutasi transaksi...
+            </div>
+          ) : dataTampil.length === 0 ? (
+            <div style={{ padding: 40, textAlign: "center", color: "#64748B", fontSize: 13 }}>
+              Tidak ada data obat yang sesuai dengan pencarian atau periode tanggal.
+            </div>
+          ) : (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: 12,
+                fontFamily: "inherit",
+              }}
+            >
               <thead>
-                <tr>
-                  <th>Tanggal</th>
-                  <th>Obat</th>
-                  <th>Sebelum</th>
-                  <th>Sesudah</th>
-                  <th>Selisih</th>
-                  <th>Petugas</th>
-                  <th>Keterangan</th>
+                <tr
+                  style={{
+                    background: "#F1F5F9",
+                    borderBottom: "2px solid #94A3B8",
+                    color: "#0F172A",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 40 }}>
+                    NO
+                  </th>
+                  <th style={{ padding: "9px 12px", textAlign: "left", borderRight: "1px solid #CBD5E1", minWidth: 200 }}>
+                    NAMA OBAT
+                  </th>
+                  <th style={{ padding: "9px 10px", textAlign: "left", borderRight: "1px solid #CBD5E1", width: 110 }}>
+                    NO FAKTUR
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 95 }}>
+                    TGL FAKTUR
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 90 }}>
+                    BATCH
+                  </th>
+                  <th style={{ padding: "9px 10px", textAlign: "left", borderRight: "1px solid #CBD5E1", width: 90 }}>
+                    KEMASAN
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 60, background: "#F8FAFC" }}>
+                    STOK
+                  </th>
+                  <th
+                    style={{
+                      padding: "9px 8px",
+                      textAlign: "center",
+                      borderRight: "1px solid #CBD5E1",
+                      width: 70,
+                      background: "#ECFDF5",
+                      color: "#065F46",
+                    }}
+                    title="Klik angka masuk untuk melihat rincian per tanggal masuk & nama PBF"
+                  >
+                    MASUK
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 60, background: "#F8FAFC" }}>
+                    JML
+                  </th>
+                  <th
+                    style={{
+                      padding: "9px 8px",
+                      textAlign: "center",
+                      borderRight: "1px solid #CBD5E1",
+                      width: 70,
+                      background: "#FEF2F2",
+                      color: "#991B1B",
+                    }}
+                    title="Klik angka keluar untuk melihat rincian per tanggal keluar & no struk"
+                  >
+                    KELUAR
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 65, background: "#F0FDF4", color: "#166534" }}>
+                    SISA
+                  </th>
+                  <th style={{ padding: "9px 8px", textAlign: "center", borderRight: "1px solid #CBD5E1", width: 95 }}>
+                    EKP
+                  </th>
+                  <th style={{ padding: "9px 10px", textAlign: "center", width: 140 }}>
+                    <div style={{ marginBottom: 2 }}>AKSI</div>
+                    <div style={{ fontSize: 9.5, fontWeight: 600, color: "#64748B", textTransform: "lowercase", display: "flex", justifyContent: "space-around" }}>
+                      <span>buku</span>
+                      <span>pensi</span>
+                      <span>keranjang</span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {riwayat.map((m) => (
-                  <tr key={m.id}>
-                    <td>
-                      {new Date(m.created_at).toLocaleString("id-ID", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </td>
-                    <td>
-                      <span className="obat-nama-cell">{m.obat?.nama || "—"}</span>
-                    </td>
-                    <td>{m.stok_sebelum}</td>
-                    <td>{m.stok_sesudah}</td>
-                    <td>
-                      <span
-                        className={`selisih-badge ${
-                          m.qty > 0 ? "lebih" : "kurang"
-                        }`}
+                {dataTampil.map((ob, idx) => {
+                  const adaMasuk = ob.masuk > 0;
+                  const adaKeluar = ob.keluar > 0;
+
+                  return (
+                    <tr
+                      key={ob.id}
+                      style={{
+                        borderBottom: "1px solid #E2E8F0",
+                        background: idx % 2 === 1 ? "#FAFAFA" : "#fff",
+                      }}
+                    >
+                      {/* NO */}
+                      <td style={{ padding: "8px 6px", textAlign: "center", borderRight: "1px solid #E2E8F0", color: "#64748B", fontWeight: 600 }}>
+                        {idx + 1}
+                      </td>
+
+                      {/* NAMA OBAT */}
+                      <td style={{ padding: "8px 12px", textAlign: "left", borderRight: "1px solid #E2E8F0", fontWeight: 700, color: "#0F172A" }}>
+                        {ob.nama}
+                      </td>
+
+                      {/* NO FAKTUR */}
+                      <td style={{ padding: "8px 10px", textAlign: "left", borderRight: "1px solid #E2E8F0", fontFamily: "monospace", fontSize: 11.5, color: "#334155" }}>
+                        {ob.no_faktur || "-"}
+                      </td>
+
+                      {/* TGL FAKTUR */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontSize: 11.5, color: "#475569" }}>
+                        {formatTgl(ob.tgl_faktur)}
+                      </td>
+
+                      {/* BATCH */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontSize: 11.5, color: "#334155" }}>
+                        {ob.batch || "-"}
+                      </td>
+
+                      {/* KEMASAN */}
+                      <td style={{ padding: "8px 10px", textAlign: "left", borderRight: "1px solid #E2E8F0", color: "#475569" }}>
+                        {ob.kemasan || "-"}
+                      </td>
+
+                      {/* STOK (AWAL) */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontWeight: 700, color: "#334155" }}>
+                        {ob.stok}
+                      </td>
+
+                      {/* MASUK (INTERAKTIF KLIK DRILLDOWN RINCIAN MASUK & PBF) */}
+                      <td
+                        style={{
+                          padding: "8px 8px",
+                          textAlign: "center",
+                          borderRight: "1px solid #E2E8F0",
+                          background: adaMasuk ? "#F0FDF4" : undefined,
+                        }}
                       >
-                        {m.qty > 0 ? `+${m.qty}` : m.qty}
-                      </span>
-                    </td>
-                    <td>{m.user?.nama || "—"}</td>
-                    <td style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                      {m.keterangan || "—"}
-                    </td>
-                  </tr>
-                ))}
+                        <button
+                          type="button"
+                          onClick={() => setModalMasukObat(ob)}
+                          title="Klik untuk melihat rincian pertanggal masuk obat dan nama PBF"
+                          style={{
+                            border: "none",
+                            background: adaMasuk ? "#DCFCE7" : "transparent",
+                            color: adaMasuk ? "#15803D" : "#94A3B8",
+                            fontWeight: 800,
+                            fontSize: 12,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            textDecoration: adaMasuk ? "underline" : "none",
+                          }}
+                        >
+                          {ob.masuk}
+                        </button>
+                      </td>
+
+                      {/* JML (STOK AWAL + MASUK) */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontWeight: 700, color: "#1E293B" }}>
+                        {ob.jml}
+                      </td>
+
+                      {/* KELUAR (INTERAKTIF KLIK DRILLDOWN RINCIAN KELUAR) */}
+                      <td
+                        style={{
+                          padding: "8px 8px",
+                          textAlign: "center",
+                          borderRight: "1px solid #E2E8F0",
+                          background: adaKeluar ? "#FEF2F2" : undefined,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setModalKeluarObat(ob)}
+                          title="Klik untuk melihat rincian pertanggal keluar obat dan no struk"
+                          style={{
+                            border: "none",
+                            background: adaKeluar ? "#FEE2E2" : "transparent",
+                            color: adaKeluar ? "#B91C1C" : "#94A3B8",
+                            fontWeight: 800,
+                            fontSize: 12,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            textDecoration: adaKeluar ? "underline" : "none",
+                          }}
+                        >
+                          {ob.keluar}
+                        </button>
+                      </td>
+
+                      {/* SISA (STOK AKHIR) */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontWeight: 800, color: ob.sisa <= 5 ? "#DC2626" : "#047857" }}>
+                        {ob.sisa}
+                      </td>
+
+                      {/* EKP (EXPIRED TERAKHIR) */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontSize: 11.5, color: "#475569" }}>
+                        {formatTgl(ob.ekp)}
+                      </td>
+
+                      {/* AKSI: buku, pensi, keranjang */}
+                      <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          {/* 1. Buku (Kartu Stok / Mutasi) */}
+                          <button
+                            type="button"
+                            onClick={() => setModalBukuObat(ob)}
+                            title="Buku: Lihat kartu stok & riwayat mutasi obat"
+                            style={{
+                              padding: "4px 7px",
+                              borderRadius: 6,
+                              border: "1px solid #CBD5E1",
+                              background: "#F8FAFC",
+                              color: "#334155",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                              <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+                              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                            </svg>
+                          </button>
+
+                          {/* 2. Pensi (Pensil Opname Koreksi Stok Fisik) */}
+                          <button
+                            type="button"
+                            onClick={() => setModalKoreksiObat(ob)}
+                            title="Pensi: Input stok fisik nyata & simpan koreksi opname"
+                            style={{
+                              padding: "4px 7px",
+                              borderRadius: 6,
+                              border: "1px solid #DDD6FE",
+                              background: "#FAF5FF",
+                              color: "#7E22CE",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+
+                          {/* 3. Keranjang (Pemesanan / SP) */}
+                          <button
+                            type="button"
+                            onClick={() => handleTambahKeranjang(ob)}
+                            title="Keranjang: Tambahkan ke rencana pemesanan obat"
+                            style={{
+                              padding: "4px 7px",
+                              borderRadius: 6,
+                              border: "1px solid #BAE6FD",
+                              background: "#F0F9FF",
+                              color: "#0284C7",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                              <circle cx="9" cy="21" r="1" />
+                              <circle cx="20" cy="21" r="1" />
+                              <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* MODAL 1: RINCIAN OBAT MASUK PER TANGGAL & PBF (BISA DICETAK) */}
+      {modalMasukObat && (
+        <RincianMasukModal
+          obat={modalMasukObat}
+          dariTanggal={dariTanggal}
+          sampaiTanggal={sampaiTanggal}
+          onClose={() => setModalMasukObat(null)}
+        />
+      )}
+
+      {/* MODAL 2: RINCIAN OBAT KELUAR PER TANGGAL & STRUK (BISA DICETAK) */}
+      {modalKeluarObat && (
+        <RincianKeluarModal
+          obat={modalKeluarObat}
+          dariTanggal={dariTanggal}
+          sampaiTanggal={sampaiTanggal}
+          onClose={() => setModalKeluarObat(null)}
+        />
+      )}
+
+      {/* MODAL 3: KOREKSI STOK FISIK (PENSI / PENSIL) */}
+      {modalKoreksiObat && (
+        <KoreksiStokModal
+          obat={modalKoreksiObat}
+          user={user}
+          onBerhasil={handleKoreksiBerhasil}
+          onClose={() => setModalKoreksiObat(null)}
+        />
+      )}
+
+      {/* MODAL 4: BUKU KARTU STOK / MUTASI */}
+      {modalBukuObat && (
+        <MutasiBukuModal
+          obat={modalBukuObat}
+          onClose={() => setModalBukuObat(null)}
+        />
+      )}
     </KasirShell>
   );
 }

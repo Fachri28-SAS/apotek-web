@@ -14,6 +14,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\DaftarStokObatController;
 use App\Http\Controllers\DuitkuController;
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/obat/{obat}/riwayat-pengadaan', [ObatController::class, 'riwayatPengadaan']);
         Route::post('/obat/opname', [ObatController::class, 'opname']);
         Route::get('/stok-mutasi', [StokMutasiController::class, 'index']);
+        Route::get('/daftar-stok-obat', [DaftarStokObatController::class, 'index']);
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/suppliers', [SupplierController::class, 'store']);
         Route::put('/suppliers/{supplier}', [SupplierController::class, 'update']);
