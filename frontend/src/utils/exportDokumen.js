@@ -126,16 +126,23 @@ export function cetakDokumenA4({
         <style>
           @page {
             size: A4 ${orientation};
-            margin: 0;
+            margin: 8mm 8mm 8mm 8mm;
           }
           @media print {
             @page {
               size: A4 ${orientation};
-              margin: 0;
+              margin: 8mm 8mm 8mm 8mm;
             }
             html, body {
               margin: 0 !important;
-              padding: 8mm 10mm !important;
+              padding: 0 !important;
+            }
+            thead {
+              display: table-header-group !important;
+            }
+            tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
           }
           * { box-sizing: border-box; }
@@ -145,7 +152,7 @@ export function cetakDokumenA4({
             color: #000;
             background: #fff;
             margin: 0;
-            padding: 8mm 10mm;
+            padding: 8mm 8mm;
           }
           .judul-dokumen {
             font-size: 12px;

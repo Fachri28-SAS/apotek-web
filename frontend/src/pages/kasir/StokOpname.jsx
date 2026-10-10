@@ -40,6 +40,10 @@ export default function StokOpname() {
   const [inputStokCepat, setInputStokCepat] = useState("");
   const [loadingKoreksiCepat, setLoadingKoreksiCepat] = useState(false);
 
+  // State Pagination / Per Halaman
+  const [perPage, setPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Ambil data stok obat dengan fallback cerdas
   async function muatData() {
     setLoading(true);
@@ -210,6 +214,54 @@ export default function StokOpname() {
     );
   });
 
+  // Reset ke halaman 1 saat filter pencarian atau tanggal berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, dariTanggal, sampaiTanggal]);
+
+  // Perhitungan Pagination
+  const totalData = dataTampil.length;
+  const totalPages = perPage === "semua" ? 1 : Math.max(1, Math.ceil(totalData / perPage));
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = perPage === "semua" ? 0 : (validCurrentPage - 1) * perPage;
+  const endIndex = perPage === "semua" ? totalData : startIndex + perPage;
+  const dataHalaman = dataTampil.slice(startIndex, endIndex);
+
+  function renderPageNumbers() {
+    if (totalPages <= 1) return null;
+    const pages = [];
+    let start = Math.max(1, validCurrentPage - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) {
+      start = Math.max(1, end - 4);
+    }
+
+    for (let p = start; p <= end; p++) {
+      pages.push(
+        <button
+          key={p}
+          type="button"
+          onClick={() => setCurrentPage(p)}
+          style={{
+            minWidth: 32,
+            height: 32,
+            padding: "0 6px",
+            borderRadius: 7,
+            border: p === validCurrentPage ? "1.5px solid var(--magenta, #7E22CE)" : "1px solid #CBD5E1",
+            background: p === validCurrentPage ? "var(--magenta, #7E22CE)" : "#fff",
+            color: p === validCurrentPage ? "#fff" : "#1E293B",
+            fontWeight: p === validCurrentPage ? 800 : 600,
+            fontSize: 12,
+            cursor: "pointer",
+          }}
+        >
+          {p}
+        </button>
+      );
+    }
+    return pages;
+  }
+
   function formatTgl(str) {
     if (!str || str === "-") return "-";
     const d = new Date(str);
@@ -229,11 +281,15 @@ export default function StokOpname() {
     </div>
   `;
 
-  // Handler Cetak Laporan Utama (Kolom EXP)
-  function handleCetakUtama() {
+  // Handler Cetak Laporan Utama (Ukuran Kertas A4 Landscape)
+  function handleCetakUtama(scope = "semua") {
+    const dataDicetak = scope === "halaman" && perPage !== "semua" ? dataHalaman : dataTampil;
+    const infoHal = scope === "halaman" && perPage !== "semua" ? ` (HALAMAN ${validCurrentPage} DARI ${totalPages})` : "";
+    const baseOffset = scope === "halaman" && perPage !== "semua" ? startIndex : 0;
+
     cetakDokumenA4({
       judul: "DAFTAR STOK OBAT",
-      periode: `DARI TANGGAL ${formatTgl(dariTanggal).toUpperCase()} SAMPAI TANGGAL ${formatTgl(sampaiTanggal).toUpperCase()}`,
+      periode: `DARI TANGGAL ${formatTgl(dariTanggal).toUpperCase()} SAMPAI TANGGAL ${formatTgl(sampaiTanggal).toUpperCase()}${infoHal}`,
       orientation: "landscape",
       customKop: KOP_EXCEL_HTML,
       sembunyikanJudulDokumen: true,
@@ -251,8 +307,8 @@ export default function StokOpname() {
         { label: "SISA", align: "center", width: "55px" },
         { label: "EXP", align: "center", width: "80px" },
       ],
-      rows: dataTampil.map((ob, idx) => [
-        idx + 1,
+      rows: dataDicetak.map((ob, idx) => [
+        baseOffset + idx + 1,
         ob.nama,
         ob.no_faktur || "-",
         formatTgl(ob.tgl_faktur),
@@ -523,13 +579,43 @@ export default function StokOpname() {
                 />
               </div>
 
-              <TombolExportGroup
-                onCetakPdf={handleCetakUtama}
-                onExportExcel={handleExportExcelUtama}
-                onExportWord={handleExportWordUtama}
-                disabled={loading || dataTampil.length === 0}
-                labelCetak="CETAK"
-              />
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <TombolExportGroup
+                  onCetakPdf={() => handleCetakUtama("semua")}
+                  onExportExcel={handleExportExcelUtama}
+                  onExportWord={handleExportWordUtama}
+                  disabled={loading || dataTampil.length === 0}
+                  labelCetak="CETAK (A4)"
+                />
+                {perPage !== "semua" && totalPages > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleCetakUtama("halaman")}
+                    disabled={loading || dataHalaman.length === 0}
+                    title={`Cetak Halaman ${validCurrentPage} ke Kertas A4`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "7px 11px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background: "#FAF5FF",
+                      color: "var(--magenta, #7E22CE)",
+                      border: "1.5px solid #DDD6FE",
+                      cursor: "pointer",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                    }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                      <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                      <path d="M6 14h12v8H6z" />
+                    </svg>
+                    <span>Cetak Hal. {validCurrentPage} (A4)</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -668,7 +754,7 @@ export default function StokOpname() {
                 </tr>
               </thead>
               <tbody>
-                {dataTampil.map((ob, idx) => {
+                {dataHalaman.map((ob, idx) => {
                   const adaMasuk = ob.masuk > 0;
                   const adaKeluar = ob.keluar > 0;
 
@@ -682,7 +768,7 @@ export default function StokOpname() {
                     >
                       {/* NO */}
                       <td style={{ padding: "8px 6px", textAlign: "center", borderRight: "1px solid #E2E8F0", color: "#64748B", fontWeight: 600 }}>
-                        {idx + 1}
+                        {startIndex + idx + 1}
                       </td>
 
                       {/* NAMA OBAT */}
@@ -878,6 +964,139 @@ export default function StokOpname() {
                 })}
               </tbody>
             </table>
+          )}
+
+          {/* BARIS PAGINATION / PER HALAMAN */}
+          {!loading && totalData > 0 && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 18px",
+                borderTop: "1.5px solid #E2E8F0",
+                background: "#F8FAFC",
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              {/* Info & Pilihan Per Halaman */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", fontSize: 12.5, color: "#475569" }}>
+                <span>
+                  Menampilkan <strong>{totalData === 0 ? 0 : startIndex + 1}</strong> – <strong>{Math.min(endIndex, totalData)}</strong> dari <strong>{totalData.toLocaleString("id-ID")}</strong> obat
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span>Per Halaman:</span>
+                  <select
+                    value={perPage}
+                    onChange={(e) => {
+                      const val = e.target.value === "semua" ? "semua" : Number(e.target.value);
+                      setPerPage(val);
+                      setCurrentPage(1);
+                    }}
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid #CBD5E1",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background: "#fff",
+                      color: "var(--magenta, #7E22CE)",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                  >
+                    <option value={15}>15</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value="semua">Semua</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Kontrol Navigasi Halaman */}
+              {perPage !== "semua" && totalPages > 1 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    disabled={validCurrentPage <= 1}
+                    onClick={() => setCurrentPage(1)}
+                    style={{
+                      padding: "5px 9px",
+                      borderRadius: 7,
+                      border: "1px solid #CBD5E1",
+                      background: validCurrentPage <= 1 ? "#F1F5F9" : "#fff",
+                      color: validCurrentPage <= 1 ? "#94A3B8" : "#1E293B",
+                      cursor: validCurrentPage <= 1 ? "not-allowed" : "pointer",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                    }}
+                    title="Halaman Pertama"
+                  >
+                    ««
+                  </button>
+                  <button
+                    type="button"
+                    disabled={validCurrentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: 7,
+                      border: "1px solid #CBD5E1",
+                      background: validCurrentPage <= 1 ? "#F1F5F9" : "#fff",
+                      color: validCurrentPage <= 1 ? "#94A3B8" : "#1E293B",
+                      cursor: validCurrentPage <= 1 ? "not-allowed" : "pointer",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                    }}
+                    title="Halaman Sebelumnya"
+                  >
+                    ‹
+                  </button>
+
+                  {/* Tombol Angka Halaman */}
+                  {renderPageNumbers()}
+
+                  <button
+                    type="button"
+                    disabled={validCurrentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: 7,
+                      border: "1px solid #CBD5E1",
+                      background: validCurrentPage >= totalPages ? "#F1F5F9" : "#fff",
+                      color: validCurrentPage >= totalPages ? "#94A3B8" : "#1E293B",
+                      cursor: validCurrentPage >= totalPages ? "not-allowed" : "pointer",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                    }}
+                    title="Halaman Selanjutnya"
+                  >
+                    ›
+                  </button>
+                  <button
+                    type="button"
+                    disabled={validCurrentPage >= totalPages}
+                    onClick={() => setCurrentPage(totalPages)}
+                    style={{
+                      padding: "5px 9px",
+                      borderRadius: 7,
+                      border: "1px solid #CBD5E1",
+                      background: validCurrentPage >= totalPages ? "#F1F5F9" : "#fff",
+                      color: validCurrentPage >= totalPages ? "#94A3B8" : "#1E293B",
+                      cursor: validCurrentPage >= totalPages ? "not-allowed" : "pointer",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                    }}
+                    title="Halaman Terakhir"
+                  >
+                    »»
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
