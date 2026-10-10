@@ -35,10 +35,10 @@ export default function StokOpname() {
   const [modalMasukObat, setModalMasukObat] = useState(null);
   const [modalKeluarObat, setModalKeluarObat] = useState(null);
 
-  // State Koreksi Stok Langsung di Kolom STOK (Inline Edit)
-  const [editStokId, setEditStokId] = useState(null);
-  const [stokInputVal, setStokInputVal] = useState("");
-  const [loadingSimpanStok, setLoadingSimpanStok] = useState(false);
+  // State Modal Mini Koreksi Stok Langsung (Pensil)
+  const [modalKoreksiObat, setModalKoreksiObat] = useState(null);
+  const [inputStokCepat, setInputStokCepat] = useState("");
+  const [loadingKoreksiCepat, setLoadingKoreksiCepat] = useState(false);
 
   // Ambil data stok obat dengan fallback cerdas
   async function muatData() {
@@ -339,15 +339,16 @@ export default function StokOpname() {
     });
   }
 
-  // Koreksi langsung pada kolom STOK tanpa data tambahan
-  async function handleSimpanStokCepat(ob) {
-    const angka = Number(stokInputVal);
+  // Koreksi langsung stok via dialog mini tanpa data tambahan
+  async function handleSimpanKoreksiModal() {
+    if (!modalKoreksiObat) return;
+    const angka = Number(inputStokCepat);
     if (isNaN(angka) || angka < 0) {
       alert("Masukkan angka stok yang valid.");
       return;
     }
 
-    setLoadingSimpanStok(true);
+    setLoadingKoreksiCepat(true);
     setError("");
     setSukses("");
 
@@ -357,19 +358,22 @@ export default function StokOpname() {
         body: JSON.stringify({
           items: [
             {
-              obat_id: ob.id,
+              obat_id: modalKoreksiObat.id,
               stok_fisik: angka,
             },
           ],
         }),
       });
 
-      const selisih = angka - ob.stok;
+      const targetId = modalKoreksiObat.id;
+      const targetNama = modalKoreksiObat.nama;
+      const selisih = angka - (modalKoreksiObat.sisa ?? modalKoreksiObat.stok ?? 0);
+
       setDaftarObat((prev) =>
         prev.map((item) => {
-          if (item.id !== ob.id) return item;
-          const stokBaru = Math.max(angka, 0);
-          const sisaBaru = Math.max(item.sisa + selisih, 0);
+          if (item.id !== targetId) return item;
+          const stokBaru = Math.max(item.stok + selisih, 0);
+          const sisaBaru = Math.max(angka, 0);
           return {
             ...item,
             stok: stokBaru,
@@ -378,12 +382,12 @@ export default function StokOpname() {
           };
         })
       );
-      setEditStokId(null);
-      setSukses(`Stok "${ob.nama}" berhasil dikoreksi menjadi ${angka}.`);
+      setModalKoreksiObat(null);
+      setSukses(`Stok "${targetNama}" berhasil dikoreksi menjadi ${angka}.`);
     } catch (err) {
       setError("Gagal menyimpan koreksi stok: " + (err.message || ""));
     } finally {
-      setLoadingSimpanStok(false);
+      setLoadingKoreksiCepat(false);
     }
   }
 
@@ -661,14 +665,13 @@ export default function StokOpname() {
                 {dataTampil.map((ob, idx) => {
                   const adaMasuk = ob.masuk > 0;
                   const adaKeluar = ob.keluar > 0;
-                  const isEditingStok = editStokId === ob.id;
 
                   return (
                     <tr
                       key={ob.id}
                       style={{
                         borderBottom: "1px solid #E2E8F0",
-                        background: isEditingStok ? "#FAF5FF" : idx % 2 === 1 ? "#FAFAFA" : "#fff",
+                        background: idx % 2 === 1 ? "#FAFAFA" : "#fff",
                       }}
                     >
                       {/* NO */}
@@ -701,36 +704,9 @@ export default function StokOpname() {
                         {ob.kemasan || "-"}
                       </td>
 
-                      {/* STOK (AWAL) DENGAN KOREKSI LANGSUNG */}
-                      <td style={{ padding: "6px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontWeight: 700, color: "#334155" }}>
-                        {isEditingStok ? (
-                          <input
-                            type="number"
-                            min="0"
-                            autoFocus
-                            value={stokInputVal}
-                            onChange={(e) => setStokInputVal(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") handleSimpanStokCepat(ob);
-                              if (e.key === "Escape") setEditStokId(null);
-                            }}
-                            style={{
-                              width: 55,
-                              padding: "3px 4px",
-                              textAlign: "center",
-                              fontWeight: 800,
-                              fontSize: 12,
-                              borderRadius: 6,
-                              border: "2px solid var(--magenta, #7E22CE)",
-                              background: "#FAF5FF",
-                              color: "#0F172A",
-                              outline: "none",
-                            }}
-                            title="Ketik angka stok baru lalu tekan Enter untuk simpan"
-                          />
-                        ) : (
-                          ob.stok
-                        )}
+                      {/* STOK (AWAL) */}
+                      <td style={{ padding: "8px 8px", textAlign: "center", borderRight: "1px solid #E2E8F0", fontWeight: 700, color: "#334155" }}>
+                        {ob.stok}
                       </td>
 
                       {/* MASUK (INTERAKTIF KLIK DRILLDOWN RINCIAN MASUK & PBF) */}
@@ -808,94 +784,44 @@ export default function StokOpname() {
                         {formatTgl(ob.ekp)}
                       </td>
 
-                      {/* AKSI: PENSIL (KOREKSI STOK) & BAK SAMPAH (HAPUS) */}
+                      {/* AKSI: PENSIL (KOREKSI LANGSUNG STOK) & BAK SAMPAH (HAPUS) */}
                       <td style={{ padding: "6px 8px", textAlign: "center" }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          {isEditingStok ? (
-                            <>
-                              {/* Simpan Stok Cepat (Centang) */}
-                              <button
-                                type="button"
-                                onClick={() => handleSimpanStokCepat(ob)}
-                                disabled={loadingSimpanStok}
-                                title="Simpan koreksi stok"
-                                style={{
-                                  padding: "4px 7px",
-                                  borderRadius: 6,
-                                  border: "1px solid #86EFAC",
-                                  background: "#DCFCE7",
-                                  color: "#15803D",
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}>
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              </button>
+                          {/* 1. Tombol Pensil (Koreksi Langsung Stok) */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalKoreksiObat(ob);
+                              setInputStokCepat(String(ob.sisa ?? ob.stok ?? 0));
+                            }}
+                            title="Koreksi langsung angka stok"
+                            style={{
+                              padding: "5px 8px",
+                              borderRadius: 6,
+                              border: "1.5px solid #DDD6FE",
+                              background: "#FAF5FF",
+                              color: "#7E22CE",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
 
-                              {/* Batal Edit (Silang) */}
-                              <button
-                                type="button"
-                                onClick={() => setEditStokId(null)}
-                                title="Batal koreksi"
-                                style={{
-                                  padding: "4px 7px",
-                                  borderRadius: 6,
-                                  border: "1px solid #CBD5E1",
-                                  background: "#F8FAFC",
-                                  color: "#64748B",
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                }}
-                              >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 14, height: 14 }}>
-                                  <line x1="18" y1="6" x2="6" y2="18" />
-                                  <line x1="6" y1="6" x2="18" y2="18" />
-                                </svg>
-                              </button>
-                            </>
-                          ) : (
-                            /* Tombol Pensil (Koreksi Langsung di Kolom Stok) */
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditStokId(ob.id);
-                                setStokInputVal(String(ob.stok));
-                              }}
-                              title="Koreksi langsung angka stok"
-                              style={{
-                                padding: "4px 7px",
-                                borderRadius: 6,
-                                border: "1px solid #DDD6FE",
-                                background: "#FAF5FF",
-                                color: "#7E22CE",
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
-                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                              </svg>
-                            </button>
-                          )}
-
-                          {/* Tombol Bak Sampah (Hapus Data Obat) */}
+                          {/* 2. Tombol Bak Sampah (Hapus Data Obat) */}
                           <button
                             type="button"
                             onClick={() => handleHapusObat(ob)}
                             title="Hapus data obat"
                             style={{
-                              padding: "4px 7px",
+                              padding: "5px 8px",
                               borderRadius: 6,
-                              border: "1px solid #FECACA",
+                              border: "1.5px solid #FECACA",
                               background: "#FEF2F2",
                               color: "#DC2626",
                               cursor: "pointer",
@@ -904,7 +830,7 @@ export default function StokOpname() {
                               justifyContent: "center",
                             }}
                           >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
                               <polyline points="3 6 5 6 21 6" />
                               <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
                               <line x1="10" y1="11" x2="10" y2="17" />
@@ -940,6 +866,106 @@ export default function StokOpname() {
           sampaiTanggal={sampaiTanggal}
           onClose={() => setModalKeluarObat(null)}
         />
+      )}
+
+      {/* MODAL MINI KOREKSI STOK LANGSUNG (PENSIL) */}
+      {modalKoreksiObat && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(3px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 99999,
+            padding: 16,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setModalKoreksiObat(null);
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 14,
+              width: "100%",
+              maxWidth: 360,
+              padding: "20px 22px",
+              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+              Koreksi Stok Obat
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--magenta, #7E22CE)", marginBottom: 14 }}>
+              {modalKoreksiObat.nama}
+            </div>
+
+            <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 6 }}>
+              Stok Nyata Saat Ini ({modalKoreksiObat.satuan_dasar || "Unit"}):
+            </label>
+            <input
+              type="number"
+              min="0"
+              autoFocus
+              value={inputStokCepat}
+              onChange={(e) => setInputStokCepat(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSimpanKoreksiModal();
+                if (e.key === "Escape") setModalKoreksiObat(null);
+              }}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 8,
+                border: "2px solid var(--magenta, #7E22CE)",
+                fontSize: 16,
+                fontWeight: 800,
+                boxSizing: "border-box",
+                marginBottom: 16,
+              }}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setModalKoreksiObat(null)}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #CBD5E1",
+                  background: "#F8FAFC",
+                  color: "#475569",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={loadingKoreksiCepat}
+                onClick={handleSimpanKoreksiModal}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "var(--magenta, #7E22CE)",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: 13,
+                  cursor: loadingKoreksiCepat ? "not-allowed" : "pointer",
+                  opacity: loadingKoreksiCepat ? 0.7 : 1,
+                }}
+              >
+                {loadingKoreksiCepat ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </KasirShell>
   );
