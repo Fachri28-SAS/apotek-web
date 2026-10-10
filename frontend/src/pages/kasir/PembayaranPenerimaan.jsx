@@ -263,7 +263,7 @@ export default function PembayaranPenerimaan() {
       { label: "NO", align: "center", width: "40px" },
       { label: "Nama PBF", align: "left" },
       { label: "Tgl Faktur", align: "center" },
-      { label: "Nomor Faktur", align: "left" },
+      { label: "NO FAKTUR", align: "left" },
       { label: "Besar Uang", align: "right" },
       { label: "Jumlah", align: "right" },
       { label: "Tgl Jth Tempo", align: "center" },
@@ -618,7 +618,7 @@ export default function PembayaranPenerimaan() {
                   <th style={{ width: 34, textAlign: "center", padding: "6px 2px" }}>NO</th>
                   <th style={{ width: "24%", minWidth: 120, padding: "6px 6px" }}>Nama PBF</th>
                   <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Tgl Faktur</th>
-                  <th style={{ width: 90, padding: "6px 3px" }}>Nomor Faktur</th>
+                  <th style={{ width: 90, padding: "6px 3px" }}>NO FAKTUR</th>
                   <th style={{ width: 85, textAlign: "right", padding: "6px 4px" }}>Besar Uang</th>
                   <th style={{ width: 85, textAlign: "right", padding: "6px 4px" }}>Jumlah</th>
                   <th style={{ width: 68, textAlign: "center", padding: "6px 2px" }}>Tgl Jth Tempo</th>
