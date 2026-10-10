@@ -339,7 +339,7 @@ export default function StokOpname() {
     });
   }
 
-  // Koreksi langsung stok via dialog mini tanpa data tambahan
+  // Koreksi langsung kolom STOK via dialog mini tanpa data tambahan
   async function handleSimpanKoreksiModal() {
     if (!modalKoreksiObat) return;
     const angka = Number(inputStokCepat);
@@ -352,6 +352,11 @@ export default function StokOpname() {
     setError("");
     setSukses("");
 
+    // SISA fisik baru di database = Kolom STOK baru + MASUK - KELUAR
+    const masuk = Number(modalKoreksiObat.masuk || 0);
+    const keluar = Number(modalKoreksiObat.keluar || 0);
+    const stokFisikBaru = Math.max(angka + masuk - keluar, 0);
+
     try {
       await api("/obat/opname", {
         method: "POST",
@@ -359,7 +364,7 @@ export default function StokOpname() {
           items: [
             {
               obat_id: modalKoreksiObat.id,
-              stok_fisik: angka,
+              stok_fisik: stokFisikBaru,
             },
           ],
         }),
@@ -367,23 +372,23 @@ export default function StokOpname() {
 
       const targetId = modalKoreksiObat.id;
       const targetNama = modalKoreksiObat.nama;
-      const selisih = angka - (modalKoreksiObat.sisa ?? modalKoreksiObat.stok ?? 0);
 
       setDaftarObat((prev) =>
         prev.map((item) => {
           if (item.id !== targetId) return item;
-          const stokBaru = Math.max(item.stok + selisih, 0);
-          const sisaBaru = Math.max(angka, 0);
+          const stokBaru = angka;
+          const jmlBaru = stokBaru + item.masuk;
+          const sisaBaru = Math.max(jmlBaru - item.keluar, 0);
           return {
             ...item,
             stok: stokBaru,
-            jml: stokBaru + item.masuk,
+            jml: jmlBaru,
             sisa: sisaBaru,
           };
         })
       );
       setModalKoreksiObat(null);
-      setSukses(`Stok "${targetNama}" berhasil dikoreksi menjadi ${angka}.`);
+      setSukses(`Kolom STOK "${targetNama}" berhasil dikoreksi menjadi ${angka}.`);
     } catch (err) {
       setError("Gagal menyimpan koreksi stok: " + (err.message || ""));
     } finally {
@@ -792,7 +797,7 @@ export default function StokOpname() {
                             type="button"
                             onClick={() => {
                               setModalKoreksiObat(ob);
-                              setInputStokCepat(String(ob.sisa ?? ob.stok ?? 0));
+                              setInputStokCepat(String(ob.stok ?? 0));
                             }}
                             title="Koreksi langsung angka stok"
                             style={{
@@ -925,14 +930,14 @@ export default function StokOpname() {
             }}
           >
             <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-              Koreksi Stok Obat
+              Koreksi Kolom STOK
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--magenta, #7E22CE)", marginBottom: 14 }}>
               {modalKoreksiObat.nama}
             </div>
 
             <label style={{ fontSize: 12, fontWeight: 700, color: "#475569", display: "block", marginBottom: 6 }}>
-              Stok Nyata Saat Ini ({modalKoreksiObat.satuan_dasar || "Unit"}):
+              Angka Kolom STOK ({modalKoreksiObat.satuan_dasar || "Unit"}):
             </label>
             <input
               type="number"
